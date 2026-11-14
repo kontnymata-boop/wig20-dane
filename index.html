@@ -33,7 +33,9 @@
 .fdots{display:inline-flex;gap:3px}
 .fdots i{width:9px;height:9px;border-radius:50%;background:var(--border)}
 .fdots i.on{background:var(--text)}
-.fund-intro{margin:0 0 8px;font-size:15px}
+.fund-intro{margin:0 0 6px;font-size:15px}
+.fund-about{margin:0 0 10px;font-size:14.5px;line-height:1.5;color:var(--text-2)}
+.fund-about b{color:var(--text)}
 .flines{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
 .flines li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.45}
 .flines .fi{flex:0 0 20px;height:20px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;border:1px solid var(--border);background:var(--page);color:var(--text-2)}
@@ -318,7 +320,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.3 (14.11.2026)';
+const APP_VERSION = '2.4 (14.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -1353,12 +1355,13 @@ function fundCardHTML(t){
   return `<section class="card fund" id="fundCard">
     <div class="fund-head"><h3 class="sec">Kondycja spółki</h3>${g?`<span class="fgrade" title="Ocena ${g.pts} z ${g.max} pkt">${fdots(g.lvl)} ${esc(g.lbl)}</span>`:'<span class="small">za mało danych do oceny</span>'}</div>
     <p class="fund-intro">${esc(f.intro||'')}</p>
+    ${f.info&&f.info.opis?`<p class="fund-about"><b>Czym się zajmuje:</b> ${esc(f.info.opis)}${f.info.opisSrc==='auto'?' <span class="small">(tłumaczenie automatyczne)</span>':''}</p>`:''}
     ${(f.lines||[]).length?`<ul class="flines">${f.lines.map(l=>li(l,false)).join('')}${(f.extra||[]).map(l=>li(l,true)).join('')}</ul>`:''}
     ${tiles?`<div class="fmetrics">${tiles}</div>`:''}
     ${tables?`<details><summary>Wyniki finansowe – lata i kwartały</summary><div class="tbl-scroll">${tables}</div>${cur&&cur!=='PLN'?`<p class="note">Spółka raportuje w ${esc(cur)}.</p>`:''}</details>`:''}
-    ${f.info&&f.info.desc?`<details><summary>Czym zajmuje się spółka (opis po angielsku)</summary><p class="fdesc">${esc(f.info.desc)}${f.info.desc.length>=900?'…':''}</p>${f.info.web?`<p class="fdesc">Strona: ${esc(f.info.web)}</p>`:''}</details>`:''}
+    ${f.info&&!f.info.opis&&f.info.desc?`<details><summary>Czym zajmuje się spółka (opis po angielsku – brak polskiego)</summary><p class="fdesc">${esc(f.info.desc)}${f.info.desc.length>=900?'…':''}</p></details>`:''}
     <details><summary>Jak oceniam kondycję?</summary><p class="fdesc">Każdy z punktów dostaje 0–2 punkty: rentowność (marża netto), zwrot z kapitału (ROE), zmiana przychodów i zysku netto w ostatnim kwartale rok do roku, zadłużenie (dług netto do EBITDA), płynność bieżąca i wolne przepływy pieniężne. W bankach i u ubezpieczycieli liczą się tylko cztery pierwsze. Odsetek zdobytych punktów daje ocenę: bardzo słaba, słaba, przeciętna, dobra albo bardzo dobra. Znak + oznacza mocną stronę, − słabą, • stan neutralny. Wycena i zdanie analityków są tylko informacją – nie wpływają na ocenę.</p></details>
-    <p class="note">Dane finansowe: ${esc(f.src||'Yahoo Finance')}${f.asof?', ostatni raport za okres do '+dPL(f.asof):''}${upd?', pobrane '+fmtDataTime(f.upd):''}. Ocena jest uproszczona i mechaniczna – przed decyzją przeczytaj raporty spółki.</p>
+    <p class="note">${f.info&&f.info.web?'Strona spółki: '+esc(f.info.web)+'. ':''}Dane finansowe: ${esc(f.src||'Yahoo Finance')}${f.asof?', ostatni raport za okres do '+dPL(f.asof):''}${upd?', pobrane '+fmtDataTime(f.upd):''}. Ocena jest uproszczona i mechaniczna – przed decyzją przeczytaj raporty spółki.</p>
   </section>`;
 }
 async function ensureIntraday(t){
@@ -1629,7 +1632,7 @@ function renderHelp(){
   <h3>Top 3 – największy potencjał wzrostowy</h3>
   <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku, a kondycja finansowa jest co najmniej przeciętna (lepsza kondycja daje więcej punktów). Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
   <h3>Kondycja spółki</h3>
-  <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), krótki opis po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3 i wpływa na ranking.</p>
+  <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), opis działalności, krótki opis kondycji po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane finansowe pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3 i wpływa na ranking.</p>
   <h3>Filtry i lista</h3>
   <ul>
     <li><b>★ Obserwowane</b> – Twoja lista; gwiazdkę klikasz przy spółce na liście albo w jej szczegółach.</li>
