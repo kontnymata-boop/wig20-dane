@@ -9,7 +9,7 @@ on:
   # od razu po zmianie automatu (np. przy wgraniu nowej wersji)
   push:
     branches: [main]
-    paths: ['scripts/**', '.github/workflows/**']
+    paths: ['scripts/**', '.github/workflows/**', 'index.html']
   workflow_dispatch:
     inputs:
       full:

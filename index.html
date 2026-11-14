@@ -27,6 +27,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
+.lowliq{color:var(--text-2);font-weight:600}
 html,body{margin:0;background:var(--page);color:var(--text)}
 body{font-size:15px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -464,7 +465,7 @@ function analyze(B,P,opts={}){
     levels={entry:pos.entry, stop:pos.stop, target:pos.target};
   } else if(pos){
     const age=L-pos.sigIdx, run=(c[L]-pos.entry)/atrL;
-    status = (age<=3 && run<1) ? 'KUP' : 'TRZYMAJ';
+    status = (age<=3 && run<1 && S.score>=P.minScore) ? 'KUP' : 'TRZYMAJ';
     info={kind: status==='KUP'?'freshbuy':'hold', sigIdx:pos.sigIdx, entryIdx:pos.entryIdx, reasons:pos.reasonsIn, trade:openTrade, age};
     levels={entry:pos.entry, stop:pos.stop, target:pos.target};
   } else {
@@ -875,12 +876,12 @@ function renderList(){
     const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, lv=S.lv||{}, ch=itChange(it);
     const stale=(Date.now()-new Date(it.d+'T18:00:00').getTime())/864e5>5;
     const levels = lv.stop!=null ? `<span class="small">Stop</span> <b class="num">${fmt(lv.stop)}</b><br><span class="small">Cel</span> <span class="num">${fmt(lv.target)}</span>`
-      : lv.breakout!=null ? `<span class="small">Wybicie</span> <b class="num">${fmt(lv.breakout)}</b><br><span class="small">Wsparcie</span> <span class="num">${fmt(lv.support)}</span>` : '<span class="small">–</span>';
+      : lv.breakout!=null ? `<span class="small">Wybicie</span> <b class="num">${fmt(lv.breakout)}</b><br><span class="small">Wsparcie</span> <span class="num">${fmt(lv.support)}</span>` : `<span class="small">${S.st==='BRAK'?'za krótka historia notowań':'–'}</span>`;
     const star=state.watch.has(it.t);
     return `<div class="row${state.flash.has(it.t)?' flash':''}" data-t="${esc(it.t)}">
       <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
       <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div><div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div></div>
-      <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div><div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div></div>
+      <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>${it.obr!=null && it.obr<5e4 ? `<div class="small lowliq" title="Średni dzienny obrót z 20 sesji poniżej 50 tys. zł – sygnały mniej wiarygodne, trudno kupić/sprzedać po podanej cenie">⚠ obr. ${fmtVol(it.obr)} zł</div>` : `<div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div>`}</div>
       <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
       <div class="meter"><div class="track"><div class="fill" style="width:${S.sc||0}%"></div></div><b>${S.sc!=null?S.sc+'/100':'–'}</b></div>
       <div>${ichiChipsSum(it)}</div>
