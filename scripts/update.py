@@ -2,7 +2,8 @@
 """
 RadMat · Sygnały GPW – robot pobierający notowania (GitHub Actions)
 
-Dla wszystkich spółek rynku głównego GPW (scripts/companies.json) pobiera z Yahoo Finance:
+Dla wszystkich spółek rynku głównego GPW (scripts/companies.json) oraz NewConnect i nowych debiutów
+(lista z wyszukiwarki akcji Yahoo, odświeżana raz na dobę) pobiera z Yahoo Finance:
   • notowania dzienne – pełne 10 lat raz dziennie (po sesji), w ciągu sesji tylko ostatnie dni,
   • notowania godzinowe – do wykresów Ichimoku 1 godz.
 Wynik trafia do folderu STORE (gałąź `data` repozytorium):
@@ -122,6 +123,54 @@ def yahoo_search(name):
     return None, None
 
 
+def yahoo_crumb():
+    s = session()
+    c = getattr(_local, "crumb", None)
+    if c:
+        return c
+    try:
+        s.get("https://fc.yahoo.com", timeout=20)
+    except Exception:
+        pass
+    c = s.get("https://query1.finance.yahoo.com/v1/test/getcrumb", timeout=20).text.strip()
+    if not c or "<" in c or len(c) > 40:
+        raise RuntimeError("brak crumb")
+    _local.crumb = c
+    return c
+
+
+def clean_name(n):
+    import re
+    n = (n or "").strip()
+    n = n.replace("Spólka", "Spółka").replace("Spolka", "Spółka")
+    for _ in range(2):
+        n = re.sub(r"[\s,]+(S\.?\s?A\.?|SA|Spółka Akcyjna|SE|N\.V\.|AB \(publ\)|AS|plc|Inc\.?|w restrukturyzacji|w upadłości)$", "", n, flags=re.I).strip()
+    return n
+
+
+def yahoo_wse_list():
+    """Wszystkie akcje notowane w Warszawie wg wyszukiwarki Yahoo: rynek główny (XWAR) i NewConnect (XNCO)."""
+    out, off = [], 0
+    while off < 3000:
+        body = {"offset": off, "size": 250, "sortField": "ticker", "sortType": "ASC", "quoteType": "EQUITY",
+                "query": {"operator": "and", "operands": [{"operator": "eq", "operands": ["exchange", "WSE"]}]},
+                "userId": "", "userIdType": "guid"}
+        r = session().post("https://query2.finance.yahoo.com/v1/finance/screener",
+                           params={"crumb": yahoo_crumb(), "lang": "en-US", "region": "US", "formatted": "false"}, json=body, timeout=30)
+        r.raise_for_status()
+        res = ((r.json().get("finance") or {}).get("result") or [{}])[0]
+        q = res.get("quotes") or []
+        for x in q:
+            sym, sn = x.get("symbol") or "", x.get("shortName") or ""
+            mk = "XNCO" if "XNCO" in sn else "XWAR" if "XWAR" in sn else None
+            if mk and sym.endswith(".WA"):
+                out.append({"t": sym[:-3], "y": sym, "n": clean_name(x.get("longName") or sym[:-3]), "nc": mk == "XNCO"})
+        if len(q) < 250:
+            break
+        off += 250
+    return out
+
+
 def day_key(t, off, intraday):
     if intraday:
         return t
@@ -207,6 +256,28 @@ def main():
         if r and r.get("y") and r["y"] not in known:
             cfg.append({"t": r["y"][:-3], "y": r["y"], "n": name, "alts": [], "w20": False})
             known.add(r["y"])
+    # NewConnect i nowe spółki rynku głównego – lista z wyszukiwarki akcji Yahoo (raz na dobę, w trybie pełnym)
+    disc = prev.get("disc") or []
+    if full or not disc:
+        try:
+            fresh = yahoo_wse_list()
+            if len(fresh) > 300:
+                disc = fresh
+            print(f"Lista Yahoo: {len(fresh)} akcji (NewConnect: {sum(1 for d in fresh if d['nc'])})")
+        except Exception as e:
+            print(f"Lista Yahoo nieudana ({e}) – używam zapamiętanej ({len(disc)})")
+    nc_set = {d["t"] for d in disc if d.get("nc")}
+    have_t = {c["t"] for c in cfg}
+    added = 0
+    for d in disc:
+        if d["y"] in known or d["t"] in have_t:
+            continue
+        cfg.append({"t": d["t"], "y": d["y"], "n": d["n"], "alts": [], "w20": False, "nc": bool(d.get("nc"))})
+        known.add(d["y"]); have_t.add(d["t"]); added += 1
+    for c in cfg:
+        if c["t"] in nc_set:
+            c["nc"] = True
+    print(f"Spółki: {len(cfg)} (dodane z listy Yahoo: {added}, NewConnect: {sum(1 for c in cfg if c.get('nc'))})")
     entities = [INDEX] + cfg
     if args.limit:
         entities = entities[: args.limit]
@@ -215,7 +286,7 @@ def main():
         t = e["t"]
         path = os.path.join(store, "d", f"{t}.json")
         old = load(path)
-        info = {"t": t, "n": e["n"], "y": e["y"], "w20": bool(e.get("w20")), "idx": bool(e.get("idx"))}
+        info = {"t": t, "n": e["n"], "y": e["y"], "w20": bool(e.get("w20")), "idx": bool(e.get("idx")), "nc": bool(e.get("nc"))}
         min_len = 300 if e.get("idx") else 30
         try:
             if old and not full and old.get("sym") and age_days(old) < 20:
@@ -296,7 +367,7 @@ def main():
         sys.exit(1)
     uni = {"ok": True, "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "lastFull": now_w.isoformat(timespec="minutes") if full else last_full,
-           "mode": "full" if full else "quick", "resolved": resolved, "items": infos}
+           "mode": "full" if full else "quick", "resolved": resolved, "disc": disc, "items": infos}
     dump(os.path.join(store, "universe.json"), uni)
 
     # zgodność ze starszą wersją aplikacji (WIG20 Sygnały 1.3)

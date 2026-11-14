@@ -570,6 +570,7 @@ def main():
     cache_path = os.path.join(a.store, "tlumaczenia.json")
     tcache = load(cache_path) or {}
     tlock = threading.Lock()
+    tl_state = {"off": False}
 
     def opis_for(t, qs):
         if opisy.get(t):
@@ -581,10 +582,13 @@ def main():
         with tlock:
             if key in tcache:
                 return tcache[key], "auto"
+        if tl_state["off"]:
+            return None, None
         try:
             tr = translate_en_pl(desc)
         except Exception as e:
-            print(f"  {t}: brak tłumaczenia ({e})", file=sys.stderr)
+            tl_state["off"] = True        # limit tłumaczeń na dziś wyczerpany – spróbuję przy kolejnym uruchomieniu
+            print(f"  {t}: brak tłumaczenia ({e}) – wstrzymuję tłumaczenia do następnego uruchomienia", file=sys.stderr)
             return None, None
         with tlock:
             tcache[key] = tr
