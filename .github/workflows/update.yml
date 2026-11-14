@@ -68,5 +68,8 @@ jobs:
           git add data
           if git diff --cached --quiet; then echo "Bez zmian"; exit 0; fi
           git commit -qm "Notowania WIG20 $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull -q --rebase --autostash || true
-          git push -q
+          for i in 1 2 3 4; do
+            git pull -q --rebase --autostash && git push -q && exit 0
+            sleep $((i*5))
+          done
+          echo 'Nie udało się zapisać pliku zgodności – spróbuję przy następnym uruchomieniu'
