@@ -27,6 +27,29 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
+.fund-head{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
+.fund-head h3{margin:0}
+.fgrade{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;padding:4px 12px 4px 10px;font-weight:700;font-size:14px;background:var(--page)}
+.fdots{display:inline-flex;gap:3px}
+.fdots i{width:9px;height:9px;border-radius:50%;background:var(--border)}
+.fdots i.on{background:var(--text)}
+.fund-intro{margin:0 0 8px;font-size:15px}
+.flines{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.flines li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.45}
+.flines .fi{flex:0 0 20px;height:20px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;border:1px solid var(--border);background:var(--page);color:var(--text-2)}
+.flines .fi.p{color:var(--pos-text);border-color:currentColor}
+.flines .fi.n{color:var(--neg-text);border-color:currentColor}
+.flines li.x{color:var(--text-2)}
+.fmetrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:4px 0 10px}
+.fmetrics div{background:var(--page);border:1px solid var(--border);border-radius:10px;padding:7px 10px}
+.fmetrics .k{font-size:12px;color:var(--text-2)}
+.fmetrics .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px}
+.fund details{margin-top:8px}
+.fund details summary{font-weight:600;font-size:14px;padding:4px 0}
+.fund .t td,.fund .t th{white-space:nowrap}
+.fdesc{font-size:13.5px;color:var(--text-2);line-height:1.5;margin:6px 0 0}
+.tc-fund{font-size:12.5px;display:flex;align-items:center;gap:6px;color:var(--text-2)}
+.tc-fund b{color:var(--text)}
 .top3{margin:0 0 12px}
 .top-head{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-bottom:10px}
 .top-head h2{font-size:17px;margin:0;font-weight:700}
@@ -295,7 +318,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.1 (14.11.2026)';
+const APP_VERSION = '2.2 (14.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -688,7 +711,7 @@ const state={
   settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
   filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE, topHow:false,
   busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
-  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, viewCache:{}, legendKey:null, autoBackoffUntil:0
+  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, legendKey:null, autoBackoffUntil:0
 };
 function loadSettings(){
   const s=Object.assign({}, DEFAULT_SETTINGS, store.get(LS_SET,{}));
@@ -900,6 +923,7 @@ function topCard(x,i){
       <div><span class="small">Zysk / ryzyko</span><b>${fmt(p.rr,1)}</b><span class="small">siła ${S.sc}/100</span></div>
     </div>
     <div class="tc-row">${ichiChipsSum(it)}<span class="small">RSI ${S.rsi!=null?fmt(S.rsi,0):'–'}</span></div>
+    ${it.fk?`<div class="tc-fund">Kondycja finansowa: <b>${esc(it.fk.n)}</b> ${fdots(it.fk.l)}</div>`:''}
     <div class="tc-note">${why}<br>Ten system na tej spółce (ok. 5 lat): ${btTxt}.</div>
   </div>`;
 }
@@ -1150,6 +1174,7 @@ function openDetail(t, keepScroll){
       ${ichiSignalLine(A)}${potLine(state.detail)}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
+    ${fundCardHTML(t)}
     <section class="card">
       <div class="chart-tools" id="chartTools"></div>
       <div class="legend" id="chartLegend"></div>
@@ -1201,6 +1226,7 @@ function openDetail(t, keepScroll){
   el.hidden=false; document.body.style.overflow='hidden';
   bindDetail();
   requestAnimationFrame(()=>{ drawDetailChart(); if(keepScroll) el.scrollTop=sc; else el.scrollTop=0; if(state.tf==='H') ensureIntraday(t).then(()=>{ if(state.detail===t) drawDetailChart(); }); });
+  ensureFund(t);
 }
 function closeDetail(){ $('#detail').hidden=true; document.body.style.overflow=''; state.detail=null; }
 function bindDetail(){
@@ -1271,6 +1297,61 @@ async function selectTf(k){
   state.tf=k; state.settings.tf=k; saveSettings(); resetHover(); renderChartTools();
   if(k==='H'){ drawDetailChart(); await ensureIntraday(state.detail); }
   drawDetailChart();
+}
+/* ---------------- Kondycja spółki (dane finansowe) ---------------- */
+function fmtMoney(x,cur){
+  if(x==null||!isFinite(x)) return '–';
+  const a=Math.abs(x); let v=x,u='';
+  if(a>=1e9){v=x/1e9;u=' mld';} else if(a>=1e6){v=x/1e6;u=' mln';} else if(a>=1e3){v=x/1e3;u=' tys.';}
+  return fmt(v,Math.abs(v)<100?1:0)+u+(!cur||cur==='PLN'?' zł':' '+cur);
+}
+function fdots(l){ return `<span class="fdots" aria-hidden="true">${[0,1,2,3,4].map(i=>`<i class="${i<=l?'on':''}"></i>`).join('')}</span>`; }
+async function ensureFund(t, force){
+  const co=companyByT(t); if(!co||co.isIndex) return;
+  const x=state.fund[t];
+  if(x && !force && Date.now()-x.at<6*3600e3){ return; }
+  try{
+    const j=JSON.parse(await fetchText(feedBase()+'f/'+encodeURIComponent(t)+'.json?'+minuteTag(),30000));
+    state.fund[t]={at:Date.now(), f:j};
+  }catch(e){ state.fund[t]={at:Date.now(), err:/404/.test(e.message)?'nf':String(e.message).slice(0,140)}; }
+  if(state.detail===t){ const card=$('#fundCard'); if(card) card.outerHTML=fundCardHTML(t); }
+}
+function fundCardHTML(t){
+  const co=companyByT(t); if(!co||co.isIndex) return '';
+  const it=state.sum[t]; if(it&&/^ETF/i.test(it.y||'')) return `<section class="card fund" id="fundCard"><h3 class="sec">Kondycja spółki</h3><p class="small">To fundusz ETF – ocena kondycji finansowej dotyczy tylko spółek.</p></section>`;
+  const x=state.fund[t];
+  if(!x) return `<section class="card fund" id="fundCard"><h3 class="sec">Kondycja spółki</h3><p class="small">Wczytuję dane finansowe…</p></section>`;
+  if(x.err) return `<section class="card fund" id="fundCard"><h3 class="sec">Kondycja spółki</h3><p class="small">${x.err==='nf'?'Brak danych finansowych dla tej spółki. Robot pobiera je raz na dobę – zajrzyj później.':'Nie udało się wczytać danych finansowych: '+esc(x.err)}</p></section>`;
+  const f=x.f, m=f.m||{}, cur=f.cur, g=f.grade;
+  if(!f.ok) return `<section class="card fund" id="fundCard"><h3 class="sec">Kondycja spółki</h3><p class="small">Yahoo Finance nie udostępnia danych finansowych tej spółki, więc nie mogę ocenić jej kondycji.</p></section>`;
+  const ic={1:['p','+'],0:['','•'],'-1':['n','−']};
+  const li=(l,extra)=>{ const k=ic[l.s]||['','•']; return `<li class="${extra?'x':''}"><span class="fi ${k[0]}" aria-hidden="true">${extra?'i':k[1]}</span><span>${esc(l.txt)}</span></li>`; };
+  const tile=(k,v)=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const tiles=[
+    m.mcap?tile('Kapitalizacja',fmtMoney(m.mcap,'PLN')):'',
+    m.rev!=null?tile('Przychody (12 mies.)',fmtMoney(m.rev,cur)):'',
+    m.ni!=null?tile('Zysk netto (12 mies.)',`<span class="${cls(m.ni)}">${fmtMoney(m.ni,cur)}</span>`):'',
+    m.margin!=null?tile('Marża netto',pct(m.margin,1).replace('+','')):'',
+    m.roe!=null?tile('ROE',pct(m.roe,1).replace('+','')):'',
+    !f.fin&&m.nde!=null?tile('Dług netto / EBITDA',fmt(m.nde,1)+'×'):(!f.fin&&m.nd!=null&&m.nd<=0?tile('Dług netto','gotówka netto'):''),
+    !f.fin&&m.cr!=null?tile('Płynność bieżąca',fmt(m.cr,2)):'',
+    m.pe!=null&&m.pe>0?tile('C/Z',fmt(m.pe,1)):'',
+    m.pb!=null&&m.pb>0?tile('C/WK',fmt(m.pb,2)):'',
+    m.dy?tile('Stopa dywidendy',pct(m.dy,1).replace('+','')):''
+  ].join('');
+  const rows=(arr,lbl)=>arr&&arr.length?`<table class="t"><tr><th style="text-align:left">${lbl}</th><th>Przychody</th><th>Zysk netto</th><th>Marża</th></tr>${arr.map(r=>`<tr><td style="text-align:left">${esc(r.p)}</td><td>${fmtMoney(r.rev,cur)}</td><td class="${cls(r.ni)}">${fmtMoney(r.ni,cur)}</td><td>${r.rev&&r.ni!=null&&r.rev>0?pct(r.ni/r.rev,1).replace('+',''):'–'}</td></tr>`).join('')}</table>`:'';
+  const tables=rows(f.years,'Rok obrotowy')+rows(f.quarters,'Kwartał');
+  const upd=Date.parse(f.upd);
+  return `<section class="card fund" id="fundCard">
+    <div class="fund-head"><h3 class="sec">Kondycja spółki</h3>${g?`<span class="fgrade" title="Ocena ${g.pts} z ${g.max} pkt">${fdots(g.lvl)} ${esc(g.lbl)}</span>`:'<span class="small">za mało danych do oceny</span>'}</div>
+    <p class="fund-intro">${esc(f.intro||'')}</p>
+    ${(f.lines||[]).length?`<ul class="flines">${f.lines.map(l=>li(l,false)).join('')}${(f.extra||[]).map(l=>li(l,true)).join('')}</ul>`:''}
+    ${tiles?`<div class="fmetrics">${tiles}</div>`:''}
+    ${tables?`<details><summary>Wyniki finansowe – lata i kwartały</summary><div class="tbl-scroll">${tables}</div>${cur&&cur!=='PLN'?`<p class="note">Spółka raportuje w ${esc(cur)}.</p>`:''}</details>`:''}
+    ${f.info&&f.info.desc?`<details><summary>Czym zajmuje się spółka (opis po angielsku)</summary><p class="fdesc">${esc(f.info.desc)}${f.info.desc.length>=900?'…':''}</p>${f.info.web?`<p class="fdesc">Strona: ${esc(f.info.web)}</p>`:''}</details>`:''}
+    <details><summary>Jak oceniam kondycję?</summary><p class="fdesc">Każdy z punktów dostaje 0–2 punkty: rentowność (marża netto), zwrot z kapitału (ROE), zmiana przychodów i zysku netto w ostatnim kwartale rok do roku, zadłużenie (dług netto do EBITDA), płynność bieżąca i wolne przepływy pieniężne. W bankach i u ubezpieczycieli liczą się tylko cztery pierwsze. Odsetek zdobytych punktów daje ocenę: bardzo słaba, słaba, przeciętna, dobra albo bardzo dobra. Znak + oznacza mocną stronę, − słabą, • stan neutralny. Wycena i zdanie analityków są tylko informacją – nie wpływają na ocenę.</p></details>
+    <p class="note">Dane finansowe: ${esc(f.src||'Yahoo Finance')}${f.asof?', ostatni raport za okres do '+dPL(f.asof):''}${upd?', pobrane '+fmtDataTime(f.upd):''}. Ocena jest uproszczona i mechaniczna – przed decyzją przeczytaj raporty spółki.</p>
+  </section>`;
 }
 async function ensureIntraday(t){
   if(!t) return; const x=state.intra[t];
@@ -1539,6 +1620,8 @@ function renderHelp(){
   <p>Notowania wszystkich spółek rynku głównego GPW pobiera automat na GitHubie (z Yahoo Finance): co 30 minut w trakcie sesji oraz pełne dane po jej zamknięciu. Aplikacja czyta gotowy plik, więc działa jako zwykły plik HTML – na komputerze i na telefonie. Przycisk <b>⟳ Aktualizuj</b> pobiera najnowszy stan, a przy włączonej aktualizacji automatycznej aplikacja odświeża się sama (co 15 minut w trakcie sesji i po jej zamknięciu). W trakcie sesji widać bieżący kurs (opóźniony), a sygnały liczone są z zamkniętych sesji. Wykres i test strategii wczytują się po otwarciu spółki.</p>
   <h3>Top 3 – największy potencjał wzrostowy</h3>
   <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku. Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
+  <h3>Kondycja spółki</h3>
+  <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), krótki opis po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3.</p>
   <h3>Filtry i lista</h3>
   <ul>
     <li><b>★ Obserwowane</b> – Twoja lista; gwiazdkę klikasz przy spółce na liście albo w jej szczegółach.</li>

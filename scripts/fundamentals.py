@@ -92,6 +92,7 @@ INDUSTRIES = {
 }
 REC = {"strong_buy": "zdecydowanie kupuj", "buy": "kupuj", "hold": "trzymaj", "underperform": "słabiej od rynku",
        "sell": "sprzedaj", "strong_sell": "zdecydowanie sprzedaj"}
+FVER = 2  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
 LEVELS = ["bardzo słaba", "słaba", "przeciętna", "dobra", "bardzo dobra"]
 
 _local = threading.local()
@@ -117,6 +118,13 @@ def money(x, cur):
         v, u = x, ""
     d = 1 if abs(v) < 100 else 0
     return fnum(v, d) + u + (" zł" if cur in (None, "PLN") else " " + cur)
+
+
+def plural(n, one, few, many):
+    n = int(n)
+    if n == 1:
+        return one
+    return few if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else many
 
 
 def pct(x, d=1, sign=True):
@@ -303,7 +311,10 @@ def assess(t, name, qs, S, price=None):
     # 1. rentowność
     if ni is not None and rev:
         mg = m["margin"]
-        if ni > 0:
+        if ni > 0 and mg is not None and mg > 1:
+            add("zysk", 1, f"W ostatnich 12 miesiącach zysk netto ({money(ni, cur)}) był większy niż przychody ({money(rev, cur)}) – "
+                           "to zwykle efekt zdarzeń jednorazowych, więc rentowność trudno ocenić.")
+        elif ni > 0:
             add("zysk", 2 if mg is not None and mg >= 0.08 else 1,
                 f"Jest rentowna: w ostatnich 12 miesiącach zarobiła {money(ni, cur)} netto przy przychodach {money(rev, cur)}"
                 + (f" (marża netto {pct(mg, 1, False)})." if mg is not None else "."))
@@ -358,8 +369,11 @@ def assess(t, name, qs, S, price=None):
                 add("dlug", 0, f"Ma dług netto {money(nd, cur)} przy ujemnym wyniku operacyjnym (EBITDA) – zadłużenie jest ryzykowne.")
             else:
                 x = m["nde"]
-                add("dlug", 2 if x <= 1.5 else 1 if x <= 3 else 0,
-                    f"Zadłużenie {'niskie' if x <= 1.5 else 'umiarkowane' if x <= 3 else 'wysokie'}: dług netto to {fnum(x, 1)}× roczna EBITDA ({money(nd, cur)}).")
+                if x < 0.05:
+                    add("dlug", 2, f"Praktycznie nie ma długu netto ({money(nd, cur)}).")
+                else:
+                  add("dlug", 2 if x <= 1.5 else 1 if x <= 3 else 0,
+                      f"Zadłużenie {'niskie' if x <= 1.5 else 'umiarkowane' if x <= 3 else 'wysokie'}: dług netto to {fnum(x, 1)}× roczna EBITDA ({money(nd, cur)}).")
         elif m["de"] is not None:
             x = m["de"]
             add("dlug", 2 if x < 0.5 else 1 if x < 1.5 else 0,
@@ -390,7 +404,7 @@ def assess(t, name, qs, S, price=None):
         val.append(f"C/Z {fnum(pe, 1)} ({'niski' if pe < 10 else 'umiarkowany' if pe <= 20 else 'wysoki'})")
     elif ni is not None and ni <= 0:
         val.append("C/Z nie do policzenia (strata)")
-    if m["pb"] is not None and m["pb"] > 0:
+    if m["pb"] is not None and m["pb"] >= 0.05:
         val.append(f"C/WK {fnum(m['pb'], 2)}")
     if m["dy"]:
         val.append(f"stopa dywidendy {pct(m['dy'], 1, False)}")
@@ -399,7 +413,8 @@ def assess(t, name, qs, S, price=None):
     if is_fin:
         extra.append({"k": "bank", "s": None, "txt": "W bankach i u ubezpieczycieli nie oceniam zadłużenia, płynności ani przepływów gotówki – w tej branży liczy się je inaczej."})
     if m["tgt"] and (m["nAn"] or 0) >= 2:
-        txt = f"Analitycy ({int(m['nAn'])} opinii): średnia cena docelowa {fnum(m['tgt'], 2)} zł"
+        n_an = int(m['nAn'])
+        txt = f"Analitycy ({n_an} {plural(n_an, 'opinia', 'opinie', 'opinii')}): średnia cena docelowa {fnum(m['tgt'], 2)} zł"
         if price:
             txt += f" ({pct(m['tgt'] / price - 1, 0)} od obecnego kursu)"
         if m["rec"] in REC:
@@ -417,7 +432,7 @@ def assess(t, name, qs, S, price=None):
         intro += f"; {size} (kapitalizacja {money(mc, 'PLN')})"
     emp = raw(ap, "fullTimeEmployees") or ap.get("fullTimeEmployees")
     if isinstance(emp, (int, float)) and emp > 0:
-        intro += f", ok. {fnum(emp, 0) if emp < 1000 else fnum(emp / 1000, 1 if emp < 10000 else 0) + ' tys.'} pracowników"
+        intro += f", ok. {fnum(emp, 0) if emp < 10000 else fnum(emp / 1000, 0) + ' tys.'} {plural(emp, 'pracownik', 'pracowników', 'pracowników')}"
     intro += "."
 
     years = []
@@ -433,7 +448,7 @@ def assess(t, name, qs, S, price=None):
 
     has_any = bool(lines or extra or years)
     out = {
-        "t": t, "ok": has_any, "upd": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "t": t, "v": FVER, "ok": has_any, "upd": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "src": "Yahoo Finance", "cur": cur, "asof": asof, "fin": is_fin,
         "intro": intro, "grade": grade, "lines": lines, "extra": extra, "years": years, "quarters": quarters,
         "info": {"sector": sector_en or None, "industry": industry_en or None, "branza": branza,
@@ -491,7 +506,7 @@ def main():
                 age = (now - datetime.strptime(f["upd"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp()) / 3600
             except Exception:
                 age = None
-        if a.only or age is None or age >= a.max_age:
+        if a.only or age is None or age >= a.max_age or f.get("v") != FVER:
             todo.append(it)
     if a.limit:
         todo = todo[:a.limit]
