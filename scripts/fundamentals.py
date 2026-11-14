@@ -9,6 +9,7 @@ Zapisuje STORE/f/<SKRÓT>.json: wskaźniki, ocenę kondycji (0–4) i opis po po
 Dane odświeża, gdy są starsze niż --max-age godzin (domyślnie 20), więc w ciągu dnia robot ich nie pobiera ponownie.
 """
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -92,7 +93,7 @@ INDUSTRIES = {
 }
 REC = {"strong_buy": "zdecydowanie kupuj", "buy": "kupuj", "hold": "trzymaj", "underperform": "słabiej od rynku",
        "sell": "sprzedaj", "strong_sell": "zdecydowanie sprzedaj"}
-FVER = 3  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
+FVER = 4  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
 LEVELS = ["bardzo słaba", "słaba", "przeciętna", "dobra", "bardzo dobra"]
 
 _local = threading.local()
@@ -217,7 +218,7 @@ def r_inflated(m):
     return m.get("roe") is not None and m["roe"] >= 0.3 and m.get("de") is not None and m["de"] > 3
 
 
-def assess(t, name, qs, S, price=None, fx=None):
+def assess(t, name, qs, S, price=None, fx=None, opis=None, opis_src=None):
     """qs – wynik quoteSummary (dict modułów), S – szeregi {typ: [{d,cur,v}]}; zwraca rekord f/<t>.json"""
     ap, sd, fd, ks = (qs.get(k) or {} for k in ("assetProfile", "summaryDetail", "financialData", "defaultKeyStatistics"))
 
@@ -469,10 +470,42 @@ def assess(t, name, qs, S, price=None, fx=None):
         "src": "Yahoo Finance", "cur": cur, "asof": asof, "fin": is_fin,
         "intro": intro, "grade": grade, "lines": lines, "extra": extra, "years": years, "quarters": quarters,
         "info": {"sector": sector_en or None, "industry": industry_en or None, "branza": branza,
-                 "web": ap.get("website"), "desc": (ap.get("longBusinessSummary") or "")[:900] or None},
+                 "web": ap.get("website"), "opis": opis, "opisSrc": opis_src if opis else None,
+                 "desc": None if opis else ((ap.get("longBusinessSummary") or "")[:900] or None)},
         "m": {k: (round(v, 4) if isinstance(v, float) and abs(v) < 1e4 else v) for k, v in m.items() if k not in ("niQ",)},
     }
     return out
+
+
+# ---------------------------------------------------------------- opisy po polsku
+OPISY_PL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "opisy_pl.json")
+
+
+def chunks(text, limit=450):
+    import re
+    parts, cur = [], ""
+    for sent in re.split(r"(?<=[.!?])\s+", text.strip()):
+        if len(cur) + len(sent) + 1 > limit and cur:
+            parts.append(cur)
+            cur = ""
+        cur = (cur + " " + sent).strip()
+    if cur:
+        parts.append(cur)
+    return [p[:480] for p in parts]
+
+
+def translate_en_pl(text):
+    """Awaryjne tłumaczenie automatyczne (MyMemory) – tylko dla spółek bez gotowego opisu po polsku."""
+    out = []
+    for part in chunks(text):
+        r = session().get("https://api.mymemory.translated.net/get", params={"q": part, "langpair": "en|pl"}, timeout=25)
+        j = r.json()
+        tr = ((j or {}).get("responseData") or {}).get("translatedText") or ""
+        if j.get("responseStatus") not in (200, "200") or not tr or "MYMEMORY WARNING" in tr.upper() or "QUERY LENGTH LIMIT" in tr.upper():
+            raise RuntimeError("tłumaczenie niedostępne")
+        out.append(tr.strip())
+        time.sleep(0.5)
+    return " ".join(out)
 
 
 # ---------------------------------------------------------------- program
@@ -505,9 +538,12 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--only", default="")
+    ap.add_argument("--test-translate", default="")
     a = ap.parse_args()
     if http is None:
         print("Brak curl_cffi – pomijam dane finansowe"); return 0
+    if a.test_translate:
+        print(translate_en_pl(a.test_translate)); return 0
     uni = load(os.path.join(a.store, "universe.json")) or {}
     items = [it for it in uni.get("items") or [] if it.get("ok") and not it.get("idx") and not str(it.get("sym") or "").upper().startswith("ETF")]
     if a.only:
@@ -530,6 +566,30 @@ def main():
     print(f"Dane finansowe: {len(items)} spółek, do odświeżenia {len(todo)}")
     if not todo:
         return 0
+    opisy = load(OPISY_PL) or {}
+    cache_path = os.path.join(a.store, "tlumaczenia.json")
+    tcache = load(cache_path) or {}
+    tlock = threading.Lock()
+
+    def opis_for(t, qs):
+        if opisy.get(t):
+            return opisy[t], "pl"
+        desc = ((qs.get("assetProfile") or {}).get("longBusinessSummary") or "")[:900]
+        if not desc:
+            return None, None
+        key = t + ":" + hashlib.md5(desc.encode("utf-8")).hexdigest()[:10]
+        with tlock:
+            if key in tcache:
+                return tcache[key], "auto"
+        try:
+            tr = translate_en_pl(desc)
+        except Exception as e:
+            print(f"  {t}: brak tłumaczenia ({e})", file=sys.stderr)
+            return None, None
+        with tlock:
+            tcache[key] = tr
+        return tr, "auto"
+
     rates, rlock = {}, threading.Lock()
 
     def fx(cur):
@@ -553,7 +613,8 @@ def main():
         t, sym = it["t"], it.get("sym") or it.get("y")
         try:
             qs, ts = fetch(sym)
-            rec = assess(t, it.get("n") or t, qs, ts, price=last_close(a.store, t), fx=fx)
+            op, src = opis_for(t, qs)
+            rec = assess(t, it.get("n") or t, qs, ts, price=last_close(a.store, t), fx=fx, opis=op, opis_src=src)
             dump(os.path.join(a.store, "f", t + ".json"), rec)
             with lock:
                 stats["ok" if rec["ok"] else "empty"] += 1
@@ -567,6 +628,9 @@ def main():
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=a.workers) as ex:
         list(ex.map(work, todo))
+    if tcache:
+        dump(cache_path, tcache)
+    print("Opisy po polsku:", sum(1 for it in todo if opisy.get(it["t"])), "gotowe,", len(tcache), "tłumaczeń automatycznych w pamięci")
     print("Kursy walut:", {k: v for k, v in rates.items()})
     print(f"Dane finansowe: zapisane {stats['ok']}, z oceną kondycji {stats['grade']}, puste {stats['empty']}, błędy {stats['err']} "
           f"({time.time() - t0:.0f} s)")

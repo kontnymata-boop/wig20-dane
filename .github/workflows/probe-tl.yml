@@ -1,0 +1,12 @@
+name: Próba tłumaczenia (tymczasowa)
+on: workflow_dispatch
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install "curl_cffi>=0.7"
+      - run: python scripts/fundamentals.py --test-translate "Mo-BRUK S.A. engages in the incineration of hazardous waste, including medical and industrial waste in Poland and internationally. The company is also involved in the production of alternative fuel from sorted municipal and industrial waste, used by cement plants. Mo-BRUK S.A. was founded in 1985 and is headquartered in Korzenna, Poland."
