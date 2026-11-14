@@ -203,7 +203,8 @@ def is_daily(x):
     ts = (x or {}).get("t") or []
     if len(ts) < 12:
         return True
-    gaps = sorted((b - a) / 86400 for a, b in zip(ts[-61:-1], ts[-60:]))
+    tail = ts[-61:]
+    gaps = sorted((b - a) / 86400 for a, b in zip(tail, tail[1:]))
     return gaps[len(gaps) // 2] <= 4
 
 
