@@ -8,7 +8,7 @@ Automat (GitHub Actions) pobiera z Yahoo Finance notowania wszystkich spółek r
 
 Dane trafiają do gałęzi **data** (zawsze jedna, bieżąca wersja – bez historii):
 
-- `summary.json` – sygnały (3 horyzonty), oceny Ichimoku D/T/M, kurs, obrót – dla listy spółek,
+- `summary.json` – sygnały (3 horyzonty), oceny Ichimoku D/T/M, kurs, obrót, ATR, przestrzeń do celu i ryzyko do stopu oraz wyniki systemu na spółce (dla rankingu Top 3) – dla listy spółek,
 - `d/<SKRÓT>.json` – notowania dzienne, `h/<SKRÓT>.json` – godzinowe,
 - `universe.json` – stan pobierania każdej spółki.
 
