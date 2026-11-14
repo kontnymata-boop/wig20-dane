@@ -93,7 +93,7 @@ INDUSTRIES = {
 }
 REC = {"strong_buy": "zdecydowanie kupuj", "buy": "kupuj", "hold": "trzymaj", "underperform": "słabiej od rynku",
        "sell": "sprzedaj", "strong_sell": "zdecydowanie sprzedaj"}
-FVER = 4  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
+FVER = 5  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
 LEVELS = ["bardzo słaba", "słaba", "przeciętna", "dobra", "bardzo dobra"]
 
 _local = threading.local()
