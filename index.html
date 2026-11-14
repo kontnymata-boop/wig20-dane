@@ -69,6 +69,9 @@
 .fld input{border:1px solid var(--border);background:var(--page);color:var(--text);border-radius:8px;padding:8px 10px;min-height:42px;font:inherit;font-weight:500;font-size:15px}
 .fld input:disabled{opacity:.7}
 .pf-err{color:var(--neg-text);font-weight:600;font-size:14px}
+.pf-saved{margin:10px 0 0;font-size:13px;color:var(--text-2)}
+.pf-warn{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);font-size:14px;font-weight:600}
+.pf-select{border:1px solid var(--border);background:var(--page);color:var(--text);border-radius:8px;padding:8px 10px;min-height:42px;font:inherit;max-width:100%}
 .pf-sell{border:1px dashed var(--border);border-radius:10px;padding:10px;background:var(--page)}
 .pf-empty h2{margin:0 0 6px}
 .pf-backup{margin:12px 0}
@@ -377,7 +380,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.5 (14.11.2026)';
+const APP_VERSION = '2.7 (14.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -1029,7 +1032,7 @@ function potLine(t){
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
 /* ================= MÓJ PORTFEL ================= */
-const LS_PF='radmat_gpw_portfel_v1', LS_TAB='radmat_gpw_tab';
+const LS_PF='radmat_gpw_portfel_v1', LS_TAB='radmat_gpw_tab', LS_PF_SNAP='radmat_gpw_portfel_kopie', LS_PF_DRAFT='radmat_gpw_portfel_szkic', LS_VIEW='radmat_gpw_widok';
 const HINT={
   sell:{lbl:'SPRZEDAJ', cls:'sell', icon:'▼', prio:0},
   warn:{lbl:'ROZWAŻ SPRZEDAŻ', cls:'watch', icon:'◐', prio:1},
@@ -1038,8 +1041,29 @@ const HINT={
   hold:{lbl:'TRZYMAJ', cls:'buy', icon:'▲', prio:4},
   na:{lbl:'BRAK DANYCH', cls:'wait', icon:'?', prio:5}
 };
-function pfLoad(){ const p=store.get(LS_PF,null); state.pf=(p&&Array.isArray(p.pos))?{v:1,pos:p.pos,hist:Array.isArray(p.hist)?p.hist:[]}:{v:1,pos:[],hist:[]}; }
-function pfSave(){ if(!store.set(LS_PF,state.pf)) setStatus('err','Nie udało się zapisać portfela w pamięci przeglądarki.'); }
+function pfLoad(){
+  const p=store.get(LS_PF,null); state.pf=(p&&Array.isArray(p.pos))?{v:1,pos:p.pos,hist:Array.isArray(p.hist)?p.hist:[]}:{v:1,pos:[],hist:[]};
+  state.storageOK=storageWorks();
+  const snaps=store.get(LS_PF_SNAP,[]); state.pfLoadedAt=snaps.length?snaps[snaps.length-1].at:null;
+  pfDraftLoad();
+}
+function pfSave(){
+  const ok=store.set(LS_PF,state.pf);
+  if(!ok){ state.pfSavedAt=null; setStatus('err','Nie udało się zapisać portfela w pamięci przeglądarki – zapisz kopię do pliku.'); return false; }
+  state.pfSavedAt=Date.now();
+  try{ const snaps=store.get(LS_PF_SNAP,[]), cur=JSON.stringify(state.pf), last=snaps[snaps.length-1];
+    if(!last||last.s!==cur){ snaps.push({at:state.pfSavedAt, s:cur, n:state.pf.pos.length}); while(snaps.length>15) snaps.shift(); store.set(LS_PF_SNAP,snaps); } }catch(e){}
+  if(!state.pfPersistAsked && navigator.storage && navigator.storage.persist){ state.pfPersistAsked=true; navigator.storage.persist().catch(()=>{}); }
+  return true;
+}
+function storageWorks(){ try{ const k='radmat_test_'+Date.now(); localStorage.setItem(k,'1'); const ok=localStorage.getItem(k)==='1'; localStorage.removeItem(k); return ok; }catch(e){ return false; } }
+function pfDraftSave(){ const f=state.pfForm; if(f&&(f.tv||f.q||f.px||f.amt||f.mode)) store.set(LS_PF_DRAFT,{tv:f.tv||'',q:f.q||'',px:f.px||'',amt:f.amt||'',d:f.d,mode:f.mode||null,id:f.id||null,t:f.t||null,last:f.last||null,autoPx:!!f.autoPx}); else store.del(LS_PF_DRAFT); }
+function pfDraftLoad(){ const d=store.get(LS_PF_DRAFT,null); if(!d) return; if(d.mode==='edit'&&!state.pf.pos.some(x=>x.id===d.id)) return; state.pfForm=d; }
+function pfSavedLine(){
+  if(!state.storageOK) return `<div class="pf-warn">⚠ Ta przeglądarka nie pozwala zapisywać danych (np. tryb prywatny albo podgląd pliku w innej aplikacji). Portfel zniknie po zamknięciu – otwórz plik w zwykłej przeglądarce albo zapisz kopię do pliku.</div>`;
+  const t=state.pfSavedAt||state.pfLoadedAt;
+  return `<p class="pf-saved">✓ Portfel zapisuje się automatycznie po każdej zmianie${t?' · ostatni zapis '+new Date(t).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}. Po ponownym otwarciu aplikacji wszystko będzie na miejscu.</p>`;
+}
 const pfId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const todayISO=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const zl=(x,d=2)=>x==null||!isFinite(x)?'–':fmt(x,d)+' zł';
@@ -1080,12 +1104,21 @@ function pfHint(p,it,price,avg){
   if(lv==='hold' && marketBear()) why.push('Cały rynek (WIG20) jest w trendzie spadkowym – pilnuj stopu.');
   return {lv, why, stop, target};
 }
+function pfHeld(d){
+  const n=Math.round((new Date(todayISO()+'T12:00:00')-new Date(d+'T12:00:00'))/864e5);
+  if(n<=0) return 'dziś'; if(n===1) return 'wczoraj';
+  if(n<60) return `${n} dni temu`;
+  const m=Math.round(n/30.44); if(m<24) return `${m} mies. temu`;
+  return `${fmt(n/365.25,1)} roku temu`;
+}
 function pfCalc(p){
   const it=state.sum[p.t];
   let price=it&&!it.idx?itPrice(it):(p.lp!=null?p.lp:null);
   if(it&&price!=null&&p.lp!==price){ p.lp=price; p.lpd=it.d; }
   const avg=p.cost/p.q, val=price!=null?price*p.q:null, pnl=val!=null?val-p.cost:null, pnlPct=pnl!=null?pnl/p.cost:null;
-  const ch=it?itChange(it):null, day=(ch!=null&&price!=null)?p.q*price*ch/(1+ch):null;
+  const ch=it?itChange(it):null;
+  let day=(ch!=null&&price!=null)?p.q*price*ch/(1+ch):null;
+  if(day!=null&&p.d&&it&&p.d>=it.d) day=pnl;   // kupione w dniu ostatniej sesji lub później – dzisiejszy wynik liczę od ceny zakupu
   return {p, it, price, avg, val, pnl, pnlPct, ch, day, h:pfHint(p,it,price,avg)};
 }
 function pfAll(){
@@ -1141,9 +1174,10 @@ function renderPf(){
         <div class="kpi"><div class="k">Spółki</div><div class="v">${rows.length}</div></div>
       </div>
       <ul class="pf-alerts">${alerts.join('')}</ul>
+      ${pfSavedLine()}
       <p class="note">Wskazówki liczę dla horyzontu: <b>${P.short}</b> (zmienisz w Ustawieniach). Stop i cel zależą od Twojej ceny zakupu, daty zakupu i zmienności kursu.${tot.missing?` ${tot.missing} ${tot.missing===1?'pozycja nie ma':'pozycje nie mają'} aktualnego kursu – liczę ją po cenie zakupu.`:''}</p>
     </section>` : `
-    <section class="card pf-empty"><h2>Mój portfel</h2><p>Dodaj spółki, które masz – wpisz liczbę akcji i kwotę zakupu. Aplikacja policzy wartość portfela, zysk lub stratę i podpowie, czy trzymać, czy sprzedać.</p><p class="small">Portfel zapisuje się tylko w tej przeglądarce, na tym urządzeniu. Nikt poza Tobą go nie widzi. Na dole jest przycisk do zapisania kopii.</p></section>`;
+    <section class="card pf-empty"><h2>Mój portfel</h2><p>Dodaj spółki, które masz – wpisz liczbę akcji i kwotę zakupu. Aplikacja policzy wartość portfela, zysk lub stratę i podpowie, czy trzymać, czy sprzedać.</p><p class="small">Portfel zapisuje się automatycznie po każdej zmianie – w tej przeglądarce, na tym urządzeniu. Nikt poza Tobą go nie widzi. Na dole jest przycisk do zapisania kopii w pliku.</p>${state.storageOK?'':pfSavedLine()}</section>`;
   const opts=pfCompanies().map(it=>`<option value="${esc(it.t)} – ${esc(it.n)}"></option>`).join('');
   const form = `
     <section class="card pf-form" id="pfForm">
@@ -1153,9 +1187,9 @@ function renderPf(){
         <label class="fld">Liczba akcji<input id="pfQ" inputmode="numeric" placeholder="np. 100" value="${esc(f.q||'')}"></label>
         <label class="fld">Cena zakupu za akcję (zł)<input id="pfPx" inputmode="decimal" placeholder="np. 45,20" value="${esc(f.px||'')}"></label>
         <label class="fld">Kwota zakupu razem (zł)<input id="pfAmt" inputmode="decimal" placeholder="liczba akcji × cena" value="${esc(f.amt||'')}"></label>
-        <label class="fld">Data zakupu<input id="pfD" type="date" max="${todayISO()}" value="${esc(f.d||'')}"></label>
+        <label class="fld">Data zakupu<input id="pfD" type="date" max="${todayISO()}" value="${esc(f.d==null?todayISO():f.d)}"></label>
       </div>
-      <p class="small" id="pfInfo">${esc(f.info||'Kwota liczy się sama z liczby akcji i ceny. Jeśli znasz kwotę z prowizją, wpisz ją – cena za akcję przeliczy się sama. Data pomaga dokładniej policzyć stop.')}</p>
+      <p class="small" id="pfInfo">${esc(f.info||'Wystarczy spółka, liczba akcji i data zakupu – cenę zamknięcia z tego dnia wpiszę sam (możesz ją zmienić). Bez daty liczę od dzisiaj, po obecnym kursie. Jeśli znasz kwotę z prowizją, wpisz ją – cena za akcję przeliczy się sama.')}</p>
       <div class="pf-actions"><button class="btn primary" id="pfSave">${f.mode==='edit'?'Zapisz zmiany':'＋ Dodaj do portfela'}</button>${f.mode==='edit'?'<button class="btn" id="pfCancel">Anuluj</button>':''}<span class="pf-err" id="pfErr" role="alert">${esc(f.err||'')}</span></div>
     </section>`;
   const cards = rows.map(pfCard).join('');
@@ -1168,10 +1202,18 @@ function renderPf(){
     <section class="card pf-backup"><h3 class="sec">Kopia portfela</h3>
       <p class="small">Portfel jest zapisany tylko w tej przeglądarce. Zapisz kopię do pliku, żeby go nie stracić albo przenieść na inne urządzenie.</p>
       <div class="pf-actions"><button class="btn" id="pfExport">⬇ Zapisz kopię do pliku</button><label class="btn" for="pfImport">⬆ Wczytaj kopię z pliku</label><input type="file" id="pfImport" accept=".json,application/json" hidden></div>
+      ${pfSnapUI()}
     </section>`;
   el.innerHTML = sum + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + form + hist + backup +
     `<p class="note pf-disc">Wskazówki są mechaniczne – wynikają z zasad analizy technicznej (stop, cel, trend, sygnały) i kondycji spółki. Nie są rekomendacją inwestycyjną; decyzję podejmujesz sam.</p>`;
   pfBind();
+}
+function pfSnapUI(){
+  const snaps=store.get(LS_PF_SNAP,[]), cur=JSON.stringify(state.pf);
+  const opts=snaps.map((x,i)=>({x,i})).filter(o=>o.x.s!==cur).reverse();
+  if(!opts.length) return '';
+  return `<p class="small" style="margin:12px 0 6px">Aplikacja pamięta też ${opts.length} ${opts.length===1?'wcześniejszy stan':'wcześniejszych stanów'} portfela – możesz cofnąć zmiany, np. przypadkowe usunięcie:</p>
+    <div class="pf-actions"><select id="pfSnap" class="pf-select">${opts.map(o=>`<option value="${o.i}">${new Date(o.x.at).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})} – ${o.x.n} ${o.x.n===1?'spółka':(o.x.n%10>=2&&o.x.n%10<=4&&(o.x.n%100<12||o.x.n%100>14)?'spółki':'spółek')}</option>`).join('')}</select><button class="btn" id="pfSnapGo">↶ Przywróć ten stan</button></div>`;
 }
 function pfCard(r){
   const p=r.p, it=r.it, h=r.h, H=HINT[h.lv], name=it?it.n:(p.n||p.t), f=state.pfSell&&state.pfSell.id===p.id?state.pfSell:null;
@@ -1189,7 +1231,7 @@ function pfCard(r){
       <div><span class="k">Udział w portfelu</span><b>${pct(r.share,1).replace('+','')}</b><span class="pf-bar"><i style="width:${Math.round(r.share*100)}%"></i></span></div>
     </div>
     <ul class="pf-why">${h.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>
-    ${h.stop!=null||h.target!=null?`<div class="pf-lv"><span>Stop <b>${fmt(h.stop)} zł</b></span><span>${h.target!=null&&r.price>=h.target?`Cel <b>${fmt(h.target)} zł</b> ✓ osiągnięty`:`Cel <b>${fmt(h.target)} zł</b>`}</span>${p.d?`<span class="small">kupione ${dPL(p.d)}</span>`:''}</div>`:''}
+    ${h.stop!=null||h.target!=null?`<div class="pf-lv"><span>Stop <b>${fmt(h.stop)} zł</b></span><span>${h.target!=null&&r.price>=h.target?`Cel <b>${fmt(h.target)} zł</b> ✓ osiągnięty`:`Cel <b>${fmt(h.target)} zł</b>`}</span>${p.d?`<span class="small">kupione ${dPL(p.d)} · ${pfHeld(p.d)}</span>`:''}</div>`:''}
     ${f?`<div class="pf-sell"><b>Sprzedaż ${esc(p.t)}</b>
       <div class="pf-grid"><label class="fld">Ile akcji<input id="psQ" inputmode="numeric" value="${esc(f.q)}"></label><label class="fld">Cena sprzedaży (zł)<input id="psPx" inputmode="decimal" value="${esc(f.px)}"></label><label class="fld">Data<input id="psD" type="date" max="${todayISO()}" value="${esc(f.d)}"></label></div>
       <div class="pf-actions"><button class="btn primary" data-act="sellok">Zapisz sprzedaż</button><button class="btn" data-act="sellcancel">Anuluj</button><span class="pf-err">${esc(f.err||'')}</span></div></div>`:''}
@@ -1201,7 +1243,7 @@ function pfCard(r){
     </div>
   </article>`;
 }
-function pfFormRead(){ const f=state.pfForm; const g=id=>{ const e=$('#'+id); return e?e.value:''; }; if(!$('#pfT').disabled) f.tv=g('pfT'); f.q=g('pfQ'); f.px=g('pfPx'); f.amt=g('pfAmt'); f.d=g('pfD'); }
+function pfFormRead(){ const f=state.pfForm; const g=id=>{ const e=$('#'+id); return e?e.value:''; }; if(!$('#pfT').disabled) f.tv=g('pfT'); f.q=g('pfQ'); f.px=g('pfPx'); f.amt=g('pfAmt'); f.d=g('pfD'); pfDraftSave(); }
 function pfBind(){
   const f=state.pfForm;
   const T=$('#pfT'), Q=$('#pfQ'), PX=$('#pfPx'), AMT=$('#pfAmt');
@@ -1213,14 +1255,26 @@ function pfBind(){
     pfFormRead();
   };
   Q.oninput=()=>recalc('q'); PX.oninput=()=>recalc('px'); AMT.oninput=()=>recalc('amt');
-  $('#pfD').onchange=()=>pfFormRead();
-  if(!T.disabled) T.onchange=T.oninput=()=>{
-    const t=pfFindTicker(T.value); f.tv=T.value;
-    if(t){ const it=state.sum[t]; $('#pfInfo').textContent=`${it.t} – ${it.n}: kurs ${fmt(itPrice(it))} zł (${dPL(it.d)}).`;
-      if(!PX.value){ PX.value=fmt(itPrice(it),2); recalc('px'); } }
+  PX.addEventListener('input',()=>{ f.autoPx=false; }); AMT.addEventListener('input',()=>{ f.autoPx=false; });
+  const autoPrice=async()=>{
+    const t=f.mode==='edit'?f.t:pfFindTicker(T.value); if(!t) return;
+    if(PX.value && !f.autoPx) return;            // cenę wpisaną ręcznie zostawiam
+    const tok=(f.tok=(f.tok||0)+1), d=$('#pfD').value||todayISO();
+    $('#pfInfo').textContent='Sprawdzam kurs z dnia '+dPL(d)+'…';
+    const r=await pfPriceOn(t,d);
+    if(f.tok!==tok || !$('#pfPx')) return;
+    if(r.err){ $('#pfInfo').textContent=r.err; return; }
+    PX.value=fmt(r.price,2); f.autoPx=true; f.last='px'; recalc('px'); f.autoPx=true;
+    $('#pfInfo').textContent=r.msg+' Możesz ją zmienić, jeśli kupiłeś po innej cenie.';
   };
+  $('#pfD').onchange=()=>{ pfFormRead(); autoPrice(); };
+  if(!T.disabled) T.onchange=T.oninput=()=>{ f.tv=T.value; if(pfFindTicker(T.value)) autoPrice(); };
   $('#pfSave').onclick=pfSubmit;
-  if($('#pfCancel')) $('#pfCancel').onclick=()=>{ state.pfForm={}; renderPf(); };
+  if($('#pfCancel')) $('#pfCancel').onclick=()=>{ state.pfForm={}; store.del(LS_PF_DRAFT); renderPf(); };
+  if($('#pfSnapGo')) $('#pfSnapGo').onclick=()=>{
+    const i=Number($('#pfSnap').value), snaps=store.get(LS_PF_SNAP,[]), sn=snaps[i]; if(!sn) return;
+    try{ const pf=JSON.parse(sn.s); state.pf={v:1,pos:pf.pos||[],hist:pf.hist||[]}; pfSave(); renderPf(); renderTabs(); toastPf('Przywrócono stan portfela z '+new Date(sn.at).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'.'); }catch(e){ toastPf('Nie udało się przywrócić tej kopii.'); }
+  };
   $$('#viewPf [data-open]').forEach(b=>b.onclick=()=>showCompany(b.dataset.open));
   $$('#viewPf .pf-card').forEach(c=>{
     const id=c.dataset.id;
@@ -1230,16 +1284,35 @@ function pfBind(){
   $('#pfExport').onclick=pfExport;
   $('#pfImport').onchange=pfImport;
 }
-function pfSubmit(){
+async function pfPriceOn(t,iso){
+  const it=state.sum[t]; if(!it) return {err:'Nie znam tej spółki.'};
+  const today=todayISO();
+  if(!iso||iso>=today||iso>=it.d) return {price:itPrice(it), date:it.d, msg:`Cena: obecny kurs ${fmt(itPrice(it))} zł${it.live?' (sesja trwa)':' (zamknięcie '+dPL(it.d)+')'}.`};
+  try{
+    let x=await ensureDaily(t), b=x.bars;
+    if(b.d[b.d.length-1]<iso){ x=await ensureDaily(t,true); b=x.bars; }
+    if(iso<b.d[0]) return {err:`Notowania ${t} w aplikacji zaczynają się ${dPL(b.d[0])} – podaj cenę zakupu ręcznie.`};
+    let i=b.d.length-1; while(i>0&&b.d[i]>iso) i--;
+    return {price:b.c[i], date:b.d[i], msg:b.d[i]===iso?`Cena: zamknięcie z ${dPL(iso)} – ${fmt(b.c[i])} zł.`:`${dPL(iso)} nie było sesji – biorę zamknięcie z ${dPL(b.d[i])}: ${fmt(b.c[i])} zł.`};
+  }catch(e){ return {err:'Nie udało się pobrać kursu z tego dnia – podaj cenę zakupu ręcznie.'}; }
+}
+async function pfSubmit(){
   pfFormRead(); const f=state.pfForm;
   const err=m=>{ f.err=m; $('#pfErr').textContent=m; };
   const t=f.mode==='edit'?f.t:pfFindTicker(f.tv);
   if(!t) return err('Wybierz spółkę z listy (wpisz skrót albo nazwę).');
-  const q=parseNum(f.q), px=parseNum(f.px); let amt=parseNum(f.amt);
+  const q=parseNum(f.q); let px=parseNum(f.px), amt=parseNum(f.amt);
   if(!q||q<=0||Math.round(q)!==q) return err('Podaj liczbę akcji (liczba całkowita większa od zera).');
+  let d=f.d&&/^\d{4}-\d{2}-\d{2}$/.test(f.d)?f.d:todayISO();
+  if(d>todayISO()) return err('Data zakupu nie może być z przyszłości.');
+  if(amt==null&&px==null){
+    $('#pfSave').disabled=true; $('#pfInfo').textContent='Sprawdzam kurs z dnia '+dPL(d)+'…';
+    const r=await pfPriceOn(t,d); const sb=$('#pfSave'); if(sb) sb.disabled=false;
+    if(r.err) return err(r.err);
+    px=r.price; f.autoNote=` (cena ${r.date===d?'zamknięcia z '+dPL(d):'z '+dPL(r.date)}: ${fmt(px)} zł)`;
+  }
   if(amt==null&&px!=null) amt=q*px;
   if(!amt||amt<=0) return err('Podaj cenę zakupu za akcję albo kwotę zakupu.');
-  const d=f.d&&/^\d{4}-\d{2}-\d{2}$/.test(f.d)?f.d:null;
   const it=state.sum[t];
   if(f.mode==='edit'){
     const p=state.pf.pos.find(x=>x.id===f.id); if(!p) return err('Nie znalazłem tej pozycji.');
@@ -1248,9 +1321,9 @@ function pfSubmit(){
   } else {
     const ex=state.pf.pos.find(x=>x.t===t);
     if(ex){ ex.q+=q; ex.cost+=amt; if(d&&(!ex.d||d<ex.d)) ex.d=d; toastPf(`Dokupiono ${fmt(q,0)} akcji ${t}. Masz ${fmt(ex.q,0)} akcji, średnia cena zakupu ${fmt(ex.cost/ex.q)} zł.`); }
-    else { state.pf.pos.push({id:pfId(), t, n:it?it.n:t, q, cost:amt, d, lp:it?itPrice(it):null}); toastPf(`Dodano ${t} do portfela.`); }
+    else { state.pf.pos.push({id:pfId(), t, n:it?it.n:t, q, cost:amt, d, lp:it?itPrice(it):null}); toastPf(`Dodano ${t} do portfela${f.autoNote||''}.`); }
   }
-  state.pfForm={}; pfSave(); renderPf(); renderTabs();
+  state.pfForm={}; store.del(LS_PF_DRAFT); pfSave(); renderPf(); renderTabs();
 }
 let pfToastT=null;
 function toastPf(m){ let el=$('#pfToast'); if(!el){ el=document.createElement('div'); el.id='pfToast'; el.className='pf-toast'; el.setAttribute('role','status'); document.body.appendChild(el); } el.textContent=m; el.classList.add('on'); clearTimeout(pfToastT); pfToastT=setTimeout(()=>el.classList.remove('on'),3500); }
@@ -1262,8 +1335,8 @@ function pfAct(act,id){
     else { state.pfDel=id; renderPf(); setTimeout(()=>{ if(state.pfDel===id){ state.pfDel=null; if(state.tab==='pf') renderPf(); } },4000); }
     return;
   }
-  if(act==='edit'){ state.pfForm={mode:'edit', id, t:p.t, tv:p.t+' – '+(it?it.n:p.n||p.t), q:String(p.q), amt:fmt(p.cost,2), px:fmt(p.cost/p.q,4).replace(/0+$/,'').replace(/,$/,''), d:p.d||'', last:'amt'}; renderPf(); pfScrollForm(); return; }
-  if(act==='buy'){ state.pfForm={tv:p.t+' – '+(it?it.n:p.n||p.t), px:it?fmt(itPrice(it),2):'', d:todayISO()}; renderPf(); pfScrollForm(); $('#pfQ').focus(); return; }
+  if(act==='edit'){ state.pfForm={mode:'edit', id, t:p.t, tv:p.t+' – '+(it?it.n:p.n||p.t), q:String(p.q), amt:fmt(p.cost,2), px:fmt(p.cost/p.q,4).replace(/0+$/,'').replace(/,$/,''), d:p.d||todayISO(), last:'amt', autoPx:false}; renderPf(); pfScrollForm(); return; }
+  if(act==='buy'){ state.pfForm={tv:p.t+' – '+(it?it.n:p.n||p.t), px:it?fmt(itPrice(it),2):'', autoPx:true, d:todayISO()}; renderPf(); pfScrollForm(); $('#pfQ').focus(); return; }
   if(act==='sell'){ state.pfSell={id, q:String(p.q), px:it?fmt(itPrice(it),2):fmt(p.cost/p.q,2), d:todayISO()}; renderPf(); return; }
   if(act==='sellcancel'){ state.pfSell=null; renderPf(); return; }
   if(act==='sellok'){
@@ -1310,7 +1383,7 @@ function pfDetailBox(t){
 }
 function pfAddFromDetail(t){
   const it=state.sum[t]; closeDetail();
-  state.pfForm={tv:t+' – '+(it?it.n:t), px:it?fmt(itPrice(it),2):'', d:todayISO()};
+  state.pfForm={tv:t+' – '+(it?it.n:t), px:it?fmt(itPrice(it),2):'', autoPx:true, d:todayISO()};
   setTab('pf'); pfScrollForm(); setTimeout(()=>{ const q=$('#pfQ'); if(q) q.focus(); },350);
 }
 
@@ -1351,7 +1424,9 @@ function ichiChipsSum(it){
     if(!s) return `<span class="ichip nt" title="Ichimoku ${names[k]}: za mało danych">${short[k]} ?</span>`;
     return `<span class="ichip ${s.sc>0?'up':s.sc<0?'dn':'nt'}" title="Ichimoku ${names[k]}: ${esc(s.lb)}">${short[k]} ${s.ic}</span>`; }).join('')+'</span>';
 }
-function renderList(){
+function saveView(){ store.set(LS_VIEW,{filter:state.filter, sig:state.sig, sort:state.sort}); }
+function loadView(){ const v=store.get(LS_VIEW,null); if(!v) return; if(v.filter) state.filter=v.filter; if(v.sig) state.sig=v.sig; if(v.sort){ state.sort=v.sort; const sel=$('#sort'); if(sel) sel.value=v.sort; } }
+function renderList(){ saveView();
   let rows=filteredItems();
   if(state.sig!=='all') rows=rows.filter(it=>itP(it).st===state.sig);
   const sc=it=>{ const s=itP(it); return s.sc!=null?s.sc:-1; };
@@ -1984,9 +2059,9 @@ function renderHelp(){
   <h3>Top 3 – największy potencjał wzrostowy</h3>
   <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku, a kondycja finansowa jest co najmniej przeciętna (lepsza kondycja daje więcej punktów). Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
   <h3>Mój portfel</h3>
-  <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i cenę zakupu (albo kwotę zakupu – cena przeliczy się sama) oraz datę. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
+  <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
-  <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się tylko w tej przeglądarce – zrób kopię do pliku, żeby go nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
   <h3>Kondycja spółki</h3>
   <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), opis działalności, krótki opis kondycji po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane finansowe pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3 i wpływa na ranking.</p>
   <h3>Filtry i lista</h3>
@@ -2060,7 +2135,7 @@ function bindGlobal(){
   setInterval(autoTick,60e3);
 }
 function init(){
-  loadSettings(); pfLoad(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig') state.tab=tb; }catch(e){} applyTheme(); bindGlobal();
+  loadSettings(); pfLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig') state.tab=tb; }catch(e){} applyTheme(); bindGlobal();
   const j=store.get(LS_SUM,null); if(j&&Array.isArray(j.items)) applySummary(j,false);
   renderAll();
   setStatus(j?'ok':'', j?`Dane z pamięci · stan notowań: ${fmtDataTime(j.updated)} – naciśnij „Aktualizuj”, aby pobrać najnowsze.`:'Brak danych – naciśnij „Aktualizuj”.');
