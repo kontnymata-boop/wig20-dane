@@ -21,9 +21,10 @@ except ImportError:                              # awaryjnie: zwykłe requests
     SESSION = http.Session()
     SESSION.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36"
 
-# skrót w aplikacji -> symbole Yahoo (kolejne warianty, gdy pierwszy nie działa)
+# skrót w aplikacji -> symbole Yahoo (kolejne warianty, gdy pierwszy nie działa).
+# Dane zapisywane są pod PIERWSZYM symbolem z listy – tak szuka ich aplikacja.
 ENTITIES = [
-    ("WIG20", ["WIG20.WA"]),
+    ("WIG20", ["WIG20.WA", "^WIG20", "WIG20TR.WA", "ETFBW20TR.WA"]),
     ("PKO", ["PKO.WA"]), ("PKN", ["PKN.WA"]), ("KGH", ["KGH.WA"]), ("ALE", ["ALE.WA"]),
     ("PEO", ["PEO.WA"]), ("PZU", ["PZU.WA"]), ("EBP", ["EBP.WA", "SPL.WA"]), ("LPP", ["LPP.WA"]),
     ("CDR", ["CDR.WA"]), ("DNP", ["DNP.WA"]), ("MBK", ["MBK.WA"]), ("ZAB", ["ZAB.WA"]),
@@ -31,6 +32,7 @@ ENTITIES = [
     ("BDX", ["BDX.WA"]), ("KRU", ["KRU.WA"]), ("PCO", ["PCO.WA"]), ("MDV", ["MDV.WA", "CCC.WA"]),
     ("BFT", ["BFT.WA"]), ("XTB", ["XTB.WA"]),
 ]
+MIN_SESSIONS = {"WIG20": 300}          # indeks: odrzuć symbole z niepełną historią
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
 
 
@@ -97,26 +99,30 @@ def main():
     os.makedirs(os.path.join(OUT, "h"), exist_ok=True)
     daily, errors = {}, {}
     for tk, syms in ENTITIES:
+        key = syms[0]
         for sym in syms:
             try:
-                daily[sym] = dict(chart(sym, "10y", "1d"), ticker=tk)
-                print(f"OK   {tk:6} {sym:10} {len(daily[sym]['t'])} sesji")
+                x = chart(sym, "10y", "1d")
+                if len(x["t"]) < MIN_SESSIONS.get(tk, 30):
+                    raise LookupError(f"za krótka historia ({len(x['t'])} sesji)")
+                daily[key] = dict(x, ticker=tk, sym=sym)
+                print(f"OK   {tk:6} {sym:12} {len(x['t'])} sesji")
                 break
             except Exception as e:
                 errors[f"{tk}:{sym}"] = str(e)[:200]
-                print(f"BŁĄD {tk:6} {sym:10} {e}")
-        time.sleep(0.4)
+                print(f"BŁĄD {tk:6} {sym:12} {e}")
+            time.sleep(0.4)
     # godzinowe (do Ichimoku 1 godz.)
     for tk, syms in ENTITIES:
-        sym = next((s for s in syms if s in daily), None)
-        if not sym or tk == "WIG20":
+        key = syms[0]
+        if key not in daily or tk == "WIG20":
             continue
         try:
-            dump(os.path.join(OUT, "h", f"{sym}.json"), {"ok": True, "sym": sym, **chart(sym, "3mo", "60m")})
+            dump(os.path.join(OUT, "h", f"{key}.json"), {"ok": True, "sym": daily[key]["sym"], **chart(daily[key]["sym"], "3mo", "60m")})
         except Exception as e:
-            errors[f"{tk}:{sym}:60m"] = str(e)[:200]
+            errors[f"{tk}:{key}:60m"] = str(e)[:200]
         time.sleep(0.4)
-    if len([s for s in daily if daily[s]["ticker"] != "WIG20"]) < 5:
+    if len([k for k in daily if daily[k]["ticker"] != "WIG20"]) < 5:
         print("Za mało pobranych spółek – nie nadpisuję danych.")
         sys.exit(1)
     dump(os.path.join(OUT, "wig20.json"), {
