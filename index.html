@@ -41,7 +41,7 @@
 .flines .fi.n{color:var(--neg-text);border-color:currentColor}
 .flines li.x{color:var(--text-2)}
 .fmetrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:4px 0 10px}
-.fmetrics div{background:var(--page);border:1px solid var(--border);border-radius:10px;padding:7px 10px}
+.fmetrics>div{background:var(--page);border:1px solid var(--border);border-radius:10px;padding:7px 10px}
 .fmetrics .k{font-size:12px;color:var(--text-2)}
 .fmetrics .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px}
 .fund details{margin-top:8px}
@@ -950,7 +950,7 @@ function renderTop(){
       </ul>
       Potem każda spółka dostaje punkty (razem do 100): sygnał do 25 (KUP 25, OBSERWUJ 15, TRZYMAJ 10), siła techniczna do 25, zgodność Ichimoku D·T·M do 20, wyniki tego systemu na danej spółce w ostatnich ok. 5 latach do 15, przestrzeń do celu do 15 (25% i więcej = komplet). Gdy RSI ≥ 75 (wykupienie), odejmuję 10 punktów. Cel i stop liczę z obecnego kursu i zmienności (ATR) dla wybranego horyzontu – horyzont zmienisz w Ustawieniach.
     </div>
-    <div class="small top-disc">Ranking jest mechaniczny – nie zna wiadomości, wyników finansowych ani sytuacji spółek. To nie jest rekomendacja inwestycyjna.</div>`;
+    <div class="small top-disc">Ranking jest mechaniczny i opiera się na wykresie. Kondycja finansowa jest pokazana na kartach, ale nie zmienia kolejności. Ranking nie zna wiadomości o spółkach. To nie jest rekomendacja inwestycyjna.</div>`;
   $('#topHow').onclick=()=>{ state.topHow=!state.topHow; renderTop(); };
   $$('#top3 .tcard').forEach(c=>{ c.onclick=()=>showCompany(c.dataset.t); c.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); showCompany(c.dataset.t); } }; });
 }

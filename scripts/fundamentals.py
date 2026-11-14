@@ -92,7 +92,7 @@ INDUSTRIES = {
 }
 REC = {"strong_buy": "zdecydowanie kupuj", "buy": "kupuj", "hold": "trzymaj", "underperform": "słabiej od rynku",
        "sell": "sprzedaj", "strong_sell": "zdecydowanie sprzedaj"}
-FVER = 2  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
+FVER = 3  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
 LEVELS = ["bardzo słaba", "słaba", "przeciętna", "dobra", "bardzo dobra"]
 
 _local = threading.local()
@@ -217,7 +217,7 @@ def r_inflated(m):
     return m.get("roe") is not None and m["roe"] >= 0.3 and m.get("de") is not None and m["de"] > 3
 
 
-def assess(t, name, qs, S, price=None):
+def assess(t, name, qs, S, price=None, fx=None):
     """qs – wynik quoteSummary (dict modułów), S – szeregi {typ: [{d,cur,v}]}; zwraca rekord f/<t>.json"""
     ap, sd, fd, ks = (qs.get(k) or {} for k in ("assetProfile", "summaryDetail", "financialData", "defaultKeyStatistics"))
 
@@ -236,15 +236,25 @@ def assess(t, name, qs, S, price=None):
             break
     cur = cur or fd.get("financialCurrency") or "PLN"
 
-    rev = lv("trailingTotalRevenue")
-    ni = lv("trailingNetIncome")
+    def sum4(k):  # suma 4 ostatnich kolejnych kwartałów (spójna z tabelą kwartałów i wskaźnikiem C/Z)
+        a = S.get(k) or []
+        if len(a) < 4:
+            return None
+        try:
+            d0 = datetime.strptime(a[-4]["d"], "%Y-%m-%d"); d1 = datetime.strptime(a[-1]["d"], "%Y-%m-%d")
+        except Exception:
+            return None
+        return sum(x["v"] for x in a[-4:]) if 250 <= (d1 - d0).days <= 300 else None
+
+    rev = sum4("quarterlyTotalRevenue")
+    ni = sum4("quarterlyNetIncome")
+    if rev is None:
+        rev = lv("trailingTotalRevenue")
+    if ni is None:
+        ni = lv("trailingNetIncome")
     ebitda = lv("trailingEBITDA")
     fcf = lv("trailingFreeCashFlow")
     qr, qn = S.get("quarterlyTotalRevenue") or [], S.get("quarterlyNetIncome") or []
-    if rev is None and len(qr) >= 4:
-        rev = sum(x["v"] for x in qr[-4:])
-    if ni is None and len(qn) >= 4:
-        ni = sum(x["v"] for x in qn[-4:])
     if rev is None:
         rev = lv("annualTotalRevenue")
     if ni is None:
@@ -276,10 +286,17 @@ def assess(t, name, qs, S, price=None):
         "roe": (ni / eq) if (ni is not None and eq and eq > 0) else raw(fd, "returnOnEquity"),
         "nd": (debt - (cash or 0)) if debt is not None else None,
         "cr": (ca / cl) if (ca is not None and cl and cl > 0) else raw(fd, "currentRatio"),
-        "pe": raw(sd, "trailingPE"), "pb": raw(ks, "priceToBook"),
+        "pe": None, "pb": None,
         "dy": raw(sd, "dividendYield") or raw(sd, "trailingAnnualDividendYield"), "payout": raw(sd, "payoutRatio"),
         "tgt": raw(fd, "targetMeanPrice"), "nAn": raw(fd, "numberOfAnalystOpinions"), "rec": fd.get("recommendationKey"),
     }
+    # C/Z i C/WK liczone z kapitalizacji (zł) i wyników przeliczonych na złote – Yahoo myli waluty u spółek raportujących w EUR/USD
+    rate = 1.0 if cur == "PLN" else (fx(cur) if fx else None)
+    if m["mcap"] and rate:
+        if ni is not None and ni > 0:
+            m["pe"] = m["mcap"] / (ni * rate)
+        if eq is not None and eq > 0:
+            m["pb"] = m["mcap"] / (eq * rate)
     m["nde"] = (m["nd"] / ebitda) if (m["nd"] is not None and ebitda and ebitda > 0) else None
     m["de"] = (debt / eq) if (debt is not None and eq and eq > 0) else None
     if eq is not None and eq <= 0:
@@ -513,6 +530,22 @@ def main():
     print(f"Dane finansowe: {len(items)} spółek, do odświeżenia {len(todo)}")
     if not todo:
         return 0
+    rates, rlock = {}, threading.Lock()
+
+    def fx(cur):
+        with rlock:
+            if cur in rates:
+                return rates[cur]
+        v = None
+        try:
+            j = session().get(f"https://query2.finance.yahoo.com/v8/finance/chart/{cur}PLN=X", params={"range": "5d", "interval": "1d"}, timeout=20).json()
+            v = ((j.get("chart") or {}).get("result") or [{}])[0].get("meta", {}).get("regularMarketPrice")
+        except Exception:
+            v = None
+        with rlock:
+            rates[cur] = v
+        return v
+
     stats = {"ok": 0, "grade": 0, "empty": 0, "err": 0}
     lock = threading.Lock()
 
@@ -520,7 +553,7 @@ def main():
         t, sym = it["t"], it.get("sym") or it.get("y")
         try:
             qs, ts = fetch(sym)
-            rec = assess(t, it.get("n") or t, qs, ts, price=last_close(a.store, t))
+            rec = assess(t, it.get("n") or t, qs, ts, price=last_close(a.store, t), fx=fx)
             dump(os.path.join(a.store, "f", t + ".json"), rec)
             with lock:
                 stats["ok" if rec["ok"] else "empty"] += 1
@@ -534,6 +567,7 @@ def main():
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=a.workers) as ex:
         list(ex.map(work, todo))
+    print("Kursy walut:", {k: v for k, v in rates.items()})
     print(f"Dane finansowe: zapisane {stats['ok']}, z oceną kondycji {stats['grade']}, puste {stats['empty']}, błędy {stats['err']} "
           f"({time.time() - t0:.0f} s)")
     return 0
