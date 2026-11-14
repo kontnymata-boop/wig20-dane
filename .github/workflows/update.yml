@@ -47,6 +47,8 @@ jobs:
           fi
       - name: Pobierz notowania
         run: python scripts/update.py --store store ${{ (github.event_name == 'workflow_dispatch' && inputs.full) && '--full' || '' }}
+      - name: Dane finansowe i kondycja spółek (raz na dobę)
+        run: python scripts/fundamentals.py --store store || echo "Dane finansowe pominięte"
       - name: Policz sygnały
         run: node scripts/summary.js store
       - name: Zapisz dane (gałąź data – zawsze jedna wersja, bez historii)

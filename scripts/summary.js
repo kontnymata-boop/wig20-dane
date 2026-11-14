@@ -51,6 +51,11 @@ for (const u of uni.items) {
       h52: L >= 20 ? r(Bs.c[L] / Math.max(...Bs.h.slice(-250)) - 1, 4) : null,
       m3: L >= 63 ? r(Bs.c[L] / Bs.c[L - 63] - 1, 4) : null, atr: null
     };
+    // ocena kondycji finansowej (scripts/fundamentals.py → f/<SKRÓT>.json)
+    try {
+      const ff = path.join(store, 'f', u.t + '.json');
+      if (fs.existsSync(ff)) { const g = JSON.parse(fs.readFileSync(ff, 'utf8')).grade; if (g) it.fk = { l: g.lvl, n: g.lbl }; }
+    } catch (e) { /* brak oceny */ }
     for (const p of Object.keys(E.PROFILES)) {
       const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
       if (!A.ok) { it.s[p] = { st: 'BRAK', msg: A.msg }; continue; }
