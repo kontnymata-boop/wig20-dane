@@ -271,6 +271,8 @@ def main():
     nc_set = {d["t"] for d in disc if d.get("nc")}
     have_t = {c["t"] for c in cfg}
     added = 0
+    import re
+    disc = [d for d in disc if len(d["y"]) <= 8 and not re.search(r"fundusz|fizan|\bfiz\b|certyfikat", d.get("n") or "", re.I)]
     for d in disc:
         if d["y"] in known or d["t"] in have_t:
             continue
