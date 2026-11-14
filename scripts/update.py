@@ -196,6 +196,42 @@ def merge(old, new, intraday=False, keep=KEEP_DAYS):
     return out
 
 
+def fetch_full(sym, min_len, old=None):
+    """Pełna historia dzienna. Yahoo dla części małych spółek przy zakresie 10 lat zwraca dane urwane albo pojedynczy
+    punkt – wtedy próbuję innych zakresów, a na końcu łączę najdłuższy wynik (lub poprzednie dane) z ostatnim miesiącem."""
+    empty = {"meta": {}, "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
+
+    def good(x):
+        return x is not None and len(x["t"]) >= min_len and age_days(x) <= 21
+
+    got = []
+    for i, rng in enumerate(("10y", "max", "5y", "2y", "1y")):
+        try:
+            x = chart(sym, rng, "1d")
+        except LookupError:
+            if i == 0 and not old:
+                raise
+            continue
+        except Exception:
+            continue
+        x = merge(empty, x)            # przycięcie do KEEP_DAYS sesji
+        if good(x):
+            return x
+        got.append(x)
+    if old and old.get("t"):
+        got.append(old)
+    if not got:
+        raise LookupError("brak notowań")
+    base = max(got, key=lambda x: len(x["t"]))
+    try:
+        base = merge(base, chart(sym, "1mo", "1d"))
+    except Exception:
+        pass
+    if len(base["t"]) < min_len:
+        raise LookupError(f"za krótka historia ({len(base['t'])})")
+    return base
+
+
 def load(path):
     try:
         with open(path, encoding="utf-8") as f:
@@ -300,10 +336,7 @@ def main():
                 data, errs = None, []
                 for sym in [e["y"]] + list(e.get("alts", [])):
                     try:
-                        x = chart(sym, "10y", "1d")
-                        if len(x["t"]) < min_len:
-                            raise LookupError(f"za krótka historia ({len(x['t'])})")
-                        data = x
+                        data = fetch_full(sym, min_len, old if (old and old.get("sym") == sym) else None)
                         data["sym"] = sym
                         break
                     except Exception as ex:
@@ -317,7 +350,7 @@ def main():
                         last=day_key(data["t"][-1], (data.get("meta") or {}).get("off"), False))
         except Exception as ex:
             info.update(ok=False, err=str(ex)[:200])
-            if old and age_days(old) < 21 and not full:      # chwilowy błąd – zostaw poprzednie dane
+            if old and age_days(old) < 21:      # chwilowy błąd Yahoo – zostaw poprzednie dane
                 info.update(ok=True, sym=old.get("sym"), stale=True)
             elif os.path.exists(path):
                 os.remove(path)
