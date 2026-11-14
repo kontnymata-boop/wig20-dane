@@ -47,14 +47,26 @@ for (const u of uni.items) {
     const it = {
       t: u.t, n: u.n, y: x.sym || u.y, w20: !!u.w20, idx: !!u.idx, d: Bs.d[L], c: sig(Bs.c[L]),
       ch: L > 0 ? r(Bs.c[L] / Bs.c[L - 1] - 1, 4) : null, obr: Math.round(obr), live,
-      sp: Bs.c.slice(-60).map(sig), s: {}, ichi: {}
+      sp: Bs.c.slice(-60).map(sig), s: {}, ichi: {},
+      h52: L >= 20 ? r(Bs.c[L] / Math.max(...Bs.h.slice(-250)) - 1, 4) : null,
+      m3: L >= 63 ? r(Bs.c[L] / Bs.c[L - 63] - 1, 4) : null, atr: null
     };
     for (const p of Object.keys(E.PROFILES)) {
       const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
       if (!A.ok) { it.s[p] = { st: 'BRAK', msg: A.msg }; continue; }
       const lv = {}; for (const k of Object.keys(A.levels)) lv[k] = sig(A.levels[k]);
+      const P = E.PROFILES[p];
+      // poziomy do oceny potencjału: pozycja otwarta/nowy sygnał – cel i stop systemu liczone od obecnego kursu;
+      // bez pozycji – wejście dopiero po wybiciu (max(kurs, poziom wybicia)), cel i stop liczone od tego wejścia
+      const ent = A.levels.target != null ? A.close : Math.max(A.close, A.levels.breakout || A.close);
+      const tgt = A.levels.target != null ? A.levels.target : ent + P.targetATR * A.atr;
+      const stp = A.levels.stop != null ? A.levels.stop : ent - P.stopATR * A.atr;
+      const st = A.stats || {};
+      if (it.atr == null) it.atr = r(A.atr / A.close, 4);
       it.s[p] = { st: A.status, sc: A.score, rsi: r(A.rsi, 1), tr: A.trend, bear: A.close < A.I.smaT[A.L], lv,
-        k: A.info.kind, sd: A.info.sigIdx != null ? Bs.d[A.info.sigIdx] : null };
+        k: A.info.kind, sd: A.info.sigIdx != null ? Bs.d[A.info.sigIdx] : null,
+        en: r(ent / A.close - 1, 4), up: r(tgt / ent - 1, 4), dn: r(1 - stp / ent, 4),
+        bt: { n: st.n || 0, wr: r(st.winRate, 2), avg: r(st.avgRet, 4) } };
     }
     const ic = BB => { const s = E.ichiFor(BB); return s.ok ? { sc: s.score, ic: s.icon, lb: s.label } : null; };
     it.ichi = { D: ic(B), W: ic(E.resample(B, 'W')), M: ic(E.resample(B, 'M')) };

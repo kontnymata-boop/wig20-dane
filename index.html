@@ -27,6 +27,29 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
+.top3{margin:0 0 12px}
+.top-head{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;margin-bottom:10px}
+.top-head h2{font-size:17px;margin:0;font-weight:700}
+.top-head .spacer{flex:1}
+.btn.sm{min-height:34px;padding:5px 11px;font-size:13px}
+.top-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tcard{border:1px solid var(--border);border-radius:12px;padding:12px;background:var(--page);cursor:pointer;display:flex;flex-direction:column;gap:8px;text-align:left;color:inherit;font:inherit}
+.tcard:hover,.tcard:focus-visible{border-color:var(--accent);outline:none}
+.tc-top{display:flex;align-items:center;gap:10px}
+.tc-rank{flex:0 0 26px;height:26px;border-radius:50%;background:var(--text);color:var(--surface);display:grid;place-items:center;font-weight:700;font-size:13px}
+.tc-name{flex:1;min-width:0}
+.tc-price{font-size:15px}
+.tc-lv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 9px}
+.tc-lv>div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tc-lv b{font-variant-numeric:tabular-nums;font-size:14px}
+.tc-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tc-note{font-size:12.5px;color:var(--text-2);line-height:1.4}
+.top-warn{background:var(--surface-2);border-radius:10px;padding:8px 10px;font-size:13.5px;margin-bottom:10px}
+.top-how{font-size:13.5px;color:var(--text-2);margin-top:10px;line-height:1.5}
+.top-how ul{margin:6px 0 0;padding-left:20px}
+.top-disc{margin-top:10px}
+.potline{font-size:13.5px}
+@media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
 .lowliq{color:var(--text-2);font-weight:600}
 html,body{margin:0;background:var(--page);color:var(--text)}
 body{font-size:15px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
@@ -229,6 +252,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div class="statusbar" id="statusbar"><span class="dot" id="stDot"></span><span id="stText">Wczytywanie…</span><div class="progress" id="stProg" hidden><i></i></div><span id="stErr"></span></div>
   <section class="card notice" id="notice" hidden></section>
   <section class="card market" id="market" hidden></section>
+  <section class="card top3" id="top3" hidden></section>
   <nav class="filters" id="filters" aria-label="Filtry spółek"></nav>
   <section class="tiles" id="tiles"></section>
   <div class="toolbar">
@@ -237,6 +261,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
     <label class="small">Sortuj:
       <select id="sort">
         <option value="signal">wg sygnału</option>
+        <option value="pot">wg potencjału wzrostowego</option>
         <option value="score">wg siły technicznej</option>
         <option value="change">wg zmiany dziennej</option>
         <option value="obr">wg obrotu</option>
@@ -270,7 +295,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.0 (14.11.2026)';
+const APP_VERSION = '2.1 (14.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -661,7 +686,7 @@ const STATUS={
 };
 const state={
   settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
-  filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE,
+  filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE, topHow:false,
   busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
   tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, viewCache:{}, legendKey:null, autoBackoffUntil:0
 };
@@ -810,7 +835,7 @@ const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?'
 const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
 const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
-function renderAll(){ renderProfileLbl(); renderMarket(); renderFilters(); renderTiles(); renderList(); }
+function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const n=Object.values(state.sum).filter(i=>!i.idx).length; $('#profileLbl').textContent=`${n?n+' spółek z rynku głównego GPW · ':''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
 function renderMarket(){
   const el=$('#market'), it=state.sum[INDEX_DEF.t];
@@ -822,6 +847,95 @@ function renderMarket(){
     <span>Trend: <b>${esc(S.tr||'–')}</b></span><span>Siła techniczna: <b>${S.sc!=null?S.sc+'/100':'–'}</b></span>
     <span class="badge ${st.cls}">${st.icon} ${st.label}</span><span class="small">sesja ${dPL(it.d)}</span>
     <span class="mk-note">${S.bear?'⚠ Rynek (WIG20) jest poniżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – sygnały kupna są w takim otoczeniu bardziej ryzykowne.':'Rynek (WIG20) jest powyżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – otoczenie sprzyja sygnałom kupna.'}</span>`;
+}
+
+/* ---------------- Potencjał wzrostowy – Top 3 ---------------- */
+const POT={minObr:1e6, maxAtr:0.06, minRR:1.5, minUp:0.03};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+let potCache={key:null, m:new Map()};
+function potential(it){
+  if(!it||it.idx) return null;
+  const key=state.settings.profile+'|'+(state.sumMeta&&state.sumMeta.updated);
+  if(potCache.key!==key) potCache={key, m:new Map()};
+  if(potCache.m.has(it.t)) return potCache.m.get(it.t);
+  const v=potentialCalc(it); potCache.m.set(it.t,v); return v;
+}
+function potentialCalc(it){
+  const S=itP(it);
+  if(S.sc==null || !['KUP','OBSERWUJ','TRZYMAJ'].includes(S.st)) return null;
+  if(!(it.obr>=POT.minObr)) return null;
+  if(it.atr!=null && it.atr>POT.maxAtr) return null;
+  const g=k=>it.ichi&&it.ichi[k]?it.ichi[k].sc:null, iD=g('D'), iW=g('W'), iM=g('M');
+  if(iD==null||iW==null||iM==null||iD<0||iW<0||iM<0) return null;
+  if(S.up==null||S.dn==null||S.dn<=0||S.up<POT.minUp||S.up/S.dn<POT.minRR) return null;
+  if(S.st==='OBSERWUJ' && S.en!=null && it.atr && S.en>it.atr) return null; // poziom wybicia za daleko (> 1 ATR)
+  const bt=S.bt||{n:0};
+  const parts={
+    sig: S.st==='KUP'?25:S.st==='OBSERWUJ'?15:10,
+    sc: S.sc/100*25,
+    ichi: (iD+iW+iM+12)/24*20,
+    bt: bt.n>=3 ? (bt.wr||0)*7.5 + clamp((bt.avg||0)/0.05,0,1)*7.5 : 5,
+    up: clamp(S.up/0.25,0,1)*15,
+    pen: (S.rsi||0)>=75 ? 10 : 0
+  };
+  const total=Math.round(clamp(parts.sig+parts.sc+parts.ichi+parts.bt+parts.up-parts.pen,0,100));
+  return {total, parts, en:S.en||0, up:S.up, dn:S.dn, rr:S.up/S.dn, bt};
+}
+function potRanking(){ return baseItems().map(it=>({it,p:potential(it)})).filter(x=>x.p).sort((a,b)=>b.p.total-a.p.total||(b.it.obr||0)-(a.it.obr||0)); }
+function hasPotFields(){ return baseItems().some(it=>itP(it).up!=null); }
+function topCard(x,i){
+  const it=x.it, p=x.p, S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it), lv=S.lv||{};
+  const ent=it.c*(1+p.en), tgt=lv.target!=null?lv.target:ent*(1+p.up), stp=lv.stop!=null?lv.stop:ent*(1-p.dn), bt=p.bt;
+  const btTxt = bt.n>=3 ? `${bt.n} transakcji, ${Math.round((bt.wr||0)*100)}% zyskownych, średnio ${pct(bt.avg,1)} na transakcję` : 'za mało transakcji, by to ocenić';
+  const why = S.st==='OBSERWUJ' ? `Układ gotowy, brakuje wybicia: kupno dopiero po zamknięciu powyżej ${fmt(ent)} zł${p.en>0.0005?' ('+pct(p.en,1)+' od kursu)':''} przy wyższym wolumenie. Cel i stop liczone od tego poziomu.`
+    : S.st==='TRZYMAJ' ? `System jest w pozycji od ${dPL(S.sd)} (wejście ${fmt(lv.entry)} zł), do celu zostało jeszcze ${pct(p.up,1)}.`
+    : `Sygnał kupna z ${dPL(S.sd)}.`;
+  return `<div class="tcard" data-t="${esc(it.t)}" role="button" tabindex="0" aria-label="${esc(it.t)} – otwórz szczegóły">
+    <div class="tc-top"><span class="tc-rank">${i+1}</span><div class="tc-name"><div class="tk">${esc(it.t)}</div><div class="nm">${esc(it.n)}</div></div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
+    <div class="tc-price"><b class="num">${fmt(itPrice(it))} zł</b> <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span> <span class="small">· obr. ${fmtVol(it.obr)} zł</span></div>
+    <div class="meter" title="Potencjał wzrostowy według rankingu (0–100)"><span class="small">Potencjał</span><div class="track"><div class="fill" style="width:${p.total}%"></div></div><b>${p.total}/100</b></div>
+    <div class="tc-lv">
+      <div><span class="small">Cel</span><b>${fmt(tgt)}</b><span class="small pos">${pct(tgt/it.c-1,1)}</span></div>
+      <div><span class="small">Stop</span><b>${fmt(stp)}</b><span class="small neg">${pct(stp/it.c-1,1)}</span></div>
+      <div><span class="small">Zysk / ryzyko</span><b>${fmt(p.rr,1)}</b><span class="small">siła ${S.sc}/100</span></div>
+    </div>
+    <div class="tc-row">${ichiChipsSum(it)}<span class="small">RSI ${S.rsi!=null?fmt(S.rsi,0):'–'}</span></div>
+    <div class="tc-note">${why}<br>Ten system na tej spółce (ok. 5 lat): ${btTxt}.</div>
+  </div>`;
+}
+function renderTop(){
+  const el=$('#top3'), items=baseItems();
+  if(!items.length){ el.hidden=true; return; }
+  el.hidden=false;
+  const P=PROFILES[state.settings.profile], ok=hasPotFields(), rank=ok?potRanking():[], picks=rank.slice(0,3);
+  const mk=state.sum[INDEX_DEF.t], bear=mk&&itP(mk).bear;
+  const body = !ok ? `<div class="small">Naciśnij <b>⟳ Aktualizuj</b>, aby pobrać dane potrzebne do rankingu.</div>`
+    : !picks.length ? `<div class="top-warn">Dziś żadna płynna spółka nie spełnia wszystkich warunków. Według systemu lepiej poczekać – ranking sam się zaktualizuje.</div>`
+    : `<div class="top-grid">${picks.map(topCard).join('')}</div>`;
+  el.innerHTML=`<div class="top-head"><h2>Top 3 – największy potencjał wzrostowy</h2><span class="small">horyzont ${P.short} · warunki spełnia ${rank.length} z ${items.length} spółek</span><span class="spacer"></span><button class="btn sm" id="topHow" aria-expanded="${state.topHow}">${state.topHow?'Ukryj zasady':'Jak wybieram?'}</button></div>
+    ${bear?`<div class="top-warn">⚠ WIG20 jest poniżej średniej ${P.trend}-sesyjnej – w słabym rynku nawet dobre układy częściej zawodzą.</div>`:''}
+    ${body}
+    <div class="top-how" ${state.topHow?'':'hidden'}>
+      Wybieram automatycznie spośród wszystkich ${items.length} spółek. Do rankingu wchodzą tylko te, które spełniają <b>wszystkie</b> warunki:
+      <ul>
+        <li>sygnał <b>KUP</b>, <b>OBSERWUJ</b> (tylko gdy do poziomu wybicia brakuje najwyżej jednego średniego ruchu dziennego – ATR) albo <b>TRZYMAJ</b> (tylko gdy do celu zostało wyraźnie więcej niż do stopu),</li>
+        <li>płynność: średni obrót co najmniej 1 mln zł dziennie (łatwo kupić i sprzedać),</li>
+        <li>Ichimoku dzienne, tygodniowe i miesięczne nie jest spadkowe (trendy zgodne),</li>
+        <li>zysk do celu co najmniej 1,5 raza większy niż strata do stopu,</li>
+        <li>zmienność umiarkowana (średni dzienny ruch ceny – ATR – do 6%).</li>
+      </ul>
+      Potem każda spółka dostaje punkty (razem do 100): sygnał do 25 (KUP 25, OBSERWUJ 15, TRZYMAJ 10), siła techniczna do 25, zgodność Ichimoku D·T·M do 20, wyniki tego systemu na danej spółce w ostatnich ok. 5 latach do 15, przestrzeń do celu do 15 (25% i więcej = komplet). Gdy RSI ≥ 75 (wykupienie), odejmuję 10 punktów. Cel i stop liczę z obecnego kursu i zmienności (ATR) dla wybranego horyzontu – horyzont zmienisz w Ustawieniach.
+    </div>
+    <div class="small top-disc">Ranking jest mechaniczny – nie zna wiadomości, wyników finansowych ani sytuacji spółek. To nie jest rekomendacja inwestycyjna.</div>`;
+  $('#topHow').onclick=()=>{ state.topHow=!state.topHow; renderTop(); };
+  $$('#top3 .tcard').forEach(c=>{ c.onclick=()=>showCompany(c.dataset.t); c.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); showCompany(c.dataset.t); } }; });
+}
+function potLine(t){
+  const it=state.sum[t]; if(!it||it.idx||!hasPotFields()) return '';
+  const p=potential(it);
+  if(!p) return `<p class="note potline">Potencjał wzrostowy: spółka nie spełnia dziś warunków rankingu Top 3.</p>`;
+  const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
+  return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
 function baseItems(){ return Object.values(state.sum).filter(it=>!it.idx); }
 function filteredItems(){
@@ -862,6 +976,7 @@ function renderList(){
     if(state.sort==='score') return sc(b)-sc(a);
     if(state.sort==='change') return (itChange(b)||0)-(itChange(a)||0);
     if(state.sort==='obr') return (b.obr||0)-(a.obr||0);
+    if(state.sort==='pot') return ((potential(b)||{total:-1}).total-(potential(a)||{total:-1}).total) || sc(b)-sc(a);
     return ((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio) || sc(b)-sc(a) || (b.obr||0)-(a.obr||0);
   });
   const head=`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
@@ -1032,7 +1147,7 @@ function openDetail(t, keepScroll){
       <p class="sig-text">${esc(S.text)}</p>
       ${reasons.length?`<ul class="sig-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
       ${levelsHTML(A)}
-      ${ichiSignalLine(A)}
+      ${ichiSignalLine(A)}${potLine(state.detail)}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
     <section class="card">
@@ -1422,6 +1537,8 @@ function renderHelp(){
   </ul>
   <h3>Dane i aktualizacja</h3>
   <p>Notowania wszystkich spółek rynku głównego GPW pobiera automat na GitHubie (z Yahoo Finance): co 30 minut w trakcie sesji oraz pełne dane po jej zamknięciu. Aplikacja czyta gotowy plik, więc działa jako zwykły plik HTML – na komputerze i na telefonie. Przycisk <b>⟳ Aktualizuj</b> pobiera najnowszy stan, a przy włączonej aktualizacji automatycznej aplikacja odświeża się sama (co 15 minut w trakcie sesji i po jej zamknięciu). W trakcie sesji widać bieżący kurs (opóźniony), a sygnały liczone są z zamkniętych sesji. Wykres i test strategii wczytują się po otwarciu spółki.</p>
+  <h3>Top 3 – największy potencjał wzrostowy</h3>
+  <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku. Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
   <h3>Filtry i lista</h3>
   <ul>
     <li><b>★ Obserwowane</b> – Twoja lista; gwiazdkę klikasz przy spółce na liście albo w jej szczegółach.</li>
