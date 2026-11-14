@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+/*
+  RadMat · Sygnały GPW – podsumowanie sygnałów dla listy spółek
+  Liczy sygnały (3 horyzonty) i oceny Ichimoku dla każdej spółki tym samym silnikiem,
+  którego używa aplikacja (kod między znacznikami ENGINE w index.html).
+  Użycie: node scripts/summary.js <folder_store>
+*/
+'use strict';
+const fs = require('fs');
+const path = require('path');
+
+const store = process.argv[2] || path.join(__dirname, '..', 'store');
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const code = html.split('/*ENGINE-START*/')[1].split('/*ENGINE-END*/')[0];
+const E = new Function(code + '; return {PROFILES, analyze, ichiFor, resample, compactToBars, sliceBars};')();
+
+function warsawNow() {
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Warsaw', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short' })
+    .formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return { date: `${p.year}-${p.month}-${p.day}`, min: (parseInt(p.hour, 10) % 24) * 60 + parseInt(p.minute, 10), wd: p.weekday };
+}
+const r = (x, d = 2) => (x == null || !isFinite(x)) ? null : Math.round(x * 10 ** d) / 10 ** d;
+const sig = x => (x == null || !isFinite(x)) ? null : Number(x.toPrecision(5));
+
+const uni = JSON.parse(fs.readFileSync(path.join(store, 'universe.json'), 'utf8'));
+const w = warsawNow();
+const items = [];
+let fails = 0;
+for (const u of uni.items) {
+  if (!u.ok) continue;
+  const f = path.join(store, 'd', u.t + '.json');
+  if (!fs.existsSync(f)) continue;
+  try {
+    const x = JSON.parse(fs.readFileSync(f, 'utf8'));
+    let B = E.compactToBars(x);
+    const n = B.d.length;
+    let live = null;
+    if (n > 1 && B.d[n - 1] === w.date && !['Sat', 'Sun'].includes(w.wd) && w.min < 17 * 60 + 15) {
+      live = { p: sig(B.c[n - 1]), ch: r(B.c[n - 1] / B.c[n - 2] - 1, 4) };
+      const o = {}; for (const k of Object.keys(B)) o[k] = B[k].slice(0, -1); B = o;
+    }
+    const Bs = E.sliceBars(B, 1300);
+    const L = Bs.c.length - 1;
+    const c20 = Bs.c.slice(-20), v20 = Bs.v.slice(-20);
+    const obr = c20.reduce((s, c, i) => s + c * v20[i], 0) / Math.max(1, c20.length);
+    const it = {
+      t: u.t, n: u.n, y: x.sym || u.y, w20: !!u.w20, idx: !!u.idx, d: Bs.d[L], c: sig(Bs.c[L]),
+      ch: L > 0 ? r(Bs.c[L] / Bs.c[L - 1] - 1, 4) : null, obr: Math.round(obr), live,
+      sp: Bs.c.slice(-60).map(sig), s: {}, ichi: {}
+    };
+    for (const p of Object.keys(E.PROFILES)) {
+      const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
+      if (!A.ok) { it.s[p] = { st: 'BRAK', msg: A.msg }; continue; }
+      const lv = {}; for (const k of Object.keys(A.levels)) lv[k] = sig(A.levels[k]);
+      it.s[p] = { st: A.status, sc: A.score, rsi: r(A.rsi, 1), tr: A.trend, bear: A.close < A.I.smaT[A.L], lv,
+        k: A.info.kind, sd: A.info.sigIdx != null ? Bs.d[A.info.sigIdx] : null };
+    }
+    const ic = BB => { const s = E.ichiFor(BB); return s.ok ? { sc: s.score, ic: s.icon, lb: s.label } : null; };
+    it.ichi = { D: ic(B), W: ic(E.resample(B, 'W')), M: ic(E.resample(B, 'M')) };
+    items.push(it);
+  } catch (e) { fails++; console.log('Błąd', u.t, e.message); }
+}
+items.sort((a, b) => a.t.localeCompare(b.t));
+const out = { ok: true, app: 'gpw-sygnaly', updated: uni.updated, mode: uni.mode, count: items.length, items };
+fs.writeFileSync(path.join(store, 'summary.json'), JSON.stringify(out));
+console.log(`summary.json: ${items.length} spółek, błędy: ${fails}, ${Math.round(fs.statSync(path.join(store, 'summary.json')).size / 1024)} KB`);

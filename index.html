@@ -3,11 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>RadMat · WIG20 Sygnały</title>
+<title>RadMat · Sygnały GPW</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap" rel="stylesheet">
-<!-- W aplikacji APK (Cordova) ten plik daje dostęp do natywnego pobierania danych. W przeglądarce jest pomijany. -->
-<script src="cordova.js"></script>
 <style>
 :root{
   --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f1f0ec; --text:#0b0b0b; --text-2:#52514e; --muted:#898781;
@@ -201,6 +199,16 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 .steps{margin:6px 0 0;padding-left:22px} .steps li{margin:0 0 12px}
 .codebox{display:block;width:100%;height:120px;margin:6px 0;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;border:1px solid var(--border);border-radius:8px;background:var(--page);color:var(--text);padding:8px}
 #dlgSetup input[type=text]{border:1px solid var(--border);background:var(--page);border-radius:8px;padding:8px 10px;min-height:42px;width:100%;margin-top:6px}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.chip .cnt{display:inline-block;min-width:22px;padding:0 6px;margin-left:4px;border-radius:999px;background:var(--surface-2);color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums}
+.chip.active .cnt{background:rgba(255,255,255,.18);color:inherit}
+.namecell{display:flex;align-items:center;gap:8px;min-width:0}
+.namecell>div{min-width:0}
+.star{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:4px;min-width:30px;min-height:30px}
+.star.on{color:#e0a100}
+.star.big{font-size:26px;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.more{display:block;margin:12px auto 0}
 </style>
 </head>
 <body>
@@ -208,9 +216,9 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div class="wrap">
     <div class="brand">
       <span class="radmat">RadMat</span>
-      <span class="ttl">WIG20 · Sygnały techniczne<small id="profileLbl">Analiza techniczna spółek WIG20</small></span>
+      <span class="ttl">Sygnały GPW<small id="profileLbl">Analiza techniczna spółek z Giełdy Papierów Wartościowych</small></span>
     </div>
-    <button class="btn primary" id="btnRefresh" title="Pobierz najnowsze notowania i przelicz sygnały"><span class="spin">⟳</span> <span id="btnRefreshTxt">Aktualizuj</span></button>
+    <button class="btn primary" id="btnRefresh" title="Pobierz najnowsze notowania i sygnały"><span class="spin">⟳</span> <span id="btnRefreshTxt">Aktualizuj</span></button>
     <button class="btn" id="btnSettings">⚙ Ustawienia</button>
     <button class="btn" id="btnHelp" aria-label="Pomoc">?</button>
   </div>
@@ -220,23 +228,26 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div class="statusbar" id="statusbar"><span class="dot" id="stDot"></span><span id="stText">Wczytywanie…</span><div class="progress" id="stProg" hidden><i></i></div><span id="stErr"></span></div>
   <section class="card notice" id="notice" hidden></section>
   <section class="card market" id="market" hidden></section>
+  <nav class="filters" id="filters" aria-label="Filtry spółek"></nav>
   <section class="tiles" id="tiles"></section>
   <div class="toolbar">
-    <input type="search" id="search" placeholder="Szukaj spółki…" aria-label="Szukaj spółki">
+    <input type="search" id="search" placeholder="Szukaj spółki (skrót lub nazwa)…" aria-label="Szukaj spółki">
     <span class="spacer"></span>
     <label class="small">Sortuj:
       <select id="sort">
         <option value="signal">wg sygnału</option>
         <option value="score">wg siły technicznej</option>
         <option value="change">wg zmiany dziennej</option>
+        <option value="obr">wg obrotu</option>
         <option value="name">alfabetycznie</option>
       </select>
     </label>
   </div>
   <section class="list" id="list"></section>
-  <footer class="disc" id="disclaimer">
-    Aplikacja jest narzędziem edukacyjnym. Sygnały powstają automatycznie z prostych reguł analizy technicznej (średnie kroczące, MACD, RSI, ADX, ATR) i nie są rekomendacją inwestycyjną w rozumieniu przepisów prawa ani poradą finansową. Wyniki historyczne nie gwarantują przyszłych. Decyzje inwestycyjne podejmujesz na własne ryzyko.
-    Dane: Yahoo Finance / Stooq (notowania dzienne, mogą być opóźnione).
+  <button class="btn more" id="more" hidden></button>
+  <footer class="disc">
+    Aplikacja jest narzędziem edukacyjnym. Sygnały powstają automatycznie z prostych reguł analizy technicznej (średnie kroczące, MACD, RSI, ADX, ATR, Ichimoku) i nie są rekomendacją inwestycyjną w rozumieniu przepisów prawa ani poradą finansową. Wyniki historyczne nie gwarantują przyszłych. Decyzje inwestycyjne podejmujesz na własne ryzyko.
+    Dane: Yahoo Finance (notowania opóźnione), pobierane automatycznie przez serwer danych RadMat.
   </footer>
 </main>
 
@@ -253,184 +264,17 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div class="dlg-body help" id="helpBody"></div>
 </dialog>
 
-<dialog id="dlgSetup">
-  <div class="dlg-head"><h2>Automatyczne pobieranie notowań – konfiguracja jednorazowa</h2><button class="btn ghost sm" data-close>✕</button></div>
-  <div class="dlg-body">
-    <p>Przeglądarka nie pozwala aplikacji pobierać danych z giełdowych stron. Rozwiązanie: darmowy „serwer danych” na Twoim koncie Google. Ustawiasz go <b>raz</b> (ok. 3 minuty) – potem wystarczy przycisk <b>Aktualizuj</b>, a w trakcie sesji dane odświeżają się same.</p>
-    <ol class="steps">
-      <li>Otwórz <a href="https://script.google.com/create" target="_blank" rel="noopener">script.google.com/create</a> i zaloguj się na konto Google – otworzy się nowy projekt.</li>
-      <li>Usuń przykładowy kod i wklej kod serwera: <button class="btn sm" id="btnCopyGas" type="button">📋 Kopiuj kod</button> <span id="copyMsg" class="small"></span>
-        <textarea class="codebox" id="gasCodeBox" readonly></textarea>Kliknij ikonę dyskietki (<b>Zapisz</b>).</li>
-      <li>Kliknij <b>Wdróż → Nowe wdrożenie</b>, przy „Wybierz typ” kliknij ⚙ i wybierz <b>Aplikacja internetowa</b>. Ustaw: <b>Wykonaj jako: Ja</b> oraz <b>Kto ma dostęp: Każdy</b>. Kliknij <b>Wdróż</b>.</li>
-      <li>Google poprosi o zgodę: <b>Autoryzuj dostęp</b> → wybierz konto → <b>Zaawansowane</b> → <b>Przejdź do projektu (niebezpieczne)</b> → <b>Zezwól</b>. Ostrzeżenie pojawia się, bo to Twój prywatny skrypt, którego Google nie weryfikował.</li>
-      <li>Skopiuj <b>adres URL aplikacji internetowej</b> (kończy się na <code>/exec</code>) i wklej go tutaj:
-        <input type="text" id="gasUrlSetup" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
-        <div class="inline" style="margin-top:8px"><button class="btn primary" id="btnGasConnect" type="button">Połącz i aktualizuj</button><span id="gasMsg" class="small"></span></div></li>
-    </ol>
-    <p class="note">Ten sam adres wklej na innych urządzeniach (Ustawienia → Serwer danych Google). Skrypt łączy się tylko z Yahoo Finance i Stooq i mieści się w darmowych limitach Google. W aplikacji APK z wtyczką natywną serwer nie jest potrzebny.</p>
-  </div>
-</dialog>
-<script type="text/plain" id="gasCode">
-/**
- * RadMat · WIG20 Sygnały – serwer danych (Google Apps Script)
- * ------------------------------------------------------------
- * Pobiera notowania z Yahoo Finance / Stooq w imieniu aplikacji WIG20 Sygnały
- * (przeglądarka nie może tego zrobić sama – blokada CORS).
- *
- * Instalacja (jednorazowo, ok. 3 minuty):
- *  1. script.google.com → Nowy projekt → wklej ten kod w miejsce przykładowego → Zapisz.
- *  2. Wdróż → Nowe wdrożenie → typ: Aplikacja internetowa
- *     Wykonaj jako: Ja · Kto ma dostęp: Każdy → Wdróż → Autoryzuj dostęp.
- *  3. Skopiuj adres aplikacji internetowej (kończy się na /exec) i wklej go w aplikacji.
- *
- * Skrypt łączy się wyłącznie z serwerami Yahoo Finance i Stooq. Działa na Twoim koncie Google.
- */
-var VERSION = '1.2';
-var ALLOWED = ['query1.finance.yahoo.com', 'query2.finance.yahoo.com', 'stooq.com', 'www.stooq.com', 'stooq.pl', 'www.stooq.pl'];
-var UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
-
-function doGet(e) {
-  var p = (e && e.parameter) || {};
-  var out;
-  try {
-    if (p.symbols) out = yahooBatch_(String(p.symbols).split(','), p.interval || '1d', p.range || '10y');
-    else if (p.url) out = proxy_(String(p.url));
-    else out = { ok: true, app: 'wig20-sygnaly', version: VERSION, time: new Date().toISOString(),
-                 info: 'Serwer danych działa. Wklej adres tej strony w aplikacji WIG20 Sygnały.' };
-  } catch (err) {
-    out = { ok: false, error: String((err && err.message) || err) };
-  }
-  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
-}
-
-function hostOf_(url) {
-  var m = String(url).match(/^https:\/\/([^\/?#:]+)/i);
-  return m ? m[1].toLowerCase() : '';
-}
-
-/* Pojedynczy adres (np. Stooq CSV albo notowania godzinowe Yahoo) */
-function proxy_(url) {
-  var host = hostOf_(url);
-  if (ALLOWED.indexOf(host) < 0) return { ok: false, error: 'Adres niedozwolony: ' + (host || url) };
-  var r = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true, headers: { 'User-Agent': UA, 'Accept': '*/*' } });
-  return { ok: true, status: r.getResponseCode(), body: r.getContentText() };
-}
-
-function round4_(x) { return x == null ? null : Math.round(x * 1e4) / 1e4; }
-
-/* Skraca odpowiedź Yahoo do tablic: czas, otwarcie, max, min, zamknięcie, wolumen */
-function compact_(res) {
-  var q = (res.indicators && res.indicators.quote && res.indicators.quote[0]) || {};
-  var t = res.timestamp || [], m = res.meta || {};
-  var out = { meta: { off: m.gmtoffset, time: m.regularMarketTime, price: m.regularMarketPrice }, t: [], o: [], h: [], l: [], c: [], v: [] };
-  for (var i = 0; i < t.length; i++) {
-    if (!q.close || q.close[i] == null) continue;
-    out.t.push(t[i]);
-    out.o.push(round4_(q.open ? q.open[i] : null));
-    out.h.push(round4_(q.high ? q.high[i] : null));
-    out.l.push(round4_(q.low ? q.low[i] : null));
-    out.c.push(round4_(q.close[i]));
-    out.v.push(q.volume && q.volume[i] ? q.volume[i] : 0);
-  }
-  return out;
-}
-
-function key_(s, i, r) { return 'y|' + s + '|' + i + '|' + r; }
-
-/* Wiele spółek naraz – jedno wywołanie z aplikacji, równoległe pobieranie po stronie Google */
-function yahooBatch_(symbols, interval, range) {
-  var okInt = ['1d', '1wk', '1mo', '60m', '90m', '30m', '15m', '5m'];
-  if (okInt.indexOf(interval) < 0) interval = '1d';
-  if (!/^(\d{1,2}(d|mo|y)|max|ytd)$/.test(range)) range = '10y';
-  var cache = CacheService.getScriptCache();
-  var data = {}, todo = [];
-  symbols.slice(0, 40).forEach(function (s) {
-    s = String(s).trim();
-    if (!/^[A-Za-z0-9.\-^=]{1,20}$/.test(s)) return;
-    var hit = null;
-    try { hit = cache.get(key_(s, interval, range)); } catch (e) {}
-    if (hit) data[s] = JSON.parse(hit); else todo.push(s);
-  });
-  fetchYahoo_(todo, interval, range, 'query1', data, cache);
-  var again = todo.filter(function (s) { return data[s] && data[s].error && data[s].retry; });
-  if (again.length) fetchYahoo_(again, interval, range, 'query2', data, cache);
-  return { ok: true, version: VERSION, time: new Date().toISOString(), interval: interval, range: range, data: data };
-}
-
-function fetchYahoo_(list, interval, range, host, data, cache) {
-  if (!list.length) return;
-  var reqs = list.map(function (s) {
-    return {
-      url: 'https://' + host + '.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(s) +
-           '?range=' + range + '&interval=' + interval + '&includePrePost=false',
-      muteHttpExceptions: true,
-      headers: { 'User-Agent': UA, 'Accept': 'application/json' }
-    };
-  });
-  var resps = UrlFetchApp.fetchAll(reqs);
-  resps.forEach(function (r, k) {
-    var s = list[k], code = r.getResponseCode(), txt = r.getContentText();
-    try {
-      var j = JSON.parse(txt);
-      var res = j && j.chart && j.chart.result && j.chart.result[0];
-      if (!res) {
-        var er = j && j.chart && j.chart.error;
-        data[s] = { error: er ? (er.description || er.code) : ('HTTP ' + code), retry: code === 429 || code >= 500 };
-        return;
-      }
-      var c = compact_(res);
-      data[s] = c;
-      var str = JSON.stringify(c);
-      if (str.length < 90000) {
-        try { cache.put(key_(s, interval, range), str, /m$/.test(interval) ? 60 : 300); } catch (e) {}
-      }
-    } catch (err) {
-      data[s] = { error: 'HTTP ' + code + ': ' + String(txt).slice(0, 120), retry: true };
-    }
-  });
-}
-</script>
-
 <script>
 'use strict';
 /* =========================================================================
-   RadMat · WIG20 Sygnały — analiza techniczna spółek WIG20
+   RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '1.3 (14.11.2026)';
-const COMPOSITION_NOTE = 'Skład WIG20 wg stanu na 14.11.2026 (bez zmian po korekcie z 18.09.2026).';
-const LS_SET = 'radmat_wig20_settings_v1', LS_DATA = 'radmat_wig20_data_v1_', LS_META = 'radmat_wig20_meta_v1';
-const STALE_HOURS = 4;
-
-const DEFAULT_COMPANIES = [
-  ['PKO','PKO Bank Polski','PKO.WA','pko'],
-  ['PKN','Orlen','PKN.WA','pkn'],
-  ['KGH','KGHM Polska Miedź','KGH.WA','kgh'],
-  ['ALE','Allegro.eu','ALE.WA','ale'],
-  ['PEO','Bank Pekao','PEO.WA','peo'],
-  ['PZU','PZU','PZU.WA','pzu'],
-  ['EBP','Erste Bank Polska (d. Santander)','EBP.WA, SPL.WA','ebp, spl'],
-  ['LPP','LPP','LPP.WA','lpp'],
-  ['CDR','CD Projekt','CDR.WA','cdr'],
-  ['DNP','Dino Polska','DNP.WA','dnp'],
-  ['MBK','mBank','MBK.WA','mbk'],
-  ['ZAB','Żabka Group','ZAB.WA','zab'],
-  ['ALR','Alior Bank','ALR.WA','alr'],
-  ['KTY','Grupa Kęty','KTY.WA','kty'],
-  ['TPE','Tauron Polska Energia','TPE.WA','tpe'],
-  ['PGE','PGE','PGE.WA','pge'],
-  ['BDX','Budimex','BDX.WA','bdx'],
-  ['KRU','Kruk','KRU.WA','kru'],
-  ['PCO','Pepco Group','PCO.WA','pco'],
-  ['MDV','Modivo (d. CCC)','MDV.WA, CCC.WA','mdv, ccc'],
-  ['BFT','Benefit Systems (lista rezerwowa)','BFT.WA','bft',false],
-  ['XTB','XTB (lista rezerwowa)','XTB.WA','xtb',false],
-].map(([t,n,y,s,on=true])=>({t,n,y,s,on}));
-const INDEX_DEF = {t:'WIG20', n:'Indeks WIG20', y:'WIG20.WA', s:'wig20', on:true, isIndex:true};
-
-const DEFAULT_SETTINGS = {
-  source:'auto', stooqKey:'', feedUrl:'', profile:'sredni', fee:0.3, autoRefresh:true, gasUrl:'', chartMode:'ichimoku', tf:'D', v:2,
-  publicProxy:true, closedOnly:true, theme:'auto', showBB:false, companies:DEFAULT_COMPANIES
-};
+const APP_VERSION = '2.0 (14.11.2026)';
+const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
+const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
+const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
+const INDEX_DEF = {t:'WIG20', isIndex:true};
+const PAGE = 100;
 
 /*ENGINE-START*/
 /* ---------------- Silnik analizy (czyste funkcje) ---------------- */
@@ -802,7 +646,10 @@ const store={
 };
 const symList=s=>String(s||'').split(/[,;\s]+/).map(x=>x.trim()).filter(Boolean);
 
-/* ---------------- Stan ---------------- */
+
+/* =========================================================================
+   RadMat · Sygnały GPW 2.0 – stan, dane, lista spółek
+   ========================================================================= */
 const STATUS={
   KUP:{label:'KUP', icon:'▲', cls:'buy', prio:0, tile:'Kup'},
   SPRZEDAJ:{label:'SPRZEDAJ', icon:'▼', cls:'sell', prio:1, tile:'Sprzedaj'},
@@ -812,162 +659,67 @@ const STATUS={
   BRAK:{label:'BRAK DANYCH', icon:'?', cls:'wait', prio:5, tile:'Brak danych'},
 };
 const state={
-  settings:null, data:{}, an:{}, errors:{}, filter:'all', sort:'signal', search:'',
-  busy:false, gen:0, abortCtl:null, working:null, flash:new Set(), transports:{native:false, local:false}, detail:null, hover:null, incomplete:{}, tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, viewCache:{}, legendKey:null, autoBackoffUntil:0
+  settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
+  filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE,
+  busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
+  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, viewCache:{}, legendKey:null, autoBackoffUntil:0
 };
 function loadSettings(){
   const s=Object.assign({}, DEFAULT_SETTINGS, store.get(LS_SET,{}));
-  if(!Array.isArray(s.companies)||!s.companies.length) s.companies=DEFAULT_COMPANIES.map(x=>Object.assign({},x));
   if(!PROFILES[s.profile]) s.profile='sredni';
-  if((s.v||0)<2){ s.autoRefresh=true; s.v=2; }
   if(!['ichimoku','classic'].includes(s.chartMode)) s.chartMode='ichimoku';
   if(!['H','D','W','M'].includes(s.tf)) s.tf='D';
   state.settings=s; state.chartMode=s.chartMode; state.tf=s.tf;
+  state.watch=new Set(store.get(LS_WATCH,[]));
 }
 function saveSettings(){ store.set(LS_SET,state.settings); }
-function allEntities(){ return [INDEX_DEF].concat(state.settings.companies.filter(c=>c.on && c.t)); }
-function companyByT(t){ return t===INDEX_DEF.t ? INDEX_DEF : state.settings.companies.find(c=>c.t===t); }
-
+function saveWatch(){ store.set(LS_WATCH,[...state.watch]); }
 function applyTheme(){
   const t=state.settings.theme;
   const dark = t==='dark' || (t==='auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.setAttribute('data-theme', dark?'dark':'light');
 }
-
-/* ---------------- Transport HTTP ---------------- */
-const PUBLIC_PROXIES=[
-  {name:'corsproxy.io', make:u=>'https://corsproxy.io/?url='+encodeURIComponent(u)},
-  {name:'allorigins', make:u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
-  {name:'codetabs', make:u=>'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(u)},
-  {name:'cors.lol', make:u=>'https://api.cors.lol/?url='+encodeURIComponent(u)},
-];
-let cordovaReadyP=null;
-function cordovaReady(){
-  if(cordovaReadyP) return cordovaReadyP;
-  cordovaReadyP=new Promise(res=>{
-    if(!window.cordova){ res(false); return; }
-    let done=false; const fin=v=>{ if(!done){ done=true; res(v); } };
-    document.addEventListener('deviceready',()=>fin(!!(window.cordova&&cordova.plugin&&cordova.plugin.http)),false);
-    setTimeout(()=>fin(!!(window.cordova&&cordova.plugin&&cordova.plugin.http)),5000);
-  });
-  return cordovaReadyP;
-}
-function nativeGet(url){
-  return new Promise((res,rej)=>{
-    cordova.plugin.http.sendRequest(url,{method:'get',responseType:'text',timeout:25,
-      headers:{'User-Agent':'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Mobile Safari/537.36','Accept':'*/*'}},
-      r=>res(r.data), e=>rej(new Error('HTTP '+(e.status||'?')+(e.error?(' '+String(e.error).slice(0,80)):''))));
-  });
-}
-function fetchText(url,ms=20000){
-  // przerwanie: własny limit czasu + przycisk „Aktualizuj” naciśnięty ponownie (state.abortCtl)
+const feedBase=()=>{ let u=(state.settings.feed||DEFAULT_FEED).trim(); return u.endsWith('/')?u:u+'/'; };
+const minuteTag=()=>'t='+Math.floor(Date.now()/60000);
+function fetchText(url,ms=30000){
   const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),ms);
   const outer=state.abortCtl?state.abortCtl.signal:null; const onAbort=()=>ctl.abort();
   if(outer){ if(outer.aborted) ctl.abort(); else outer.addEventListener('abort',onAbort); }
   return (async()=>{
-    try{
-      const r=await fetch(url,{signal:ctl.signal,cache:'no-store'});
-      const txt=await r.text();
-      if(!r.ok) throw new Error('HTTP '+r.status+(txt?' – '+txt.slice(0,80):''));
-      return txt;
-    } catch(e){ if(e.name==='AbortError') throw new Error(outer&&outer.aborted?'przerwano':'przekroczony czas oczekiwania'); throw e; }
+    try{ const r=await fetch(url,{signal:ctl.signal,cache:'no-store'}); const txt=await r.text(); if(!r.ok) throw new Error('HTTP '+r.status); return txt; }
+    catch(e){ if(e.name==='AbortError') throw new Error(outer&&outer.aborted?'przerwano':'przekroczony czas oczekiwania'); throw e; }
     finally{ clearTimeout(tm); if(outer) outer.removeEventListener('abort',onAbort); }
   })();
 }
-async function detectLocalProxy(){
-  if(!/^https?:$/.test(location.protocol)) return false;
-  try{ const t=await fetchText('/api/ping',3000); const j=JSON.parse(t); return !!(j&&j.ok&&j.app==='wig20-sygnaly'); }catch(e){ return false; }
+/* ---------------- Dane z serwera danych RadMat ---------------- */
+async function fetchSummary(){
+  const txt=await fetchText(feedBase()+'summary.json?'+minuteTag(),60000);
+  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error('nieprawidłowy plik z notowaniami'); }
+  if(!j||!j.ok||!Array.isArray(j.items)) throw new Error('brak notowań w pliku');
+  return j;
 }
-const bust=u=>u+(u.includes('?')?'&':'?')+'_='+Date.now();   // omija pamięć podręczną pośredników
-const RANK={native:0, local:1, gas:2, direct:3};
-async function gasGet(u){
-  const txt=await fetchText(state.settings.gasUrl+'?url='+encodeURIComponent(u),30000);
-  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error('serwer Google: nieprawidłowa odpowiedź'); }
-  if(!j.ok) throw new Error('serwer Google: '+(j.error||'błąd'));
-  if(j.status!==200) throw new Error('HTTP '+j.status+(j.body?' – '+String(j.body).slice(0,80):''));
-  return j.body;
+function applySummary(j,flash){
+  const old=state.sum; const m={};
+  for(const it of j.items){ m[it.t]=it; if(flash && old[it.t] && (old[it.t].c!==it.c || (old[it.t].live&&old[it.t].live.p)!==(it.live&&it.live.p))) state.flash.add(it.t); }
+  state.sum=m; state.sumMeta={updated:j.updated, mode:j.mode, count:j.count};
 }
-function allTransports(){
-  const list=[];
-  if(state.transports.native) list.push({k:'native', name:'natywnie (APK)', get:nativeGet, trusted:true});
-  if(state.transports.local) list.push({k:'local', name:'serwer lokalny', get:u=>fetchText('/proxy?url='+encodeURIComponent(u)), trusted:true});
-  if(state.settings.gasUrl) list.push({k:'gas', name:'serwer Google', get:gasGet});
-  list.push({k:'direct', name:'bezpośrednio', get:u=>fetchText(u,8000)});
-  if(state.settings.publicProxy) PUBLIC_PROXIES.forEach(p=>list.push({k:'pp:'+p.name, name:p.name, get:u=>fetchText(p.make(bust(u)),12000)}));
-  return list;
+function lsIndex(){ return store.get(LS_DIDX,[]); }
+function cacheDaily(t,x){
+  let idx=lsIndex().filter(k=>k!==t); idx.unshift(t);
+  while(idx.length>15){ store.del(LS_D+idx.pop()); }
+  if(!store.set(LS_D+t,x)){ while(idx.length>1){ store.del(LS_D+idx.pop()); } store.set(LS_D+t,x); }
+  store.set(LS_DIDX,idx);
 }
-function transportOrder(){
-  const list=allTransports();
-  if(state.working && state.working.length){ const w=state.working.map(k=>list.find(t=>t.k===k)).filter(Boolean); if(w.length) return w; }
-  return list;
+function dailyFrom(t,x,at){ return {bars:sliceBars(compactToBars(x),2600), sym:x.sym, meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+(x.sym||t), via:'serwer danych RadMat', at:at||Date.now()}; }
+async function ensureDaily(t,force){
+  if(state.data[t] && !force) return state.data[t];
+  if(!force){ const c=store.get(LS_D+t,null); if(c&&c.x){ state.data[t]=dailyFrom(t,c.x,c.at); return state.data[t]; } }
+  const txt=await fetchText(feedBase()+'d/'+encodeURIComponent(t)+'.json?'+minuteTag(),45000);
+  const x=JSON.parse(txt); if(!x||!x.t||!x.t.length) throw new Error('brak notowań');
+  const at=Date.now(); state.data[t]=dailyFrom(t,x,at); cacheDaily(t,{x,at}); delete state.errors[t];
+  return state.data[t];
 }
-// Sprawdza równolegle metody pobierania i zwraca działające (najpewniejsza pierwsza)
-async function probeTransports(){
-  const list=allTransports();
-  const trusted=list.filter(t=>t.trusted);
-  if(trusted.length) return {working:trusted.map(t=>t.k), errors:[]};
-  const useStooq=state.settings.source==='stooq';
-  const url=useStooq?stooqURL('pko'):yahooURL('PKO.WA','5d');
-  const check=txt=>useStooq?parseCSV(txt):parseYahoo(txt);
-  const ok=[], errors=[];
-  await new Promise(resolve=>{
-    let pending=list.length, timer=null;
-    const finish=()=>{ clearTimeout(timer); resolve(); };
-    list.forEach(t=>{
-      const t0=Date.now();
-      Promise.resolve().then(()=>t.get(url)).then(txt=>{ check(txt); ok.push({k:t.k, ms:Date.now()-t0}); if(!timer) timer=setTimeout(finish, ok.some(x=>x.k==='gas')?300:2500); })
-        .catch(e=>errors.push(`${t.name}: ${String(e.message||e).slice(0,160)}`))
-        .finally(()=>{ if(--pending===0) finish(); });
-    });
-  });
-  const rk=k=>RANK[k]!=null?RANK[k]:9;
-  ok.sort((a,b)=>rk(a.k)-rk(b.k) || a.ms-b.ms);
-  return {working:ok.map(x=>x.k), errors};
-}
-async function httpGet(url, validate){
-  const errs=[];
-  for(const t of transportOrder()){
-    try{
-      const txt=await t.get(url);
-      const parsed=validate?validate(txt):txt;
-      return {text:txt, parsed, via:t.name};
-    }catch(e){
-      errs.push(`${t.name}: ${e.message||e}`);
-      if(/przerwano/.test(String(e.message))) throw e;
-      if(validate && /apikey|limit|Brak danych|No data|delisted|not found/i.test(String(e.message))) { throw new Error(e.message); }
-    }
-  }
-  throw new Error(errs.join(' | ')||'brak dostępnej metody pobierania');
-}
-function yahooURL(sym,range='10y',interval='1d'){ return `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${range}&interval=${interval}&includePrePost=false`; }
-function stooqURL(sym){ const k=state.settings.stooqKey.trim(); return `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d`+(k?`&apikey=${encodeURIComponent(k)}`:''); }
-
-async function fetchEntity(co){
-  const s=state.settings, errs=[];
-  let order = s.source==='yahoo'?['yahoo'] : s.source==='stooq'?['stooq'] : (s.stooqKey.trim()?['yahoo','stooq']:['yahoo']);
-  for(const src of order){
-    for(const sym of symList(src==='yahoo'?co.y:co.s)){
-      try{
-        const url = src==='yahoo'?yahooURL(sym):stooqURL(sym);
-        const r=await httpGet(url, txt=>{ const b=src==='yahoo'?parseYahoo(txt):parseCSV(txt); if(b.c.length<30) throw new Error('za mało notowań ('+b.c.length+')'); return b; });
-        const b=sliceBars(r.parsed,2600);
-        let meta=null;
-        if(src==='yahoo'){ try{ const m=JSON.parse(r.text).chart.result[0].meta; if(m&&m.regularMarketTime) meta={time:m.regularMarketTime*1000}; }catch(e){} }
-        return {bars:b, meta, src:(src==='yahoo'?'Yahoo Finance':'Stooq')+' · '+sym, via:r.via, at:Date.now()};
-      }catch(e){ if(/przerwano/.test(String(e.message))) throw e; errs.push(`${src==='yahoo'?'Yahoo':'Stooq'} ${sym}: ${e.message}`); }
-    }
-  }
-  throw new Error(errs.join(' ‖ '));
-}
-
-/* ---------------- Dane i analiza ---------------- */
-function loadCache(){
-  state.data={};
-  for(const co of [INDEX_DEF].concat(state.settings.companies)){
-    const x=store.get(LS_DATA+co.t,null); if(x&&x.bars&&x.bars.c&&x.bars.c.length) state.data[co.t]=x;
-  }
-}
-// Zwraca notowania do analizy (bez niepełnej świecy z trwającej sesji) + bieżący kurs z sesji
+function companyByT(t){ const it=state.sum[t]; if(it) return {t:it.t, n:it.idx?'Indeks WIG20':it.n, isIndex:!!it.idx}; return {t, n:t===INDEX_DEF.t?'Indeks WIG20':t, isIndex:t===INDEX_DEF.t}; }
 function barsForAnalysis(t){
   const x=state.data[t]; if(!x) return null;
   const b=x.bars, n=b.d.length; state.incomplete[t]=false;
@@ -981,205 +733,221 @@ function barsForAnalysis(t){
   return {bars:b, live:null};
 }
 function analyzeOne(t){
-  const co=companyByT(t); if(!co) return;
+  const co=companyByT(t);
   const pb=barsForAnalysis(t);
-  if(!pb){ state.an[t]={ok:false,msg:'Brak danych – naciśnij „Aktualizuj”.'}; return; }
+  if(!pb){ state.an[t]={ok:false,msg:state.errors[t]?('Nie udało się wczytać notowań: '+state.errors[t]):'Brak danych – naciśnij „Aktualizuj”.'}; return; }
   try{
     const Bs=sliceBars(pb.bars,1300);
     const A=analyze(Bs,PROFILES[state.settings.profile],{fee:state.settings.fee});
-    const dsym=(state.data[t]&&state.data[t].sym)||'', etf=!!co.isIndex && /^ETF/i.test(dsym);
+    const etf=co.isIndex && /^ETF/i.test((state.data[t]&&state.data[t].sym)||'');
     if(A.ok){ A.bars=Bs; A.full=pb.bars; A.unit=(co.isIndex&&!etf)?' pkt':' zł'; A.proxyNote=etf?'wg ETF Beta WIG20TR':''; A.live=pb.live;
       A.ichi={D:ichiFor(pb.bars), W:ichiFor(resample(pb.bars,'W')), M:ichiFor(resample(pb.bars,'M'))}; }
     state.an[t]=A;
   }catch(e){ console.error(e); state.an[t]={ok:false,msg:'Błąd analizy: '+e.message}; }
 }
-function analyzeAll(){ state.an={}; for(const co of allEntities()) analyzeOne(co.t); }
-function saveData(t,r){
-  if(store.set(LS_DATA+t,r)) return;
-  store.set(LS_DATA+t,Object.assign({},r,{bars:sliceBars(r.bars,1300)}));   // za mało miejsca – zapisz 5 lat
-}
+function analyzeAll(){ for(const t of Object.keys(state.data)) analyzeOne(t); }
 const hhmm=ts=>new Date(ts).toLocaleTimeString('pl-PL',{timeZone:'Europe/Warsaw',hour:'2-digit',minute:'2-digit'});
+function fmtDataTime(iso){ const ts=Date.parse(iso); if(!ts) return '–'; const d=new Date(ts).toLocaleDateString('pl-PL',{timeZone:'Europe/Warsaw',day:'2-digit',month:'2-digit'}); const today=new Date().toLocaleDateString('pl-PL',{timeZone:'Europe/Warsaw',day:'2-digit',month:'2-digit'}); return (d===today?'':d+' ')+hhmm(ts); }
 let renderTimer=null;
 function scheduleRender(){ if(renderTimer) return; renderTimer=setTimeout(()=>{ renderTimer=null; renderAll(); },250); }
-function setRefreshBtn(busy,txt){
-  const b=$('#btnRefresh'); b.classList.toggle('busy',!!busy);
-  $('#btnRefreshTxt').textContent = busy ? 'Aktualizuję…'+(txt?' '+txt:'') : 'Aktualizuj';
-  b.title = busy ? 'Naciśnij ponownie, aby zacząć aktualizację od nowa' : 'Pobierz najnowsze notowania i przelicz sygnały';
-}
+function setRefreshBtn(busy){ const b=$('#btnRefresh'); b.classList.toggle('busy',!!busy); $('#btnRefreshTxt').textContent = busy?'Aktualizuję…':'Aktualizuj'; }
 function showNotice(html){ const n=$('#notice'); n.innerHTML=html+'<div class="inline" style="margin-top:8px"><button class="btn sm" type="button" id="btnNoticeClose">Zamknij</button></div>'; n.hidden=false; $('#btnNoticeClose').onclick=()=>{ n.hidden=true; }; }
 function hideNotice(){ $('#notice').hidden=true; }
-function failNoTransport(errors,auto){
+function failFeed(msg,auto){
   setStatus('err','Nie udało się pobrać notowań – pokazuję ostatnie zapisane dane.');
-  showNotice(`<b>Nie udało się pobrać notowań.</b><br>Serwer danych RadMat nie odpowiedział, a przeglądarka blokuje pobieranie bezpośrednio z giełdowych stron. Sprawdź połączenie z internetem i naciśnij <b>Aktualizuj</b> ponownie za chwilę.
-    <details style="margin-top:6px"><summary class="small">Szczegóły techniczne</summary><ul class="err-list">${errors.map(e=>`<li>${esc(e)}</li>`).join('')}</ul></details>`);
+  showNotice(`<b>Nie udało się pobrać notowań.</b><br>Sprawdź połączenie z internetem i naciśnij <b>Aktualizuj</b> ponownie za chwilę.<details style="margin-top:6px"><summary class="small">Szczegóły techniczne</summary><div class="small">${esc(msg)}</div></details>`);
 }
-async function ensureTransport(gen,auto,feedErr){
-  state.transports.native = await cordovaReady();
-  if(!state.transports.native && !state.transports.local) state.transports.local = await detectLocalProxy();
-  if(gen!=null && gen!==state.gen) return false;
-  const pr=await probeTransports();
-  if(!pr.working.length){ state.working=null; failNoTransport((feedErr?['serwer danych RadMat: '+feedErr]:[]).concat(pr.errors),auto); return false; }
-  state.working=pr.working; return true;
-}
-function storeResult(t,r){ state.data[t]=r; saveData(t,r); delete state.errors[t]; analyzeOne(t); state.flash.add(t); }
-// Serwer Google: wszystkie spółki jednym zapytaniem
-async function gasBatch(list,gen,progress){
-  const prim=list.map(co=>({co, sym:symList(co.y)[0]})).filter(x=>x.sym);
-  const url=state.settings.gasUrl+'?symbols='+encodeURIComponent(prim.map(x=>x.sym).join(','))+'&interval=1d&range=10y';
-  const j=JSON.parse(await fetchText(url,90000));
-  if(gen!==state.gen) return null;
-  if(!j.ok) throw new Error(j.error||'błąd serwera Google');
-  const rest=[];
-  for(const {co,sym} of prim){
-    const x=j.data&&j.data[sym];
-    try{
-      if(!x||x.error) throw new Error(x?x.error:'brak w odpowiedzi');
-      const b=sliceBars(compactToBars(x),2600); if(b.c.length<30) throw new Error('za mało notowań');
-      storeResult(co.t,{bars:b, meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+sym, via:'serwer Google', at:Date.now()});
-      progress(true);
-    }catch(e){ rest.push(co); }
-  }
-  return rest.concat(list.filter(co=>!prim.some(p=>p.co===co)));
-}
-/* ---------------- Serwer danych RadMat (GitHub) ---------------- */
-const DEFAULT_FEED='https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/main/data/wig20.json';
-const feedURL=()=> (state.settings.feedUrl||DEFAULT_FEED).trim();
-const feedBase=()=> feedURL().replace(/[^\/]*$/,'');
-async function fetchFeed(){
-  const u=feedURL(); const txt=await fetchText(u+(u.includes('?')?'&':'?')+'t='+Math.floor(Date.now()/60000),45000);
-  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error('serwer danych: nieprawidłowy plik'); }
-  if(!j||!j.ok||!j.data) throw new Error('serwer danych: brak notowań w pliku');
-  return j;
-}
-// Przycisk „Aktualizuj” i aktualizacja automatyczna. Naciśnięcie w trakcie = zacznij od nowa.
+/* Przycisk „Aktualizuj” i aktualizacja automatyczna. Naciśnięcie w trakcie = zacznij od nowa. */
 async function refreshAll(opts={}){
   const auto=!!opts.auto;
   if(state.abortCtl) state.abortCtl.abort();
   const gen=++state.gen; state.abortCtl=new AbortController(); state.busy=true;
-  setRefreshBtn(true,''); if(!auto) hideNotice(); setProgress(0.03);
+  setRefreshBtn(true); if(!auto) hideNotice(); setProgress(0.15);
   setStatus('busy', auto?'Automatyczna aktualizacja…':'Pobieram notowania…');
-  let success=false;
+  let ok=false;
   try{
-    const list=allEntities(); let done=0, okN=0; const errors={};
-    const progress=(ok)=>{ done++; if(ok) okN++; setProgress(done/list.length); setRefreshBtn(true,`${done}/${list.length}`); setStatus('busy',`Aktualizuję… ${done}/${list.length}`); scheduleRender(); };
-    let queue=list.slice(), feed=null, feedErr=null;
-    // 1) gotowe dane z serwera danych RadMat (GitHub) – działa w każdej przeglądarce, bez konfiguracji
-    try{
-      feed=await fetchFeed(); if(gen!==state.gen) return;
-      const at=Date.parse(feed.updated)||Date.now(); const rest=[];
-      for(const co of list){
-        const sym=symList(co.y).find(s=>feed.data[s]&&feed.data[s].t);
-        if(!sym){ rest.push(co); continue; }
-        try{ const x=feed.data[sym]; storeResult(co.t,{bars:sliceBars(compactToBars(x),2600), meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, sym:x.sym||sym, src:'Yahoo Finance · '+(x.sym||sym), via:'serwer danych RadMat', at}); progress(true); }
-        catch(e){ rest.push(co); }
-      }
-      queue=rest; state.feedUpdated=at;
-    }catch(e){ if(gen!==state.gen) return; feedErr=e.message; state.feedUpdated=null; }
-    // 2) inne drogi (APK, serwer lokalny, serwer Google, pośrednicy) – dla brakujących pozycji
-    if(queue.length){
-      let canFetch=false;
-      if(!feed){ canFetch=await ensureTransport(gen,auto,feedErr); if(gen!==state.gen) return; }
-      else if(state.transports.native||state.transports.local||state.settings.gasUrl){ canFetch=await ensureTransport(gen,true,null); if(gen!==state.gen) return; if(!canFetch) hideNotice(); }
-      if(canFetch){
-        if(state.working[0]==='gas' && state.settings.source!=='stooq'){
-          try{ const rest=await gasBatch(queue,gen,progress); if(rest===null) return; queue=rest; }catch(e){ if(gen!==state.gen) return; }
-        }
-        const work=async()=>{
-          while(queue.length && gen===state.gen){
-            const co=queue.shift();
-            try{ const r=await fetchEntity(co); if(gen!==state.gen) return; storeResult(co.t,r); progress(true); }
-            catch(e){ if(gen!==state.gen) return; errors[co.t]=e.message; progress(false); }
-          }
-        };
-        await Promise.all([work(),work(),work()]);
-      } else {
-        for(const co of queue){ errors[co.t]= feed ? 'brak tej spółki na serwerze danych' : 'brak połączenia ze źródłem notowań'; }
-        if(!feed){ state.errors=errors; renderErrors(); return; }
-      }
+    const j=await fetchSummary(); if(gen!==state.gen) return;
+    applySummary(j,true); store.set(LS_SUM,j);
+    store.set(LS_META,{lastFetch:Date.now(), dataTime:Date.parse(j.updated)||0});
+    hideNotice(); renderAll(); ok=true;
+    setStatus('ok',`Zaktualizowano o ${hhmm(Date.now())} · stan notowań: ${fmtDataTime(j.updated)} · ${j.count} spółek`+(state.settings.autoRefresh?' · aktualizacja automatyczna włączona':''));
+    const t=state.detail;
+    if(t){
+      setProgress(0.7);
+      try{ await ensureDaily(t,true); if(gen!==state.gen) return; delete state.intra[t]; analyzeOne(t); openDetail(t,true); if(state.tf==='H') ensureIntraday(t).then(()=>{ if(state.detail===t) drawDetailChart(); }); }
+      catch(e){ state.errors[t]=e.message; }
     }
-    if(gen!==state.gen) return;
-    hideNotice(); state.errors=errors; state.intra={};
-    const now=Date.now(); store.set(LS_META,{lastRefresh:now, okN, total:list.length});
-    clearTimeout(renderTimer); renderTimer=null; renderAll(); renderErrors();
-    const errN=Object.keys(errors).length;
-    if(okN===0) setStatus('err','Nie udało się pobrać żadnych notowań – szczegóły poniżej.');
-    else { success=true; setStatus(errN?'err':'ok',`Zaktualizowano ${okN}/${list.length} o ${hhmm(now)}`+(state.feedUpdated?` · stan danych: ${hhmm(state.feedUpdated)}`:'')+(errN?` · brak: ${Object.keys(errors).join(', ')}`:'')); }
-    if(state.detail) openDetail(state.detail,true);
-  } finally {
-    if(gen===state.gen){
-      state.busy=false; state.abortCtl=null; setProgress(null); setRefreshBtn(false);
-      if(auto && !success) state.autoBackoffUntil=Date.now()+15*60e3;
-    }
+  }catch(e){ if(gen!==state.gen) return; failFeed(e.message,auto); }
+  finally{
+    if(gen===state.gen){ state.busy=false; state.abortCtl=null; setProgress(null); setRefreshBtn(false); if(auto&&!ok) state.autoBackoffUntil=Date.now()+15*60e3; }
   }
 }
-// Aktualizacja jednej spółki (przycisk w widoku szczegółów)
 async function refreshOne(t){
-  const co=companyByT(t); if(!co) return;
   const b=$('#btnRefOne'), msg=$('#refOneMsg');
   if(b){ b.disabled=true; b.classList.add('busy'); } if(msg) msg.textContent='Aktualizuję…';
   try{
-    let r=null;
-    try{ const j=await fetchFeed(); const sym=symList(co.y).find(x=>j.data[x]&&j.data[x].t); if(sym){ const x=j.data[sym]; r={bars:sliceBars(compactToBars(x),2600), meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+sym, via:'serwer danych RadMat', at:Date.parse(j.updated)||Date.now()}; } }catch(e){}
-    if(!r){ if(!state.working && !(await ensureTransport(null,false))) throw new Error('brak połączenia ze źródłem notowań'); r=await fetchEntity(co); }
-    storeResult(t,r); delete state.intra[t]; renderAll(); renderErrors();
-    setStatus('ok',`${t}: zaktualizowano o ${hhmm(Date.now())}`);
+    await ensureDaily(t,true); delete state.intra[t]; analyzeOne(t);
     if(state.detail===t){ openDetail(t,true); if(state.tf==='H') ensureIntraday(t).then(drawDetailChart); }
     const m2=$('#refOneMsg'); if(m2) m2.textContent=`✓ Zaktualizowano o ${hhmm(Date.now())}`;
-  }catch(e){
-    state.errors[t]=e.message; renderErrors(); setStatus('err',`${t}: nie udało się zaktualizować`);
-    const m2=$('#refOneMsg'); if(m2) m2.textContent='✗ '+String(e.message).slice(0,160);
-  }finally{ const b2=$('#btnRefOne'); if(b2){ b2.disabled=false; b2.classList.remove('busy'); } }
+  }catch(e){ const m2=$('#refOneMsg'); if(m2) m2.textContent='✗ '+String(e.message).slice(0,160); }
+  finally{ const b2=$('#btnRefOne'); if(b2){ b2.disabled=false; b2.classList.remove('busy'); } }
 }
-/* ---------------- Aktualizacja automatyczna ---------------- */
-function tzOffsetMin(ts){
-  const p={}; new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Warsaw',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date(ts)).forEach(x=>p[x.type]=x.value);
-  return Math.round((Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute)-ts)/60000);
-}
-function warsawEpoch(dateStr,min){ const [y,m,d]=dateStr.split('-').map(Number); const g=Date.UTC(y,m-1,d,Math.floor(min/60),min%60); return g-tzOffsetMin(g)*60000; }
-const SESSION_START=9*60, SESSION_END=17*60+20;
-function inSession(){ const w=warsawNow(); return !['Sat','Sun'].includes(w.wd) && w.min>=SESSION_START && w.min<SESSION_END; }
-function lastSessionEnd(){
-  const w=warsawNow(); let d=new Date(w.date+'T12:00:00Z');
-  for(let k=0;k<9;k++){
-    const wd=d.getUTCDay(), ds=d.toISOString().slice(0,10);
-    if(wd>=1&&wd<=5 && (k>0 || w.min>=SESSION_END)) return warsawEpoch(ds,SESSION_END);
-    d=new Date(d.getTime()-864e5);
+async function showCompany(t){
+  state.detail=t;
+  if(!state.data[t]){
+    const co=companyByT(t), el=$('#detail');
+    el.innerHTML=`<div class="det-head"><div class="wrap"><button class="btn" data-act="close">← Wróć</button><div class="det-title"><h2>${esc(co.t)} <span>${esc(co.n)}</span></h2></div></div></div><div class="wrap det-body"><div class="card">Wczytuję notowania…</div></div>`;
+    el.hidden=false; document.body.style.overflow='hidden'; $$('[data-act=close]',el).forEach(b=>b.onclick=closeDetail);
+    try{ await ensureDaily(t); }catch(e){ state.errors[t]=e.message; }
+    if(state.detail!==t) return;
   }
-  return 0;
+  analyzeOne(t); openDetail(t);
 }
+/* ---------------- Widok główny ---------------- */
+const dispChange=A=>A.live?A.live.change:A.change;
+const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?' · '+hhmm(A.live.time):''}</span>`:'';
+const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
+const itChange=it=>it.live?it.live.ch:it.ch;
+const itPrice=it=>it.live?it.live.p:it.c;
+function renderAll(){ renderProfileLbl(); renderMarket(); renderFilters(); renderTiles(); renderList(); }
+function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const n=Object.values(state.sum).filter(i=>!i.idx).length; $('#profileLbl').textContent=`${n?n+' spółek z rynku głównego GPW · ':''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
+function renderMarket(){
+  const el=$('#market'), it=state.sum[INDEX_DEF.t];
+  if(!it){ el.hidden=true; return; }
+  const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it);
+  el.hidden=false;
+  el.innerHTML=`<span class="mk-name">WIG20 <span class="small">(wg ETF Beta WIG20TR)</span></span><span class="mk-val">${fmt(itPrice(it),2)} zł</span>
+    <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span>
+    <span>Trend: <b>${esc(S.tr||'–')}</b></span><span>Siła techniczna: <b>${S.sc!=null?S.sc+'/100':'–'}</b></span>
+    <span class="badge ${st.cls}">${st.icon} ${st.label}</span><span class="small">sesja ${dPL(it.d)}</span>
+    <span class="mk-note">${S.bear?'⚠ Rynek (WIG20) jest poniżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – sygnały kupna są w takim otoczeniu bardziej ryzykowne.':'Rynek (WIG20) jest powyżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – otoczenie sprzyja sygnałom kupna.'}</span>`;
+}
+function baseItems(){ return Object.values(state.sum).filter(it=>!it.idx); }
+function filteredItems(){
+  const q=state.search.trim().toLowerCase();
+  let rows=baseItems();
+  if(state.filter==='watch') rows=rows.filter(it=>state.watch.has(it.t));
+  else if(state.filter==='w20') rows=rows.filter(it=>it.w20);
+  else if(state.filter==='liq') rows=rows.filter(it=>it.obr>=1e6);
+  else if(state.filter==='small') rows=rows.filter(it=>it.obr<1e6);
+  if(q) rows=rows.filter(it=>(it.t+' '+it.n).toLowerCase().includes(q));
+  return rows;
+}
+function renderFilters(){
+  const all=baseItems(); const cnt={all:all.length, watch:all.filter(i=>state.watch.has(i.t)).length, w20:all.filter(i=>i.w20).length, liq:all.filter(i=>i.obr>=1e6).length, small:all.filter(i=>i.obr<1e6).length};
+  const F=[['all','Wszystkie'],['watch','★ Obserwowane'],['w20','WIG20'],['liq','Płynne (obrót ≥ 1 mln zł)'],['small','Mniej płynne']];
+  $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('');
+  $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
+}
+function renderTiles(){
+  const rows=filteredItems(); const cnt={KUP:0,SPRZEDAJ:0,TRZYMAJ:0,OBSERWUJ:0,CZEKAJ:0,BRAK:0};
+  rows.forEach(it=>{ const s=itP(it).st; cnt[s in cnt?s:'BRAK']++; });
+  $('#tiles').innerHTML=['KUP','SPRZEDAJ','TRZYMAJ','OBSERWUJ','CZEKAJ'].map(k=>{ const s=STATUS[k]; return `<button class="tile ${state.sig===k?'active':''}" data-f="${k}" aria-pressed="${state.sig===k}">
+      <span class="n">${cnt[k]}</span><span class="l"><span class="badge ${s.cls}" style="padding:1px 6px;font-size:11px">${s.icon}</span>${s.tile}</span></button>`; }).join('');
+  $$('#tiles .tile').forEach(b=>b.onclick=()=>{ state.sig = state.sig===b.dataset.f ? 'all' : b.dataset.f; state.shown=PAGE; renderTiles(); renderList(); });
+}
+function ichiChipsSum(it){
+  const names={D:'dzienny',W:'tygodniowy',M:'miesięczny'}, short={D:'D',W:'T',M:'M'};
+  return '<span class="ichips">'+['D','W','M'].map(k=>{ const s=it.ichi&&it.ichi[k];
+    if(!s) return `<span class="ichip nt" title="Ichimoku ${names[k]}: za mało danych">${short[k]} ?</span>`;
+    return `<span class="ichip ${s.sc>0?'up':s.sc<0?'dn':'nt'}" title="Ichimoku ${names[k]}: ${esc(s.lb)}">${short[k]} ${s.ic}</span>`; }).join('')+'</span>';
+}
+function renderList(){
+  let rows=filteredItems();
+  if(state.sig!=='all') rows=rows.filter(it=>itP(it).st===state.sig);
+  const sc=it=>{ const s=itP(it); return s.sc!=null?s.sc:-1; };
+  rows.sort((a,b)=>{
+    if(state.sort==='name') return a.t.localeCompare(b.t);
+    if(state.sort==='score') return sc(b)-sc(a);
+    if(state.sort==='change') return (itChange(b)||0)-(itChange(a)||0);
+    if(state.sort==='obr') return (b.obr||0)-(a.obr||0);
+    return ((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio) || sc(b)-sc(a) || (b.obr||0)-(a.obr||0);
+  });
+  const head=`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
+  if(!rows.length){
+    const any=baseItems().length;
+    $('#list').innerHTML = any ? head+`<div class="empty">${state.filter==='watch'&&!state.search?'Nie masz jeszcze obserwowanych spółek – kliknij ☆ przy spółce, aby ją dodać.':'Brak spółek dla wybranego filtra.'}</div>`
+      : `<div class="empty"><h3>Brak danych</h3>Naciśnij <b>⟳ Aktualizuj</b>, aby pobrać notowania.</div>`;
+    $('#more').hidden=true; return;
+  }
+  const show=rows.slice(0,state.shown);
+  $('#list').innerHTML=head+show.map(it=>{
+    const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, lv=S.lv||{}, ch=itChange(it);
+    const stale=(Date.now()-new Date(it.d+'T18:00:00').getTime())/864e5>5;
+    const levels = lv.stop!=null ? `<span class="small">Stop</span> <b class="num">${fmt(lv.stop)}</b><br><span class="small">Cel</span> <span class="num">${fmt(lv.target)}</span>`
+      : lv.breakout!=null ? `<span class="small">Wybicie</span> <b class="num">${fmt(lv.breakout)}</b><br><span class="small">Wsparcie</span> <span class="num">${fmt(lv.support)}</span>` : '<span class="small">–</span>';
+    const star=state.watch.has(it.t);
+    return `<div class="row${state.flash.has(it.t)?' flash':''}" data-t="${esc(it.t)}">
+      <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
+      <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div><div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div></div>
+      <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div><div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div></div>
+      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
+      <div class="meter"><div class="track"><div class="fill" style="width:${S.sc||0}%"></div></div><b>${S.sc!=null?S.sc+'/100':'–'}</b></div>
+      <div>${ichiChipsSum(it)}</div>
+      <div>${levels}</div>
+      <div><canvas class="spark" data-t="${esc(it.t)}"></canvas></div>
+    </div>`;
+  }).join('');
+  $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); });
+  const more=$('#more'); const left=rows.length-show.length;
+  more.hidden=left<=0; more.textContent=`Pokaż kolejne ${Math.min(PAGE,left)} (zostało ${left})`;
+  state.flash.clear();
+}
+function drawSpark(cv,arr){
+  const c=(arr||[]).filter(x=>x!=null); if(c.length<2) return;
+  const r=cv.getBoundingClientRect(), W=Math.max(60,r.width), H=r.height||30, dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  const mn=Math.min(...c), mx=Math.max(...c); const C=cssVars();
+  const X=i=>2+i*(W-4)/(c.length-1), Y=v=>H-3-(v-mn)/((mx-mn)||1)*(H-6);
+  g.strokeStyle=C.s1; g.lineWidth=1.5; g.lineJoin='round'; g.beginPath();
+  c.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke();
+  g.fillStyle=C.s1; g.beginPath(); g.arc(X(c.length-1),Y(c[c.length-1]),2.5,0,7); g.fill();
+}
+const marketBear=()=>{ const it=state.sum[INDEX_DEF.t]; return !!(it&&itP(it).bear); };
+function toggleWatch(t){ if(state.watch.has(t)) state.watch.delete(t); else state.watch.add(t); saveWatch(); }
+/* ---------------- Aktualizacja automatyczna ---------------- */
 function needsRefresh(){
-  const last=(store.get(LS_META,{})||{}).lastRefresh||0;
-  if(!last || !Object.keys(state.data).length) return true;
-  if(inSession()) return Date.now()-last > 15*60e3;
-  return last < lastSessionEnd();
+  const m=store.get(LS_META,{})||{}; const last=m.lastFetch||0, dataT=m.dataTime||0;
+  if(!last || !Object.keys(state.sum).length) return true;
+  if(Date.now()-last < 14*60e3) return false;
+  if(inSession()) return true;
+  return dataT < lastSessionEnd()+30*60e3;
 }
-function autoTick(){
-  if(!state.settings.autoRefresh || state.busy || document.hidden) return;
-  if(state.autoBackoffUntil && Date.now()<state.autoBackoffUntil) return;
-  if(needsRefresh()) refreshAll({auto:true});
+/* ---------------- Ustawienia ---------------- */
+function openSettings(){
+  const s=state.settings;
+  $('#setBody').innerHTML=`
+  <fieldset class="fset"><legend>Horyzont inwestycyjny</legend>
+    ${Object.values(PROFILES).map(p=>`<label><input type="radio" name="profile" value="${p.key}" ${s.profile===p.key?'checked':''}> <b>${esc(p.name)}</b><br><span class="small">średnie ${p.fast}/${p.slow}/${p.trend} sesji · wybicie z ${p.brk} sesji · stop ${String(p.stopATR).replace('.',',')}× ATR · stop kroczący ${String(p.trailATR).replace('.',',')}× ATR</span></label>`).join('')}
+  </fieldset>
+  <fieldset class="fset"><legend>Obliczenia i wygląd</legend>
+    <div class="inline">
+      <label>Prowizja maklerska za transakcję (%)<input type="number" id="fee" min="0" max="2" step="0.01" value="${s.fee}"></label>
+      <label>Motyw<select id="theme"><option value="auto" ${s.theme==='auto'?'selected':''}>jak w systemie</option><option value="light" ${s.theme==='light'?'selected':''}>jasny</option><option value="dark" ${s.theme==='dark'?'selected':''}>ciemny</option></select></label>
+    </div>
+    <label><input type="checkbox" id="closedOnly" ${s.closedOnly?'checked':''}> Licz sygnały tylko z zamkniętych sesji (w trakcie sesji pomijaj niepełną świecę z dzisiaj)</label>
+    <label><input type="checkbox" id="autoRefresh" ${s.autoRefresh?'checked':''}> Aktualizuj automatycznie: przy uruchomieniu, co 15 min w trakcie sesji (9:00–17:20) i po jej zamknięciu</label>
+  </fieldset>
+  <fieldset class="fset"><legend>Serwer danych</legend>
+    <label>Adres (zostaw puste, aby używać domyślnego)<input type="text" id="feed" value="${esc(s.feed||'')}" placeholder="${esc(DEFAULT_FEED)}" autocomplete="off"></label>
+    <p class="note" style="margin-top:0">Notowania pobiera automat na GitHubie (repozytorium wig20-dane) co 30 minut w trakcie sesji i po jej zamknięciu.</p>
+  </fieldset>
+  <fieldset class="fset"><legend>Pamięć</legend>
+    <div class="inline"><button class="btn sm" type="button" id="btnClear">Usuń zapisane notowania</button><button class="btn sm" type="button" id="btnClearWatch">Wyczyść obserwowane (${state.watch.size})</button><span class="small">Wersja ${APP_VERSION}</span></div>
+  </fieldset>`;
+  $('#btnClear').onclick=()=>{ for(const k of lsIndex()) store.del(LS_D+k); store.del(LS_DIDX); store.del(LS_SUM); store.del(LS_META); state.data={}; state.an={}; $('#btnClear').textContent='Usunięto'; };
+  $('#btnClearWatch').onclick=()=>{ state.watch.clear(); saveWatch(); renderAll(); $('#btnClearWatch').textContent='Wyczyszczono'; };
+  $('#dlgSettings').showModal();
 }
-/* ---------------- Kreator: serwer danych Google ---------------- */
-function openSetup(){
-  const d=$('#dlgSetup'); if(d.open) return;
-  $('#gasCodeBox').value=$('#gasCode').textContent.trim();
-  $('#gasUrlSetup').value=state.settings.gasUrl||''; $('#gasMsg').textContent=''; $('#copyMsg').textContent='';
-  if($('#dlgSettings').open) $('#dlgSettings').close();
-  d.showModal();
-}
-async function copyGasCode(){
-  const box=$('#gasCodeBox'), txt=box.value, m=$('#copyMsg');
-  try{ await navigator.clipboard.writeText(txt); m.textContent='✓ Skopiowano'; }
-  catch(e){ box.focus(); box.select(); try{ document.execCommand('copy'); m.textContent='✓ Skopiowano'; }catch(e2){ m.textContent='Zaznacz kod i skopiuj (Ctrl+C)'; } }
-}
-async function connectGas(){
-  let url=$('#gasUrlSetup').value.trim().replace(/\/+$/,''); const msg=$('#gasMsg');
-  if(!/^https:\/\/script\.google\.com\/(a\/[^\/]+\/)?macros\/s\/[\w-]+\/exec$/.test(url)){ msg.textContent='✗ To nie jest adres aplikacji internetowej Google – powinien zaczynać się od https://script.google.com/macros/s/ i kończyć na /exec.'; return; }
-  msg.textContent='Sprawdzam połączenie…';
-  try{ const j=JSON.parse(await fetchText(url+'?ping=1',25000)); if(!j.ok||j.app!=='wig20-sygnaly') throw new Error('nieoczekiwana odpowiedź'); }
-  catch(e){ msg.textContent='✗ Brak połączenia ('+String(e.message).slice(0,80)+'). Sprawdź, czy przy wdrożeniu wybrano „Kto ma dostęp: Każdy”.'; return; }
-  state.settings.gasUrl=url; saveSettings(); state.working=null; state.autoBackoffUntil=0;
-  msg.textContent='✓ Połączono! Pobieram notowania…';
-  setTimeout(()=>{ $('#dlgSetup').close(); refreshAll(); },600);
+function saveSettingsFromForm(){
+  const s=state.settings;
+  s.profile=($('input[name=profile]:checked')||{}).value||s.profile;
+  const fee=parseFloat(String($('#fee').value).replace(',','.')); s.fee=isFinite(fee)&&fee>=0?fee:0.3;
+  s.theme=$('#theme').value; s.closedOnly=$('#closedOnly').checked; s.autoRefresh=$('#autoRefresh').checked;
+  const f=$('#feed').value.trim(); const changed=f!==(s.feed||''); s.feed=f;
+  saveSettings(); applyTheme(); analyzeAll(); renderAll();
+  $('#dlgSettings').close();
+  if(changed) refreshAll();
 }
 
 /* ---------------- Pasek statusu ---------------- */
@@ -1191,94 +959,10 @@ function renderErrors(){
   el.innerHTML=`<details><summary>Szczegóły błędów (${keys.length})</summary><ul class="err-list">${keys.map(k=>`<li><b>${esc(k)}</b>: ${esc(state.errors[k]).slice(0,600)}</li>`).join('')}</ul></details>`;
 }
 
-/* ---------------- Widok główny ---------------- */
-function renderAll(){ renderProfileLbl(); renderMarket(); renderTiles(); renderList(); }
-function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; $('#profileLbl').textContent=`Horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend} · ${COMPOSITION_NOTE}`; }
-function renderMarket(){
-  const el=$('#market'); const A=state.an[INDEX_DEF.t];
-  if(!A||!A.ok){ el.hidden=true; return; }
-  el.hidden=false;
-  const st=STATUS[A.status];
-  const bear = A.close < A.I.smaT[A.L];
-  const mv=A.live?A.live.price:A.close, mc=dispChange(A);
-  el.innerHTML=`<span class="mk-name">WIG20${A.proxyNote?` <span class="small">(${A.proxyNote})</span>`:''}</span><span class="mk-val">${fmt(mv,2)}${A.unit}</span>
-    <span class="num ${cls(mc)}">${arrow(mc)} ${pct(mc,2)}</span> ${liveLbl(A)}
-    <span>Trend: <b>${esc(A.trend)}</b></span>
-    <span>Siła techniczna: <b>${A.score}/100</b></span>
-    <span class="badge ${st.cls}">${st.icon} ${st.label}</span>
-    <span class="small">${A.live?'sygnał z zamknięcia '+dPL(A.lastDate):'sesja '+dPL(A.lastDate)}</span>
-    <span class="mk-note">${bear?'⚠ Rynek jako całość jest poniżej średniej '+A.P.trend+'-sesyjnej – sygnały kupna są w takim otoczeniu bardziej ryzykowne.':'Rynek jako całość jest powyżej średniej '+A.P.trend+'-sesyjnej – otoczenie sprzyja sygnałom kupna.'}</span>`;
-}
-function companyRows(){
-  return state.settings.companies.filter(c=>c.on && c.t).map(co=>({co, A:state.an[co.t]||{ok:false,msg:'Brak danych'}}));
-}
-function rowStatus(A){ return A&&A.ok?A.status:'BRAK'; }
-const dispChange=A=>A.live?A.live.change:A.change;
-const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?' · '+hhmm(A.live.time):''}</span>`:'';
-function renderTiles(){
-  const rows=companyRows(); const cnt={KUP:0,SPRZEDAJ:0,TRZYMAJ:0,OBSERWUJ:0,CZEKAJ:0,BRAK:0};
-  rows.forEach(r=>cnt[rowStatus(r.A)]++);
-  const keys=['KUP','SPRZEDAJ','TRZYMAJ','OBSERWUJ','CZEKAJ'];
-  $('#tiles').innerHTML=keys.map(k=>{ const s=STATUS[k]; return `<button class="tile ${state.filter===k?'active':''}" data-f="${k}" aria-pressed="${state.filter===k}">
-      <span class="n">${cnt[k]}</span><span class="l"><span class="badge ${s.cls}" style="padding:1px 6px;font-size:11px">${s.icon}</span>${s.tile}</span></button>`; }).join('');
-  $$('#tiles .tile').forEach(b=>b.onclick=()=>{ state.filter = state.filter===b.dataset.f ? 'all' : b.dataset.f; renderTiles(); renderList(); });
-}
-function renderList(){
-  let rows=companyRows();
-  const q=state.search.trim().toLowerCase();
-  if(q) rows=rows.filter(r=>(r.co.t+' '+r.co.n).toLowerCase().includes(q));
-  if(state.filter!=='all') rows=rows.filter(r=>rowStatus(r.A)===state.filter);
-  const sc=r=>r.A.ok?r.A.score:-1;
-  rows.sort((a,b)=>{
-    if(state.sort==='name') return a.co.t.localeCompare(b.co.t);
-    if(state.sort==='score') return sc(b)-sc(a);
-    if(state.sort==='change') return (b.A.ok?dispChange(b.A):-9)-(a.A.ok?dispChange(a.A):-9);
-    return STATUS[rowStatus(a.A)].prio-STATUS[rowStatus(b.A)].prio || sc(b)-sc(a);
-  });
-  const head=`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>90 sesji</div></div>`;
-  if(!rows.length){
-    const anyData=Object.keys(state.data).length;
-    $('#list').innerHTML = anyData ? head+`<div class="empty">Brak spółek dla wybranego filtra.</div>`
-      : `<div class="empty"><h3>Brak danych</h3>Naciśnij <b>⟳ Aktualizuj</b>. Jeśli pobieranie się nie uda, uruchom aplikację przez plik <code>start-wig20.bat</code> (komputer) albo jako APK – szczegóły w Pomocy (?). Dane możesz też wkleić ręcznie w Ustawieniach.</div>`;
-    return;
-  }
-  $('#list').innerHTML=head+rows.map(({co,A})=>{
-    if(!A.ok){
-      return `<div class="row${state.flash.has(co.t)?' flash':''}" data-t="${esc(co.t)}"><div><div class="tk">${esc(co.t)}</div><div class="nm">${esc(co.n)}</div></div>
-        <div class="small">–</div><div></div><div><span class="badge wait">? BRAK</span></div><div class="small">${esc(state.errors[co.t]?'Błąd pobierania':A.msg)}</div><div></div><div></div><div></div></div>`;
-    }
-    const st=STATUS[A.status]; const lv=A.levels;
-    const levels = lv.stop!=null ? `<span class="small">Stop</span> <b class="num">${fmt(lv.stop)}</b><br><span class="small">Cel</span> <span class="num">${fmt(lv.target)}</span>`
-      : `<span class="small">Wybicie</span> <b class="num">${fmt(lv.breakout)}</b><br><span class="small">Wsparcie</span> <span class="num">${fmt(lv.support)}</span>`;
-    const stale = (Date.now()-new Date(A.lastDate+'T18:00:00').getTime())/864e5 > 5;
-    const px=A.live?A.live.price:A.close, ch=dispChange(A);
-    return `<div class="row${state.flash.has(co.t)?' flash':''}" data-t="${esc(co.t)}">
-      <div><div class="tk">${esc(co.t)}</div><div class="nm">${esc(co.n)}</div></div>
-      <div><div class="num"><b>${fmt(px)}</b> zł</div><div class="small">${A.live?liveLbl(A):(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(A.lastDate)}</div></div>
-      <div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>
-      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
-      <div class="meter"><div class="track"><div class="fill" style="width:${A.score}%"></div></div><b>${A.score}/100</b></div>
-      <div>${ichiChips(A)}</div>
-      <div>${levels}</div>
-      <div><canvas class="spark" data-t="${esc(co.t)}"></canvas></div>
-    </div>`;
-  }).join('');
-  $$('#list canvas.spark').forEach(cv=>drawSpark(cv,state.an[cv.dataset.t]));
-  state.flash.clear();
-}
+
 function cssVars(){
   const cs=getComputedStyle(document.documentElement), g=n=>cs.getPropertyValue(n).trim();
   return {surface:g('--surface'),text:g('--text'),text2:g('--text-2'),muted:g('--muted'),grid:g('--grid'),axis:g('--axis'),up:g('--up'),down:g('--down'),s1:g('--s1'),s2:g('--s2'),s3:g('--s3'),band:g('--band'),watch:g('--watch')};
-}
-function drawSpark(cv,A){
-  if(!A||!A.ok) return;
-  const r=cv.getBoundingClientRect(), W=Math.max(60,r.width), H=r.height||30, dpr=window.devicePixelRatio||1;
-  cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
-  const c=A.bars.c.slice(-90); const mn=Math.min(...c), mx=Math.max(...c); const C=cssVars();
-  const X=i=>2+i*(W-4)/(c.length-1), Y=v=>H-3-(v-mn)/((mx-mn)||1)*(H-6);
-  g.strokeStyle=C.s1; g.lineWidth=1.5; g.lineJoin='round'; g.beginPath();
-  c.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.stroke();
-  g.fillStyle=C.s1; g.beginPath(); g.arc(X(c.length-1),Y(c[c.length-1]),2.5,0,7); g.fill();
 }
 
 /* ---------------- Szczegóły spółki ---------------- */
@@ -1322,7 +1006,7 @@ function openDetail(t, keepScroll){
   const el=$('#detail'); const sc=keepScroll?el.scrollTop:0;
   if(!A||!A.ok){
     el.innerHTML=`<div class="det-head"><div class="wrap"><button class="btn" data-act="close">← Wróć</button><div class="det-title"><h2>${esc(co.t)} <span>${esc(co.n)}</span></h2><span id="refOneMsg" class="small"></span></div><button class="btn primary" id="btnRefOne"><span class="spin">⟳</span> Aktualizuj</button></div></div>
-      <div class="wrap det-body"><div class="card"><p>${esc(A?A.msg:'Brak danych')}</p>${state.errors[t]?`<p class="small">${esc(state.errors[t])}</p>`:''}<p class="small">Spróbuj pobrać dane ponownie albo zaimportuj plik CSV w Ustawieniach.</p></div></div>`;
+      <div class="wrap det-body"><div class="card"><p>${esc(A?A.msg:'Brak danych')}</p>${state.errors[t]?`<p class="small">${esc(state.errors[t])}</p>`:''}<p class="small">Spróbuj ponownie przyciskiem Aktualizuj.</p></div></div>`;
     el.hidden=false; document.body.style.overflow='hidden'; bindDetail(); return;
   }
   const st=STATUS[A.status], S=signalText(A), d=A.bars.d, src=state.data[t];
@@ -1332,6 +1016,7 @@ function openDetail(t, keepScroll){
   el.innerHTML=`
   <div class="det-head"><div class="wrap">
     <button class="btn" data-act="close">← Wróć</button>
+    <button class="star big ${state.watch.has(t)?'on':''}" id="btnStar" title="Obserwuj spółkę">${state.watch.has(t)?'★':'☆'}</button>
     <div class="det-title"><h2>${esc(co.t)} <span>${esc(co.n)}${A.proxyNote?' ('+esc(A.proxyNote)+')':''}</span></h2>
       <div class="det-price"><b>${fmt(A.live?A.live.price:A.close)}${A.unit}</b> <span class="${cls(dispChange(A))}">${arrow(dispChange(A))} ${pct(dispChange(A),2)}</span>
         <span class="small">${A.live?'· '+liveLbl(A)+' (dane opóźnione ok. 15 min) · sygnał liczony na zamknięciu '+dPL(A.lastDate):'· zamknięcie '+dPL(A.lastDate)}</span>
@@ -1347,7 +1032,7 @@ function openDetail(t, keepScroll){
       ${reasons.length?`<ul class="sig-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
       ${levelsHTML(A)}
       ${ichiSignalLine(A)}
-      ${state.an[INDEX_DEF.t]&&state.an[INDEX_DEF.t].ok&&!co.isIndex&&state.an[INDEX_DEF.t].close<state.an[INDEX_DEF.t].I.smaT[state.an[INDEX_DEF.t].L]&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
+      ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
     <section class="card">
       <div class="chart-tools" id="chartTools"></div>
@@ -1406,6 +1091,7 @@ function bindDetail(){
   const el=$('#detail');
   $$('[data-act=close]',el).forEach(b=>b.onclick=closeDetail);
   const ro=$('#btnRefOne',el); if(ro) ro.onclick=()=>refreshOne(state.detail);
+  const sb=$('#btnStar',el); if(sb) sb.onclick=()=>{ toggleWatch(state.detail); const on=state.watch.has(state.detail); sb.classList.toggle('on',on); sb.textContent=on?'★':'☆'; renderFilters(); renderList(); };
   renderChartTools();
   const cv=$('#chart',el); if(!cv) return;
   const move=e=>{
@@ -1417,6 +1103,7 @@ function bindDetail(){
   cv.onpointermove=move; cv.onpointerdown=move;
   cv.onpointerleave=()=>{ state.hover=null; $('#tip').hidden=true; drawDetailChart(); };
 }
+
 /* ---------------- Wykres: interwały, tryby ---------------- */
 const TF={
   H:{lbl:'1 godz.', ranges:[['5 dni',45],['2 tyg.',90],['1 mies.',190],['3 mies.',600]]},
@@ -1472,22 +1159,14 @@ async function selectTf(k){
 async function ensureIntraday(t){
   if(!t) return; const x=state.intra[t];
   if(x && Date.now()-x.at<5*60e3) return;
-  const co=companyByT(t); chartMsg('Wczytuję notowania godzinowe…');
+  chartMsg('Wczytuję notowania godzinowe…');
   try{
-    let b=null, err=[];
-    for(const sym of symList(co.y)){
-      try{ const j=JSON.parse(await fetchText(feedBase()+'h/'+encodeURIComponent(sym)+'.json?t='+Math.floor(Date.now()/60000),30000)); if(j&&j.t&&j.t.length>=30){ b=compactToBars(j,true); break; } }
-      catch(e){ err.push('serwer danych '+sym+': '+e.message); }
-    }
-    if(!b && !state.working && !(await ensureTransport(null,true))) throw new Error(err.join(' ‖ ')||'brak połączenia ze źródłem notowań');
-    if(!b) for(const sym of symList(co.y)){
-      try{ b=(await httpGet(yahooURL(sym,'3mo','60m'), txt=>{ const r=parseYahoo(txt,true); if(r.c.length<30) throw new Error('za mało notowań godzinowych'); return r; })).parsed; break; }
-      catch(e){ err.push(sym+': '+e.message); }
-    }
-    if(!b) throw new Error(err.join(' ‖ '));
+    const j=JSON.parse(await fetchText(feedBase()+'h/'+encodeURIComponent(t)+'.json?'+minuteTag(),30000));
+    if(!j||!j.t||j.t.length<30) throw new Error('za mało notowań godzinowych');
+    const b=compactToBars(j,true);
     state.intra[t]={bars:b, at:Date.now(), ichi:ichiFor(b)};
     if(state.detail===t){ chartMsg(null); const card=$('#ichiCard'); if(card) card.outerHTML=ichiCardHTML(t); }
-  }catch(e){ if(state.detail===t) chartMsg('Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,160)); }
+  }catch(e){ if(state.detail===t) chartMsg(/404/.test(e.message)?'Brak notowań godzinowych dla tej spółki – pojawią się po najbliższej sesji.':'Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,140)); }
 }
 function renderLegend(v){
   const el=$('#chartLegend'); if(!el) return;
@@ -1705,120 +1384,28 @@ function ichiCardHTML(t){
     <p class="note">Ocena to suma czterech warunków (+1 wzrostowy, −1 spadkowy). Najmocniejszy obraz jest wtedy, gdy wszystkie okresy pokazują ten sam kierunek.</p></section>`;
 }
 
-/* ---------------- Ustawienia ---------------- */
-function openSettings(){
-  const s=state.settings;
-  const coRows=s.companies.map((c,i)=>coRowHTML(c,i)).join('');
-  $('#setBody').innerHTML=`
-  <fieldset class="fset"><legend>Horyzont inwestycyjny</legend>
-    ${Object.values(PROFILES).map(p=>`<label><input type="radio" name="profile" value="${p.key}" ${s.profile===p.key?'checked':''}> <b>${esc(p.name)}</b><br><span class="small">średnie ${p.fast}/${p.slow}/${p.trend} sesji · wybicie z ${p.brk} sesji · stop ${String(p.stopATR).replace('.',',')}× ATR · stop kroczący ${String(p.trailATR).replace('.',',')}× ATR</span></label>`).join('')}
-  </fieldset>
-  <fieldset class="fset"><legend>Źródło danych</legend>
-    <label>Serwer danych RadMat (plik z notowaniami, odświeżany automatycznie)<input type="text" id="feedUrl" value="${esc(s.feedUrl||DEFAULT_FEED)}" autocomplete="off"></label>
-    <p class="note" style="margin-top:0">To główne źródło – działa w każdej przeglądarce i na telefonie. Pozostałe ustawienia poniżej są potrzebne tylko awaryjnie.</p>
-    <label>Serwer danych Google – adres aplikacji internetowej (…/exec)<input type="text" id="gasUrl" value="${esc(s.gasUrl)}" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
-    <div class="inline"><button class="btn sm" type="button" id="btnSetupOpen">Instrukcja konfiguracji (3 min)</button></div>
-    <label><input type="radio" name="source" value="auto" ${s.source==='auto'?'checked':''}> Automatycznie (Yahoo Finance, a gdy się nie uda – Stooq z kluczem)</label>
-    <label><input type="radio" name="source" value="yahoo" ${s.source==='yahoo'?'checked':''}> Tylko Yahoo Finance (bez klucza)</label>
-    <label><input type="radio" name="source" value="stooq" ${s.source==='stooq'?'checked':''}> Tylko Stooq (wymaga klucza API)</label>
-    <label>Klucz API Stooq (apikey)<input type="text" id="stooqKey" value="${esc(s.stooqKey)}" placeholder="np. 32 znaki z linku do pobrania CSV" autocomplete="off"></label>
-    <p class="note">Jak zdobyć klucz: otwórz <a href="https://stooq.com/q/d/?s=pkn&get_apikey" target="_blank" rel="noopener">stooq.com/q/d/?s=pkn&amp;get_apikey</a>, przepisz kod z obrazka, skopiuj link „Pobierz dane w pliku CSV” na dole strony i wklej tutaj wartość po <code>apikey=</code>.</p>
-    <label><input type="checkbox" id="publicProxy" ${s.publicProxy?'checked':''}> Używaj publicznych serwerów pośredniczących (gdy aplikacja działa w zwykłej przeglądarce)</label>
-    <div class="inline"><button class="btn sm" id="btnDiag" type="button">Test połączenia</button></div>
-    <div class="diag" id="diag"></div>
-  </fieldset>
-  <fieldset class="fset"><legend>Obliczenia</legend>
-    <div class="inline">
-      <label>Prowizja maklerska za transakcję (%)<input type="number" id="fee" min="0" max="2" step="0.01" value="${s.fee}"></label>
-      <label>Motyw<select id="theme"><option value="auto" ${s.theme==='auto'?'selected':''}>jak w systemie</option><option value="light" ${s.theme==='light'?'selected':''}>jasny</option><option value="dark" ${s.theme==='dark'?'selected':''}>ciemny</option></select></label>
-    </div>
-    <label><input type="checkbox" id="closedOnly" ${s.closedOnly?'checked':''}> Licz sygnały tylko z zamkniętych sesji (w trakcie sesji pomijaj niepełną świecę z dzisiaj)</label>
-    <label><input type="checkbox" id="autoRefresh" ${s.autoRefresh?'checked':''}> Aktualizuj automatycznie: przy uruchomieniu, co 15 min w trakcie sesji (9:00–17:20) i po jej zamknięciu</label>
-  </fieldset>
-  <fieldset class="fset"><legend>Spółki</legend>
-    <p class="note" style="margin-top:0">${COMPOSITION_NOTE} Na Żabkę trwało wezwanie – jeśli spółka wypadnie z indeksu, odznacz ją i zaznacz następcę. Symbole: Yahoo z końcówką <code>.WA</code>, Stooq małymi literami; kilka wariantów oddziel przecinkami.</p>
-    <div class="tbl-scroll"><table class="co-table" style="width:100%"><thead><tr><th>Wł.</th><th>Skrót</th><th>Nazwa</th><th>Yahoo</th><th>Stooq</th><th></th></tr></thead><tbody id="coBody">${coRows}</tbody></table></div>
-    <div class="inline" style="margin-top:8px"><button class="btn sm" type="button" id="btnAddCo">+ Dodaj spółkę</button><button class="btn sm" type="button" id="btnResetCo">Przywróć skład domyślny</button></div>
-  </fieldset>
-  <fieldset class="fset"><legend>Import ręczny (plik CSV)</legend>
-    <p class="note" style="margin-top:0">Gdy pobieranie nie działa: wklej dane dzienne (np. plik CSV pobrany ze Stooq albo z innego serwisu). Wymagane kolumny: Data, Otwarcie, Najwyższy, Najniższy, Zamknięcie, Wolumen.</p>
-    <div class="inline">
-      <label>Spółka<select id="impT">${[INDEX_DEF].concat(s.companies).map(c=>`<option value="${esc(c.t)}">${esc(c.t)} – ${esc(c.n)}</option>`).join('')}</select></label>
-      <label>Plik<input type="file" id="impFile" accept=".csv,.txt,text/csv"></label>
-    </div>
-    <label>…albo wklej treść<textarea id="impText" placeholder="Data,Otwarcie,Najwyzszy,Najnizszy,Zamkniecie,Wolumen&#10;2026-11-13,95.10,96.40,94.80,95.40,1234567"></textarea></label>
-    <div class="inline"><button class="btn sm" type="button" id="btnImport">Importuj</button><span id="impMsg" class="small"></span></div>
-  </fieldset>
-  <fieldset class="fset"><legend>Pamięć</legend>
-    <div class="inline"><button class="btn sm" type="button" id="btnClear">Usuń zapisane notowania</button><span class="small">Wersja ${APP_VERSION}</span></div>
-  </fieldset>`;
-  $('#btnAddCo').onclick=()=>{ const tb=$('#coBody'); tb.insertAdjacentHTML('beforeend',coRowHTML({t:'',n:'',y:'',s:'',on:true},tb.children.length)); bindCoRows(); };
-  $('#btnResetCo').onclick=()=>{ $('#coBody').innerHTML=DEFAULT_COMPANIES.map((c,i)=>coRowHTML(c,i)).join(''); bindCoRows(); };
-  $('#btnDiag').onclick=runDiag;
-  $('#btnSetupOpen').onclick=openSetup;
-  $('#btnImport').onclick=doImport;
-  $('#btnClear').onclick=()=>{ if(!confirmInline('#btnClear','Na pewno? Kliknij ponownie')) return; for(const c of [INDEX_DEF].concat(state.settings.companies)) store.del(LS_DATA+c.t); state.data={}; analyzeAll(); renderAll(); $('#btnClear').textContent='Usunięto'; };
-  bindCoRows();
-  $('#dlgSettings').showModal();
+
+/* ---------------- Aktualizacja automatyczna ---------------- */
+function tzOffsetMin(ts){
+  const p={}; new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Warsaw',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date(ts)).forEach(x=>p[x.type]=x.value);
+  return Math.round((Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute)-ts)/60000);
 }
-function confirmInline(sel,msg){ const b=$(sel); if(b.dataset.armed){ return true; } b.dataset.armed='1'; const old=b.textContent; b.textContent=msg; setTimeout(()=>{ delete b.dataset.armed; if(b.textContent===msg) b.textContent=old; },4000); return false; }
-function coRowHTML(c,i){
-  return `<tr><td><input type="checkbox" class="co-on" ${c.on?'checked':''} style="width:auto;min-height:0"></td>
-    <td><input class="co-t" value="${esc(c.t)}" maxlength="8" style="width:64px"></td><td><input class="co-n" value="${esc(c.n)}"></td>
-    <td><input class="co-y" value="${esc(c.y)}"></td><td><input class="co-s" value="${esc(c.s)}"></td>
-    <td><button class="btn ghost sm co-del" type="button" title="Usuń">✕</button></td></tr>`;
-}
-function bindCoRows(){ $$('#coBody .co-del').forEach(b=>b.onclick=()=>b.closest('tr').remove()); }
-function saveSettingsFromForm(){
-  const s=state.settings, old=JSON.stringify({p:s.profile,f:s.fee,c:s.closedOnly});
-  s.profile=($('input[name=profile]:checked')||{}).value||s.profile;
-  s.source=($('input[name=source]:checked')||{}).value||s.source;
-  s.stooqKey=$('#stooqKey').value.trim();
-  const fu=$('#feedUrl').value.trim(); s.feedUrl = (fu && fu!==DEFAULT_FEED) ? fu : '';
-  const gu=$('#gasUrl').value.trim().replace(/\/+$/,''); if(gu!==s.gasUrl){ s.gasUrl=gu; state.working=null; state.autoBackoffUntil=0; }
-  s.publicProxy=$('#publicProxy').checked;
-  const fee=parseFloat(String($('#fee').value).replace(',','.')); s.fee=isFinite(fee)&&fee>=0?fee:0.3;
-  s.theme=$('#theme').value; s.closedOnly=$('#closedOnly').checked; s.autoRefresh=$('#autoRefresh').checked;
-  const cos=[]; const seen=new Set();
-  $$('#coBody tr').forEach(tr=>{ const t=$('.co-t',tr).value.trim().toUpperCase(); if(!t||seen.has(t)||t===INDEX_DEF.t) return; seen.add(t);
-    cos.push({t, n:$('.co-n',tr).value.trim()||t, y:$('.co-y',tr).value.trim()||t+'.WA', s:$('.co-s',tr).value.trim()||t.toLowerCase(), on:$('.co-on',tr).checked}); });
-  if(cos.length) s.companies=cos;
-  saveSettings(); applyTheme(); loadCache(); analyzeAll(); renderAll();
-  $('#dlgSettings').close();
-  const missing=allEntities().filter(c=>!state.data[c.t]).length;
-  if(missing && !state.busy) setStatus('', `Brak danych dla ${missing} pozycji – naciśnij „Aktualizuj”.`);
-}
-async function runDiag(){
-  const el=$('#diag'); el.innerHTML='<div>Sprawdzam…</div>';
-  state.transports.native=await cordovaReady(); state.transports.local=state.transports.local||await detectLocalProxy();
-  const url=yahooURL('PKO.WA','5d'); const out=[];
-  const tests=[];
-  if(state.transports.native) tests.push(['Natywnie (APK)',()=>nativeGet(url)]);
-  if(state.transports.local) tests.push(['Serwer lokalny (start-wig20.bat)',()=>fetchText('/proxy?url='+encodeURIComponent(url))]);
-  const gu=$('#gasUrl')?$('#gasUrl').value.trim().replace(/\/+$/,''):state.settings.gasUrl;
-  if(gu) tests.push(['Serwer danych Google',async()=>{ const tx=await fetchText(gu+'?url='+encodeURIComponent(url),30000); const j=JSON.parse(tx); if(!j.ok) throw new Error(j.error||'błąd'); if(j.status!==200) throw new Error('HTTP '+j.status); return j.body; }]);
-  tests.push(['Bezpośrednio z przeglądarki',()=>fetchText(url,8000)]);
-  PUBLIC_PROXIES.forEach(p=>tests.push(['Publiczny pośrednik '+p.name,()=>fetchText(p.make(url),12000)]));
-  for(const [name,fn] of tests){
-    try{ const t=await fn(); parseYahoo(t); out.push(`<div>✅ ${esc(name)} – działa</div>`); }
-    catch(e){ out.push(`<div>❌ ${esc(name)} – ${esc(String(e.message||e).slice(0,140))}</div>`); }
-    el.innerHTML=out.join('');
+function warsawEpoch(dateStr,min){ const [y,m,d]=dateStr.split('-').map(Number); const g=Date.UTC(y,m-1,d,Math.floor(min/60),min%60); return g-tzOffsetMin(g)*60000; }
+const SESSION_START=9*60, SESSION_END=17*60+20;
+function inSession(){ const w=warsawNow(); return !['Sat','Sun'].includes(w.wd) && w.min>=SESSION_START && w.min<SESSION_END; }
+function lastSessionEnd(){
+  const w=warsawNow(); let d=new Date(w.date+'T12:00:00Z');
+  for(let k=0;k<9;k++){
+    const wd=d.getUTCDay(), ds=d.toISOString().slice(0,10);
+    if(wd>=1&&wd<=5 && (k>0 || w.min>=SESSION_END)) return warsawEpoch(ds,SESSION_END);
+    d=new Date(d.getTime()-864e5);
   }
-  if(!state.transports.native && !state.transports.local) el.insertAdjacentHTML('beforeend','<div class="small">Wskazówka: najpewniej działa aplikacja APK albo uruchomienie przez <code>start-wig20.bat</code> na komputerze.</div>');
+  return 0;
 }
-async function doImport(){
-  const t=$('#impT').value, msg=$('#impMsg'); let text=$('#impText').value;
-  const f=$('#impFile').files[0];
-  try{
-    if(f) text=await f.text();
-    if(!text.trim()) throw new Error('Wybierz plik albo wklej dane.');
-    const b=parseCSV(text);
-    const keep=1300; if(b.c.length>keep) for(const k of Object.keys(b)) b[k]=b[k].slice(-keep);
-    const r={bars:b, src:'import ręczny', via:'plik CSV', at:Date.now()};
-    state.data[t]=r; store.set(LS_DATA+t,r); delete state.errors[t];
-    analyzeAll(); renderAll();
-    msg.textContent=`✓ Zaimportowano ${b.c.length} sesji (${dPL(b.d[0])} – ${dPL(b.d[b.d.length-1])}).`;
-  }catch(e){ msg.textContent='✗ '+e.message; }
+function autoTick(){
+  if(!state.settings.autoRefresh || state.busy || document.hidden) return;
+  if(state.autoBackoffUntil && Date.now()<state.autoBackoffUntil) return;
+  if(needsRefresh()) refreshAll({auto:true});
 }
 
 /* ---------------- Pomoc ---------------- */
@@ -1832,8 +1419,15 @@ function renderHelp(){
     <li><b>Chikou Span</b> – kurs zamknięcia przesunięty 26 okresów wstecz; nad ówczesną ceną = siła.</li>
     <li>Interwały: <b>1 godz.</b> (ostatnie 3 miesiące), <b>dzień</b>, <b>tydzień</b> i <b>miesiąc</b> (do 10 lat). Tabela „Ichimoku – różne okresy” ocenia cztery warunki w każdym interwale; kolumna D·T·M na liście pokazuje ocenę dzienną, tygodniową i miesięczną.</li>
   </ul>
-  <h3>Aktualizacja danych</h3>
-  <p>Przycisk <b>⟳ Aktualizuj</b> pobiera najnowsze notowania wszystkich spółek i od razu przelicza sygnały – wiersze odświeżają się na bieżąco (podświetlenie). Naciśnięcie go w trakcie aktualizacji zaczyna ją od nowa. W widoku spółki osobny przycisk <b>Aktualizuj</b> odświeża tylko tę spółkę. W trakcie sesji widać bieżący kurs (opóźniony ok. 15 min), a sygnały liczone są z zamkniętych sesji. Automatyczną aktualizację przy uruchomieniu można włączyć w Ustawieniach.</p>
+  <h3>Dane i aktualizacja</h3>
+  <p>Notowania wszystkich spółek rynku głównego GPW pobiera automat na GitHubie (z Yahoo Finance): co 30 minut w trakcie sesji oraz pełne dane po jej zamknięciu. Aplikacja czyta gotowy plik, więc działa jako zwykły plik HTML – na komputerze i na telefonie. Przycisk <b>⟳ Aktualizuj</b> pobiera najnowszy stan, a przy włączonej aktualizacji automatycznej aplikacja odświeża się sama (co 15 minut w trakcie sesji i po jej zamknięciu). W trakcie sesji widać bieżący kurs (opóźniony), a sygnały liczone są z zamkniętych sesji. Wykres i test strategii wczytują się po otwarciu spółki.</p>
+  <h3>Filtry i lista</h3>
+  <ul>
+    <li><b>★ Obserwowane</b> – Twoja lista; gwiazdkę klikasz przy spółce na liście albo w jej szczegółach.</li>
+    <li><b>WIG20</b> – 20 największych spółek.</li>
+    <li><b>Płynne</b> – średni dzienny obrót z 20 sesji co najmniej 1 mln zł. Na spółkach mało płynnych sygnały są mniej wiarygodne – niewielkie zlecenia potrafią mocno poruszyć cenę.</li>
+    <li>Kafelki z liczbami (Kup, Sprzedaj…) zawężają listę do danego sygnału. Lista pokazuje po 100 spółek – kolejne pod przyciskiem „Pokaż kolejne”.</li>
+  </ul>
   <h3>Co znaczą sygnały</h3>
   <ul>
     <li><span class="badge buy">▲ KUP</span> – na zamknięciu jednej z ostatnich sesji pojawił się sygnał kupna i kurs jest wciąż blisko ceny wejścia. Wejście na otwarciu kolejnej sesji, od razu z ustawionym stop lossem.</li>
@@ -1866,51 +1460,40 @@ function renderHelp(){
     <li><b>ADX</b> – siła trendu (powyżej 20–25 trend jest wyraźny); +DI i −DI mówią, czy przeważa popyt czy podaż.</li>
     <li><b>ATR</b> – średni dzienny zakres ruchu ceny; używany do ustawiania stopów proporcjonalnie do zmienności spółki.</li>
   </ul>
-  <h3>Skąd są dane i jak działa automatyczna aktualizacja</h3>
-  <p>Notowania pochodzą z Yahoo Finance. Przeglądarka blokuje bezpośrednie pobieranie z giełdowych stron, dlatego aplikacja korzysta z gotowego pliku z notowaniami:</p>
-  <ul>
-    <li><b>Serwer danych RadMat</b> (główne źródło) – automat na GitHubie pobiera notowania co 20 minut w trakcie sesji i po jej zamknięciu. Aplikacja czyta ten plik bezpośrednio – działa jako zwykły plik HTML, na komputerze i telefonie, bez żadnej konfiguracji.</li>
-  </ul>
-  <p>Drogi awaryjne (tylko gdy serwer danych nie odpowiada):</p>
-  <ul>
-    <li><b>Serwer danych Google</b> – mały skrypt na Twoim koncie Google, ustawiany raz (Ustawienia → Instrukcja konfiguracji). Działa na komputerze i telefonie, bez uruchamiania czegokolwiek.</li>
-    <li><b>APK z Cordovy</b> z wtyczką <code>cordova-plugin-advanced-http</code> – pobiera natywnie, bez serwera.</li>
-    <li><b>start-wig20.bat</b> na komputerze – lokalny serwer (alternatywa).</li>
-    <li>Awaryjnie: publiczne serwery pośredniczące albo import pliku CSV.</li>
-  </ul>
-  <p><b>Automatyczna aktualizacja</b> (domyślnie włączona): przy uruchomieniu, gdy dane są nieaktualne, co 15 minut w trakcie sesji (9:00–17:20), raz po zamknięciu sesji oraz po powrocie do aplikacji. Przycisk <b>Test połączenia</b> w Ustawieniach pokazuje, która droga działa.</p>
   <h3>Ważne</h3>
   <p>To narzędzie edukacyjne. Reguły są proste i mechaniczne – nie uwzględniają wyników finansowych, wiadomości ani dywidend (kursy z Yahoo nie są korygowane o dywidendy, więc w dniu odcięcia dywidendy może pojawić się fałszywy spadek). Zawsze sprawdź test strategii dla danej spółki i podejmuj decyzje samodzielnie.</p>`;
 }
 
+
 /* ---------------- Start ---------------- */
 function bindGlobal(){
-  $('#btnRefresh').onclick=refreshAll;
+  $('#btnRefresh').onclick=()=>refreshAll();
   $('#btnSettings').onclick=openSettings;
   $('#btnHelp').onclick=()=>{ renderHelp(); $('#dlgHelp').showModal(); };
   $('#btnSaveSet').onclick=saveSettingsFromForm;
-  $('#btnCopyGas').onclick=copyGasCode;
-  $('#btnGasConnect').onclick=connectGas;
-  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) autoTick(); });
-  setInterval(autoTick,60e3);
   $$('dialog [data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
-  $('#search').oninput=e=>{ state.search=e.target.value; renderList(); };
+  $('#search').oninput=e=>{ state.search=e.target.value; state.shown=PAGE; renderTiles(); renderList(); };
   $('#sort').onchange=e=>{ state.sort=e.target.value; renderList(); };
-  $('#list').onclick=e=>{ const r=e.target.closest('.row[data-t]'); if(r) openDetail(r.dataset.t); };
-  $('#market').onclick=()=>openDetail(INDEX_DEF.t);
-  $('#market').style.cursor='pointer';
+  $('#list').onclick=e=>{
+    const s=e.target.closest('[data-star]');
+    if(s){ e.stopPropagation(); const t=s.dataset.star; toggleWatch(t); renderFilters();
+      if(state.filter==='watch'){ renderTiles(); renderList(); } else { const on=state.watch.has(t); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; } return; }
+    const r=e.target.closest('.row[data-t]'); if(r) showCompany(r.dataset.t);
+  };
+  $('#more').onclick=()=>{ state.shown+=PAGE; renderList(); };
+  $('#market').onclick=()=>showCompany(INDEX_DEF.t); $('#market').style.cursor='pointer';
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.detail && !document.querySelector('dialog[open]')) closeDetail(); });
   document.addEventListener('backbutton',e=>{ if(state.detail){ e.preventDefault(); closeDetail(); } else if(navigator.app&&navigator.app.exitApp) navigator.app.exitApp(); },false);
-  let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); $$('#list canvas.spark').forEach(cv=>drawSpark(cv,state.an[cv.dataset.t])); },150); });
+  let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); }); },150); });
   if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(state.settings.theme==='auto'){ applyTheme(); renderList(); if(state.detail) drawDetailChart(); } });
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) autoTick(); });
+  setInterval(autoTick,60e3);
 }
-async function init(){
-  loadSettings(); applyTheme(); bindGlobal(); loadCache(); analyzeAll(); renderAll();
-  const meta=store.get(LS_META,{});
-  const nData=Object.keys(state.data).length;
-  setStatus(nData?'ok':'', nData?`Dane z pamięci · ostatnia aktualizacja: ${ago(meta.lastRefresh)} – naciśnij „Aktualizuj”, aby pobrać najnowsze notowania.`:'Brak danych – naciśnij „Aktualizuj”.');
-  state.transports.native = await cordovaReady();
-  if(!state.transports.native) state.transports.local = await detectLocalProxy();
+function init(){
+  loadSettings(); applyTheme(); bindGlobal();
+  const j=store.get(LS_SUM,null); if(j&&Array.isArray(j.items)) applySummary(j,false);
+  renderAll();
+  setStatus(j?'ok':'', j?`Dane z pamięci · stan notowań: ${fmtDataTime(j.updated)} – naciśnij „Aktualizuj”, aby pobrać najnowsze.`:'Brak danych – naciśnij „Aktualizuj”.');
   autoTick();
 }
 init();

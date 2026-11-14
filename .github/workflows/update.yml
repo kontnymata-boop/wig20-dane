@@ -1,43 +1,70 @@
-name: Aktualizacja notowań WIG20
+name: Aktualizacja notowań GPW
 
 on:
   schedule:
-    # co 20 minut w trakcie sesji GPW (godziny w UTC; obejmuje czas zimowy i letni)
-    - cron: '*/20 6-16 * * 1-5'
-    # po zamknięciu sesji
-    - cron: '50 16 * * 1-5'
-  # od razu po zmianie automatu (np. przy pierwszym wgraniu)
+    # co 30 minut w trakcie sesji GPW (godziny w UTC; obejmuje czas zimowy i letni)
+    - cron: '*/30 6-16 * * 1-5'
+    # po zamknięciu sesji – pełne pobranie 10 lat
+    - cron: '45 16 * * 1-5'
+  # od razu po zmianie automatu (np. przy wgraniu nowej wersji)
   push:
     branches: [main]
     paths: ['scripts/**', '.github/workflows/**']
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Pełne pobranie 10 lat dla wszystkich spółek'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
 
 concurrency:
-  group: wig20-update
+  group: gpw-update
   cancel-in-progress: false
 
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Biblioteki
         run: pip install "curl_cffi>=0.7"
-      - name: Pobierz notowania
-        run: python scripts/update.py
-      - name: Zapisz dane w repozytorium
+      - name: Poprzednie dane (gałąź data)
         run: |
-          git config user.name "wig20-robot"
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git clone --depth 1 --branch data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" store
+          else
+            mkdir -p store
+          fi
+      - name: Pobierz notowania
+        run: python scripts/update.py --store store ${{ (github.event_name == 'workflow_dispatch' && inputs.full) && '--full' || '' }}
+      - name: Policz sygnały
+        run: node scripts/summary.js store
+      - name: Zapisz dane (gałąź data – zawsze jedna wersja, bez historii)
+        run: |
+          cd store
+          rm -rf .git
+          git init -q -b data
+          git config user.name "gpw-robot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Notowania $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" data:data
+      - name: Zapisz plik zgodności (main)
+        run: |
+          git config user.name "gpw-robot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
           if git diff --cached --quiet; then echo "Bez zmian"; exit 0; fi
-          git commit -m "Notowania $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase --autostash || true
-          git push
+          git commit -qm "Notowania WIG20 $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull -q --rebase --autostash || true
+          git push -q

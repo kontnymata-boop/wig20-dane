@@ -1,14 +1,23 @@
-# WIG20 Sygnały – serwer danych (RadMat)
+# Sygnały GPW – serwer danych (RadMat)
 
-Automat (GitHub Actions) pobiera notowania spółek WIG20 z Yahoo Finance
-co 20 minut w trakcie sesji GPW oraz po jej zamknięciu i zapisuje je w `data/`:
+Automat (GitHub Actions) pobiera z Yahoo Finance notowania wszystkich spółek rynku głównego GPW
+(lista: `scripts/companies.json`, debiuty wyszukiwane wg `scripts/resolve.json`):
 
-- `data/wig20.json` – notowania dzienne (10 lat) wszystkich spółek,
-- `data/h/<SYMBOL>.json` – notowania godzinowe (3 miesiące) do Ichimoku 1 godz.
+- co 30 minut w trakcie sesji – ostatnie dni (szybka aktualizacja),
+- po zamknięciu sesji – pełne 10 lat notowań dziennych i 3 miesiące godzinowych.
 
-Aplikacja `wig20-sygnaly-*.html` czyta te pliki bezpośrednio – działa jako zwykły plik HTML,
-na komputerze i telefonie, bez serwera i bez konfiguracji. `index.html` to ta sama aplikacja.
+Dane trafiają do gałęzi **data** (zawsze jedna, bieżąca wersja – bez historii):
 
-Ręczne uruchomienie: zakładka **Actions → Aktualizacja notowań WIG20 → Run workflow**.
+- `summary.json` – sygnały (3 horyzonty), oceny Ichimoku D/T/M, kurs, obrót – dla listy spółek,
+- `d/<SKRÓT>.json` – notowania dzienne, `h/<SKRÓT>.json` – godzinowe,
+- `universe.json` – stan pobierania każdej spółki.
+
+Sygnały w `summary.json` liczy `scripts/summary.js` tym samym silnikiem, którego używa aplikacja
+(`index.html`, kod między znacznikami ENGINE). Aplikacja `gpw-sygnaly-*.html` czyta te pliki
+bezpośrednio z GitHuba – działa jako zwykły plik HTML, bez serwera i konfiguracji.
+
+`data/wig20.json` w gałęzi main – plik zgodności dla starszej aplikacji „WIG20 Sygnały”.
+
+Ręczne uruchomienie: **Actions → Aktualizacja notowań GPW → Run workflow** (opcja „pełne pobranie”).
 
 Narzędzie edukacyjne – nie stanowi rekomendacji inwestycyjnej.

@@ -1,76 +1,70 @@
 #!/usr/bin/env python3
 """
-RadMat · WIG20 Sygnały – robot pobierający notowania (GitHub Actions)
+RadMat · Sygnały GPW – robot pobierający notowania (GitHub Actions)
 
-Pobiera z Yahoo Finance notowania dzienne (10 lat) i godzinowe (3 miesiące)
-spółek WIG20 i zapisuje je w folderze data/. Aplikacja WIG20 Sygnały czyta
-te pliki bezpośrednio z GitHuba (raw.githubusercontent.com obsługuje CORS),
-więc działa jako zwykły plik HTML – bez serwera i bez konfiguracji.
+Dla wszystkich spółek rynku głównego GPW (scripts/companies.json) pobiera z Yahoo Finance:
+  • notowania dzienne – pełne 10 lat raz dziennie (po sesji), w ciągu sesji tylko ostatnie dni,
+  • notowania godzinowe – do wykresów Ichimoku 1 godz.
+Wynik trafia do folderu STORE (gałąź `data` repozytorium):
+  d/<SKRÓT>.json, h/<SKRÓT>.json, universe.json
+Dodatkowo zapisuje data/wig20.json (zgodność ze starszą wersją aplikacji WIG20 Sygnały).
+Podsumowanie sygnałów (summary.json) liczy osobno scripts/summary.js – tym samym silnikiem co aplikacja.
 """
+import argparse
 import json
 import os
+import random
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 try:
-    from curl_cffi import requests as http      # podszywa się pod przeglądarkę Chrome
-    SESSION = http.Session(impersonate="chrome")
-except ImportError:                              # awaryjnie: zwykłe requests
+    from curl_cffi import requests as http
+    IMPERSONATE = True
+except ImportError:
     import requests as http
-    SESSION = http.Session()
-    SESSION.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36"
+    IMPERSONATE = False
 
-# skrót w aplikacji -> symbole Yahoo (kolejne warianty, gdy pierwszy nie działa).
-# Dane zapisywane są pod PIERWSZYM symbolem z listy – tak szuka ich aplikacja.
-ENTITIES = [
-    ("WIG20", ["WIG20.WA", "^WIG20", "WIG20TR.WA", "ETFBW20TR.WA"]),
-    ("PKO", ["PKO.WA"]), ("PKN", ["PKN.WA"]), ("KGH", ["KGH.WA"]), ("ALE", ["ALE.WA"]),
-    ("PEO", ["PEO.WA"]), ("PZU", ["PZU.WA"]), ("EBP", ["EBP.WA", "SPL.WA"]), ("LPP", ["LPP.WA"]),
-    ("CDR", ["CDR.WA"]), ("DNP", ["DNP.WA"]), ("MBK", ["MBK.WA"]), ("ZAB", ["ZAB.WA"]),
-    ("ALR", ["ALR.WA"]), ("KTY", ["KTY.WA"]), ("TPE", ["TPE.WA"]), ("PGE", ["PGE.WA"]),
-    ("BDX", ["BDX.WA"]), ("KRU", ["KRU.WA"]), ("PCO", ["PCO.WA"]), ("MDV", ["MDV.WA", "CCC.WA"]),
-    ("BFT", ["BFT.WA"]), ("XTB", ["XTB.WA"]),
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WAW = ZoneInfo("Europe/Warsaw")
+KEEP_DAYS = 2600          # ok. 10 lat sesji
+INDEX = {"t": "WIG20", "n": "WIG20 (wg ETF Beta WIG20TR)", "y": "WIG20.WA",
+         "alts": ["^WIG20", "WIG20TR.WA", "ETFBW20TR.WA"], "w20": False, "idx": True}
+LEGACY = [  # skróty dla starej wersji aplikacji (data/wig20.json, klucze = symbole Yahoo)
+    ("WIG20", "WIG20.WA"), ("PKO", "PKO.WA"), ("PKN", "PKN.WA"), ("KGH", "KGH.WA"), ("ALE", "ALE.WA"),
+    ("PEO", "PEO.WA"), ("PZU", "PZU.WA"), ("EBP", "EBP.WA"), ("LPP", "LPP.WA"), ("CDR", "CDR.WA"),
+    ("DNP", "DNP.WA"), ("MBK", "MBK.WA"), ("ZAB", "ZAB.WA"), ("ALR", "ALR.WA"), ("KTY", "KTY.WA"),
+    ("TPE", "TPE.WA"), ("PGE", "PGE.WA"), ("BDX", "BDX.WA"), ("KRU", "KRU.WA"), ("PCO", "PCO.WA"),
+    ("MDV", "MDV.WA"), ("BFT", "BFT.WA"), ("XTB", "XTB.WA"),
 ]
-MIN_SESSIONS = {"WIG20": 300}          # indeks: odrzuć symbole z niepełną historią
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
+
+_local = threading.local()
+
+
+def session():
+    s = getattr(_local, "s", None)
+    if s is None:
+        if IMPERSONATE:
+            s = http.Session(impersonate="chrome")
+        else:
+            s = http.Session()
+            s.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36"
+        _local.s = s
+    return s
 
 
 def r4(x):
     return None if x is None else round(float(x), 4)
 
 
-def chart(sym, rng, interval):
-    """Notowania z Yahoo v8 chart; zwraca słownik w formacie skróconym albo rzuca wyjątek."""
-    last = None
-    for host in ("query1", "query2"):
-        url = (f"https://{host}.finance.yahoo.com/v8/finance/chart/{sym}"
-               f"?range={rng}&interval={interval}&includePrePost=false")
-        for attempt in range(3):
-            try:
-                r = SESSION.get(url, timeout=30)
-                if r.status_code == 429:
-                    last = "HTTP 429 (limit Yahoo)"
-                    time.sleep(3 + attempt * 4)
-                    continue
-                j = r.json()
-                res = (j.get("chart") or {}).get("result")
-                if not res:
-                    err = (j.get("chart") or {}).get("error") or {}
-                    raise LookupError(err.get("description") or err.get("code") or f"HTTP {r.status_code}")
-                return compact(res[0])
-            except LookupError:
-                raise
-            except Exception as e:                      # sieć / zły JSON – spróbuj ponownie
-                last = f"{type(e).__name__}: {e}"
-                time.sleep(2 + attempt * 2)
-    raise RuntimeError(last or "nieznany błąd")
-
-
 def compact(res):
     q = ((res.get("indicators") or {}).get("quote") or [{}])[0]
     m = res.get("meta") or {}
-    out = {"meta": {"off": m.get("gmtoffset"), "time": m.get("regularMarketTime"), "price": m.get("regularMarketPrice")},
+    out = {"meta": {"off": m.get("gmtoffset"), "time": m.get("regularMarketTime"), "price": m.get("regularMarketPrice"),
+                    "name": m.get("longName") or m.get("shortName")},
            "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
     ts = res.get("timestamp") or []
     closes = q.get("close") or []
@@ -78,7 +72,7 @@ def compact(res):
         c = closes[i] if i < len(closes) else None
         if c is None:
             continue
-        out["t"].append(t)
+        out["t"].append(int(t))
         for k, src in (("o", "open"), ("h", "high"), ("l", "low")):
             arr = q.get(src) or []
             out[k].append(r4(arr[i]) if i < len(arr) else None)
@@ -90,47 +84,233 @@ def compact(res):
     return out
 
 
+def chart(sym, rng, interval):
+    last = None
+    for host in ("query1", "query2"):
+        url = (f"https://{host}.finance.yahoo.com/v8/finance/chart/{sym}"
+               f"?range={rng}&interval={interval}&includePrePost=false")
+        for attempt in range(3):
+            try:
+                r = session().get(url, timeout=30)
+                if r.status_code == 429:
+                    last = "HTTP 429 (limit Yahoo)"
+                    time.sleep(4 + attempt * 6 + random.random() * 3)
+                    continue
+                j = r.json()
+                res = (j.get("chart") or {}).get("result")
+                if not res:
+                    err = (j.get("chart") or {}).get("error") or {}
+                    raise LookupError(err.get("description") or err.get("code") or f"HTTP {r.status_code}")
+                return compact(res[0])
+            except LookupError:
+                raise
+            except Exception as e:
+                last = f"{type(e).__name__}: {e}"
+                time.sleep(1.5 + attempt * 2)
+    raise RuntimeError(last or "nieznany błąd")
+
+
+def yahoo_search(name):
+    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={name}&quotesCount=10&newsCount=0"
+    r = session().get(url, timeout=20)
+    key = name.lower().split()[0][:6]
+    for q in (r.json().get("quotes") or []):
+        s = q.get("symbol") or ""
+        nm = (q.get("longname") or q.get("shortname") or "").lower()
+        if s.endswith(".WA") and key in nm.replace("ó", "o"):
+            return s, q.get("longname") or q.get("shortname") or name
+    return None, None
+
+
+def day_key(t, off, intraday):
+    if intraday:
+        return t
+    return datetime.fromtimestamp(t + (off if off is not None else 3600), tz=timezone.utc).strftime("%Y-%m-%d")
+
+
+def merge(old, new, intraday=False, keep=KEEP_DAYS):
+    """Łączy stare i nowe notowania (nowsze nadpisują ten sam dzień / tę samą godzinę)."""
+    off = (new.get("meta") or {}).get("off")
+    rows = {}
+    for src in (old, new):
+        o = (src.get("meta") or {}).get("off", off)
+        for i, t in enumerate(src["t"]):
+            rows[day_key(t, o, intraday)] = (t, src["o"][i], src["h"][i], src["l"][i], src["c"][i], src["v"][i])
+    keys = sorted(rows)[-keep:]
+    out = {"meta": dict(old.get("meta") or {}, **{k: v for k, v in (new.get("meta") or {}).items() if v is not None}),
+           "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
+    for k in keys:
+        t, o, h, l, c, v = rows[k]
+        out["t"].append(t); out["o"].append(o); out["h"].append(h); out["l"].append(l); out["c"].append(c); out["v"].append(v)
+    return out
+
+
+def load(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
 def dump(path, obj):
-    with open(path, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False, separators=(",", ":"))
+    os.replace(tmp, path)
+
+
+def age_days(x):
+    if not x or not x.get("t"):
+        return 9999
+    return (time.time() - x["t"][-1]) / 86400
 
 
 def main():
-    os.makedirs(os.path.join(OUT, "h"), exist_ok=True)
-    daily, errors = {}, {}
-    for tk, syms in ENTITIES:
-        key = syms[0]
-        for sym in syms:
-            try:
-                x = chart(sym, "10y", "1d")
-                if len(x["t"]) < MIN_SESSIONS.get(tk, 30):
-                    raise LookupError(f"za krótka historia ({len(x['t'])} sesji)")
-                daily[key] = dict(x, ticker=tk, sym=sym)
-                print(f"OK   {tk:6} {sym:12} {len(x['t'])} sesji")
-                break
-            except Exception as e:
-                errors[f"{tk}:{sym}"] = str(e)[:200]
-                print(f"BŁĄD {tk:6} {sym:12} {e}")
-            time.sleep(0.4)
-    # godzinowe (do Ichimoku 1 godz.)
-    for tk, syms in ENTITIES:
-        key = syms[0]
-        if key not in daily or tk == "WIG20":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--store", default=os.path.join(ROOT, "store"))
+    ap.add_argument("--full", action="store_true", help="pełne pobranie 10 lat dla wszystkich")
+    ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--limit", type=int, default=0, help="(test) tylko N pierwszych spółek")
+    args = ap.parse_args()
+    store = args.store
+    os.makedirs(os.path.join(store, "d"), exist_ok=True)
+    os.makedirs(os.path.join(store, "h"), exist_ok=True)
+
+    now_w = datetime.now(WAW)
+    prev = load(os.path.join(store, "universe.json")) or {}
+    last_full = prev.get("lastFull") or ""
+    after_close = now_w.weekday() < 5 and (now_w.hour > 17 or (now_w.hour == 17 and now_w.minute >= 30))
+    full = args.full or not prev or (after_close and last_full[:10] != now_w.strftime("%Y-%m-%d"))
+    if not full and last_full:
+        try:
+            full = (now_w - datetime.fromisoformat(last_full)).total_seconds() > 30 * 3600
+        except ValueError:
+            full = True
+    print(f"Tryb: {'PEŁNY (10 lat)' if full else 'SZYBKI (ostatnie dni)'} · {now_w:%Y-%m-%d %H:%M} czasu polskiego")
+
+    cfg = load(os.path.join(ROOT, "scripts", "companies.json"))["items"]
+    # debiuty, których oznaczenie ustala wyszukiwarka Yahoo (wynik zapamiętywany)
+    resolved = dict(prev.get("resolved") or {})
+    for name in (load(os.path.join(ROOT, "scripts", "resolve.json")) or {}).get("names", []):
+        if name in resolved:
             continue
         try:
-            dump(os.path.join(OUT, "h", f"{key}.json"), {"ok": True, "sym": daily[key]["sym"], **chart(daily[key]["sym"], "3mo", "60m")})
+            sym, lname = yahoo_search(name)
+            resolved[name] = {"y": sym, "n": lname} if sym else None
+            print(f"Wyszukiwanie „{name}”: {sym or 'brak'}")
         except Exception as e:
-            errors[f"{tk}:{key}:60m"] = str(e)[:200]
-        time.sleep(0.4)
-    if len([k for k in daily if daily[k]["ticker"] != "WIG20"]) < 5:
-        print("Za mało pobranych spółek – nie nadpisuję danych.")
+            print(f"Wyszukiwanie „{name}” nieudane: {e}")
+    known = {c["y"] for c in cfg} | {a for c in cfg for a in c.get("alts", [])}
+    for name, r in resolved.items():
+        if r and r.get("y") and r["y"] not in known:
+            cfg.append({"t": r["y"][:-3], "y": r["y"], "n": name, "alts": [], "w20": False})
+            known.add(r["y"])
+    entities = [INDEX] + cfg
+    if args.limit:
+        entities = entities[: args.limit]
+
+    def work(e):
+        t = e["t"]
+        path = os.path.join(store, "d", f"{t}.json")
+        old = load(path)
+        info = {"t": t, "n": e["n"], "y": e["y"], "w20": bool(e.get("w20")), "idx": bool(e.get("idx"))}
+        min_len = 300 if e.get("idx") else 30
+        try:
+            if old and not full and old.get("sym") and age_days(old) < 20:
+                data = merge(old, chart(old["sym"], "5d", "1d"))
+                data["sym"] = old["sym"]
+            else:
+                data, errs = None, []
+                for sym in [e["y"]] + list(e.get("alts", [])):
+                    try:
+                        x = chart(sym, "10y", "1d")
+                        if len(x["t"]) < min_len:
+                            raise LookupError(f"za krótka historia ({len(x['t'])})")
+                        data = x
+                        data["sym"] = sym
+                        break
+                    except Exception as ex:
+                        errs.append(f"{sym}: {ex}")
+                if data is None:
+                    raise LookupError("; ".join(errs))
+            if age_days(data) > 21:
+                raise LookupError("brak notowań od ponad 3 tygodni (spółka wycofana?)")
+            dump(path, data)
+            info.update(ok=True, sym=data["sym"], bars=len(data["t"]),
+                        last=day_key(data["t"][-1], (data.get("meta") or {}).get("off"), False))
+        except Exception as ex:
+            info.update(ok=False, err=str(ex)[:200])
+            if old and age_days(old) < 21 and not full:      # chwilowy błąd – zostaw poprzednie dane
+                info.update(ok=True, sym=old.get("sym"), stale=True)
+            elif os.path.exists(path):
+                os.remove(path)
+        time.sleep(random.random() * 0.3)
+        return info
+
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        infos = list(pool.map(work, entities))
+    ok = [i for i in infos if i.get("ok")]
+    print(f"Dzienne: {len(ok)}/{len(infos)} OK w {time.time() - t0:.0f} s")
+    for i in infos:
+        if not i.get("ok"):
+            print(f"  BRAK {i['t']:6} {i.get('err', '')[:120]}")
+
+    # godzinowe: tryb pełny – wszystkie; szybki – WIG20 i najpłynniejsze
+    def turnover(t):
+        x = load(os.path.join(store, "d", f"{t}.json"))
+        if not x:
+            return 0
+        c, v = x["c"][-20:], x["v"][-20:]
+        return sum(a * b for a, b in zip(c, v)) / max(1, len(c))
+
+    cand = [i for i in ok if not i.get("idx")]
+    if not full:
+        cand.sort(key=lambda i: (not i.get("w20"), -turnover(i["t"])))
+        cand = cand[:60]
+
+    def work_h(i):
+        path = os.path.join(store, "h", f"{i['t']}.json")
+        old = load(path)
+        try:
+            if old and not full and age_days(old) < 5:
+                data = merge(old, chart(i["sym"], "5d", "60m"), intraday=True, keep=700)
+            else:
+                data = chart(i["sym"], "3mo", "60m")
+            data["sym"] = i["sym"]
+            dump(path, dict(data, ok=True))
+        except Exception as ex:
+            return f"{i['t']}: {ex}"
+        time.sleep(random.random() * 0.3)
+        return None
+
+    t0 = time.time()
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        herr = [x for x in pool.map(work_h, cand) if x]
+    print(f"Godzinowe: {len(cand) - len(herr)}/{len(cand)} OK w {time.time() - t0:.0f} s")
+
+    if len([i for i in ok if not i.get("idx")]) < min(50, max(1, len(entities) // 2)):
+        print("Za mało pobranych spółek – nie nadpisuję listy.")
         sys.exit(1)
-    dump(os.path.join(OUT, "wig20.json"), {
-        "ok": True, "app": "wig20-sygnaly", "source": "Yahoo Finance",
-        "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "data": daily, "errors": errors,
-    })
-    print(f"Zapisano {len(daily)} pozycji, błędy: {len(errors)}")
+    uni = {"ok": True, "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+           "lastFull": now_w.isoformat(timespec="minutes") if full else last_full,
+           "mode": "full" if full else "quick", "resolved": resolved, "items": infos}
+    dump(os.path.join(store, "universe.json"), uni)
+
+    # zgodność ze starszą wersją aplikacji (WIG20 Sygnały 1.3)
+    legacy = {}
+    for t, key in LEGACY:
+        x = load(os.path.join(store, "d", f"{t}.json"))
+        if x:
+            legacy[key] = dict(x, ticker=t)
+            hx = load(os.path.join(store, "h", f"{t}.json"))
+            if hx:
+                dump(os.path.join(ROOT, "data", "h", f"{key}.json"), hx)
+    dump(os.path.join(ROOT, "data", "wig20.json"), {"ok": True, "app": "wig20-sygnaly", "source": "Yahoo Finance",
+                                                     "updated": uni["updated"], "data": legacy, "errors": {}})
+    print("Zapisano.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,2942 @@
+{
+"note": "Spółki rynku głównego GPW (lista z 2024 r. + debiuty 2024–2026). Symbole Yahoo z końcówką .WA; alts = poprzednie oznaczenia.",
+"items": [
+{
+"t": "06N",
+"y": "06N.WA",
+"n": "Magna Polonia",
+"alts": [],
+"w20": false
+},
+{
+"t": "08N",
+"y": "08N.WA",
+"n": "Octava",
+"alts": [],
+"w20": false
+},
+{
+"t": "11B",
+"y": "11B.WA",
+"n": "11 bit studios",
+"alts": [],
+"w20": false
+},
+{
+"t": "1AT",
+"y": "1AT.WA",
+"n": "Atal",
+"alts": [],
+"w20": false
+},
+{
+"t": "3RG",
+"y": "3RG.WA",
+"n": "3r Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "AAT",
+"y": "AAT.WA",
+"n": "Alta",
+"alts": [],
+"w20": false
+},
+{
+"t": "ABE",
+"y": "ABE.WA",
+"n": "AB",
+"alts": [],
+"w20": false
+},
+{
+"t": "ABS",
+"y": "ABS.WA",
+"n": "Asseco BS",
+"alts": [],
+"w20": false
+},
+{
+"t": "ACG",
+"y": "ACG.WA",
+"n": "AC",
+"alts": [],
+"w20": false
+},
+{
+"t": "ACP",
+"y": "ACP.WA",
+"n": "Asseco Poland",
+"alts": [],
+"w20": false
+},
+{
+"t": "ACT",
+"y": "ACT.WA",
+"n": "Action",
+"alts": [],
+"w20": false
+},
+{
+"t": "ADV",
+"y": "ADV.WA",
+"n": "Adiuvo Investments",
+"alts": [],
+"w20": false
+},
+{
+"t": "ADX",
+"y": "ADX.WA",
+"n": "Adatex",
+"alts": [],
+"w20": false
+},
+{
+"t": "AGO",
+"y": "AGO.WA",
+"n": "Agora",
+"alts": [],
+"w20": false
+},
+{
+"t": "AGT",
+"y": "AGT.WA",
+"n": "Agroton",
+"alts": [],
+"w20": false
+},
+{
+"t": "ALE",
+"y": "ALE.WA",
+"n": "Allegro.eu",
+"alts": [],
+"w20": true
+},
+{
+"t": "ALG",
+"y": "ALG.WA",
+"n": "All In! Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "ALI",
+"y": "ALI.WA",
+"n": "Altus",
+"alts": [],
+"w20": false
+},
+{
+"t": "ALL",
+"y": "ALL.WA",
+"n": "Ailleron",
+"alts": [],
+"w20": false
+},
+{
+"t": "ALR",
+"y": "ALR.WA",
+"n": "Alior Bank",
+"alts": [],
+"w20": true
+},
+{
+"t": "AMB",
+"y": "AMB.WA",
+"n": "Ambra",
+"alts": [],
+"w20": false
+},
+{
+"t": "AMC",
+"y": "AMC.WA",
+"n": "Amica",
+"alts": [],
+"w20": false
+},
+{
+"t": "ANR",
+"y": "ANR.WA",
+"n": "Answear.Com",
+"alts": [],
+"w20": false
+},
+{
+"t": "APE",
+"y": "APE.WA",
+"n": "APS Energia",
+"alts": [],
+"w20": false
+},
+{
+"t": "APL",
+"y": "APL.WA",
+"n": "Ampli",
+"alts": [],
+"w20": false
+},
+{
+"t": "APN",
+"y": "APN.WA",
+"n": "Aplisens",
+"alts": [],
+"w20": false
+},
+{
+"t": "APR",
+"y": "APR.WA",
+"n": "Auto Partner",
+"alts": [],
+"w20": false
+},
+{
+"t": "APT",
+"y": "APT.WA",
+"n": "Apator",
+"alts": [],
+"w20": false
+},
+{
+"t": "ARH",
+"y": "ARH.WA",
+"n": "Archicom",
+"alts": [],
+"w20": false
+},
+{
+"t": "ART",
+"y": "ART.WA",
+"n": "Artifex Mundi",
+"alts": [],
+"w20": false
+},
+{
+"t": "ASB",
+"y": "ASB.WA",
+"n": "Asbis",
+"alts": [],
+"w20": false
+},
+{
+"t": "ASE",
+"y": "ASE.WA",
+"n": "Asseco SEE",
+"alts": [],
+"w20": false
+},
+{
+"t": "ASM",
+"y": "ASM.WA",
+"n": "ASM Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "AST",
+"y": "AST.WA",
+"n": "Astarta",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATC",
+"y": "ATC.WA",
+"n": "Arctic Paper",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATD",
+"y": "ATD.WA",
+"n": "Atende",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATG",
+"y": "ATG.WA",
+"n": "ATM Grupa",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATP",
+"y": "ATP.WA",
+"n": "Atlanta Poland",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATR",
+"y": "ATR.WA",
+"n": "Atrem",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATS",
+"y": "ATS.WA",
+"n": "Atlantis SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "ATT",
+"y": "ATT.WA",
+"n": "Grupa Azoty",
+"alts": [],
+"w20": false
+},
+{
+"t": "AWM",
+"y": "AWM.WA",
+"n": "Airway Medix",
+"alts": [],
+"w20": false
+},
+{
+"t": "B24",
+"y": "B24.WA",
+"n": "Brand 24",
+"alts": [],
+"w20": false
+},
+{
+"t": "BAH",
+"y": "BAH.WA",
+"n": "British Automotive Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "BBD",
+"y": "BBD.WA",
+"n": "BBI Development",
+"alts": [],
+"w20": false
+},
+{
+"t": "BBT",
+"y": "BBT.WA",
+"n": "Boombit",
+"alts": [],
+"w20": false
+},
+{
+"t": "BCM",
+"y": "BCM.WA",
+"n": "Betacom",
+"alts": [],
+"w20": false
+},
+{
+"t": "BCS",
+"y": "BCS.WA",
+"n": "Big Cheese Studio",
+"alts": [],
+"w20": false
+},
+{
+"t": "BCX",
+"y": "BCX.WA",
+"n": "Bioceltix",
+"alts": [],
+"w20": false
+},
+{
+"t": "BDX",
+"y": "BDX.WA",
+"n": "Budimex",
+"alts": [],
+"w20": true
+},
+{
+"t": "BDZ",
+"y": "BDZ.WA",
+"n": "EC Będzin",
+"alts": [],
+"w20": false
+},
+{
+"t": "BFT",
+"y": "BFT.WA",
+"n": "Benefit Systems",
+"alts": [],
+"w20": false
+},
+{
+"t": "BHW",
+"y": "BHW.WA",
+"n": "Bank Handlowy",
+"alts": [],
+"w20": false
+},
+{
+"t": "BIO",
+"y": "BIO.WA",
+"n": "Bioton",
+"alts": [],
+"w20": false
+},
+{
+"t": "BIP",
+"y": "BIP.WA",
+"n": "BIO Planet",
+"alts": [],
+"w20": false
+},
+{
+"t": "BLO",
+"y": "BLO.WA",
+"n": "Bloober Team",
+"alts": [],
+"w20": false
+},
+{
+"t": "BMC",
+"y": "BMC.WA",
+"n": "Bumech",
+"alts": [],
+"w20": false
+},
+{
+"t": "BMX",
+"y": "BMX.WA",
+"n": "Biomaxima",
+"alts": [],
+"w20": false
+},
+{
+"t": "BNP",
+"y": "BNP.WA",
+"n": "BNP Paribas Bank Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "BOS",
+"y": "BOS.WA",
+"n": "BOŚ Bank",
+"alts": [],
+"w20": false
+},
+{
+"t": "BOW",
+"y": "BOW.WA",
+"n": "Bowim",
+"alts": [],
+"w20": false
+},
+{
+"t": "BRA",
+"y": "BRA.WA",
+"n": "Braster",
+"alts": [],
+"w20": false
+},
+{
+"t": "BRS",
+"y": "BRS.WA",
+"n": "Boryszew",
+"alts": [],
+"w20": false
+},
+{
+"t": "BST",
+"y": "BST.WA",
+"n": "Best",
+"alts": [],
+"w20": false
+},
+{
+"t": "CAP",
+"y": "CAP.WA",
+"n": "Capitea",
+"alts": [],
+"w20": false
+},
+{
+"t": "CAR",
+"y": "CAR.WA",
+"n": "Inter Cars",
+"alts": [],
+"w20": false
+},
+{
+"t": "CAV",
+"y": "CAV.WA",
+"n": "Cavatina Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "CBF",
+"y": "CBF.WA",
+"n": "Cyber_Folks",
+"alts": [],
+"w20": false
+},
+{
+"t": "CCE",
+"y": "CCE.WA",
+"n": "Clean&Carbon Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "CDL",
+"y": "CDL.WA",
+"n": "CDRL",
+"alts": [],
+"w20": false
+},
+{
+"t": "CDR",
+"y": "CDR.WA",
+"n": "CD Projekt",
+"alts": [],
+"w20": true
+},
+{
+"t": "CEZ",
+"y": "CEZ.WA",
+"n": "ČEZ",
+"alts": [],
+"w20": false
+},
+{
+"t": "CFI",
+"y": "CFI.WA",
+"n": "CFI Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "CIE",
+"y": "CIE.WA",
+"n": "Ciech",
+"alts": [],
+"w20": false
+},
+{
+"t": "CIG",
+"y": "CIG.WA",
+"n": "CI Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "CLC",
+"y": "CLC.WA",
+"n": "Columbus Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "CLD",
+"y": "CLD.WA",
+"n": "Cloud Technologies",
+"alts": [],
+"w20": false
+},
+{
+"t": "CLE",
+"y": "CLE.WA",
+"n": "Coal Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "CLN",
+"y": "CLN.WA",
+"n": "Celon Pharma",
+"alts": [],
+"w20": false
+},
+{
+"t": "CMP",
+"y": "CMP.WA",
+"n": "Comp",
+"alts": [],
+"w20": false
+},
+{
+"t": "CMR",
+"y": "CMR.WA",
+"n": "Comarch",
+"alts": [],
+"w20": false
+},
+{
+"t": "COG",
+"y": "COG.WA",
+"n": "Cognor Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "CPA",
+"y": "CPA.WA",
+"n": "Capital Partners",
+"alts": [],
+"w20": false
+},
+{
+"t": "CPD",
+"y": "CPD.WA",
+"n": "CPD",
+"alts": [],
+"w20": false
+},
+{
+"t": "CPL",
+"y": "CPL.WA",
+"n": "Comperia.Pl",
+"alts": [],
+"w20": false
+},
+{
+"t": "CPR",
+"y": "CPR.WA",
+"n": "Compremum",
+"alts": [],
+"w20": false
+},
+{
+"t": "CPS",
+"y": "CPS.WA",
+"n": "Cyfrowy Polsat",
+"alts": [],
+"w20": false
+},
+{
+"t": "CRI",
+"y": "CRI.WA",
+"n": "Creotech Instruments",
+"alts": [],
+"w20": false
+},
+{
+"t": "CRJ",
+"y": "CRJ.WA",
+"n": "Creepy Jar",
+"alts": [],
+"w20": false
+},
+{
+"t": "CRM",
+"y": "CRM.WA",
+"n": "PZ Cormay",
+"alts": [],
+"w20": false
+},
+{
+"t": "CSR",
+"y": "CSR.WA",
+"n": "Caspar Asset Management",
+"alts": [],
+"w20": false
+},
+{
+"t": "CTS",
+"y": "CTS.WA",
+"n": "City Service SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "CTX",
+"y": "CTX.WA",
+"n": "Captor Therapeutics",
+"alts": [],
+"w20": false
+},
+{
+"t": "CZT",
+"y": "CZT.WA",
+"n": "Czerwona Torebka",
+"alts": [],
+"w20": false
+},
+{
+"t": "DAD",
+"y": "DAD.WA",
+"n": "Dadelo",
+"alts": [],
+"w20": false
+},
+{
+"t": "DAT",
+"y": "DAT.WA",
+"n": "Datawalk",
+"alts": [],
+"w20": false
+},
+{
+"t": "DBC",
+"y": "DBC.WA",
+"n": "Dębica",
+"alts": [],
+"w20": false
+},
+{
+"t": "DBE",
+"y": "DBE.WA",
+"n": "DB Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "DCR",
+"y": "DCR.WA",
+"n": "Decora",
+"alts": [],
+"w20": false
+},
+{
+"t": "DEK",
+"y": "DEK.WA",
+"n": "Dekpol",
+"alts": [],
+"w20": false
+},
+{
+"t": "DEL",
+"y": "DEL.WA",
+"n": "Delko",
+"alts": [],
+"w20": false
+},
+{
+"t": "DGA",
+"y": "DGA.WA",
+"n": "DGA",
+"alts": [],
+"w20": false
+},
+{
+"t": "DGE",
+"y": "DGE.WA",
+"n": "Drago Entertainment",
+"alts": [],
+"w20": false
+},
+{
+"t": "DIG",
+"y": "DIG.WA",
+"n": "Digital Network",
+"alts": [],
+"w20": false
+},
+{
+"t": "DNP",
+"y": "DNP.WA",
+"n": "Dino Polska",
+"alts": [],
+"w20": true
+},
+{
+"t": "DOM",
+"y": "DOM.WA",
+"n": "Dom Development",
+"alts": [],
+"w20": false
+},
+{
+"t": "DPL",
+"y": "DPL.WA",
+"n": "Drozapol-Profil",
+"alts": [],
+"w20": false
+},
+{
+"t": "DTR",
+"y": "DTR.WA",
+"n": "Digitree Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "DVL",
+"y": "DVL.WA",
+"n": "Develia",
+"alts": [],
+"w20": false
+},
+{
+"t": "EAH",
+"y": "EAH.WA",
+"n": "Esotiq & Henderson",
+"alts": [],
+"w20": false
+},
+{
+"t": "EAT",
+"y": "EAT.WA",
+"n": "AmRest",
+"alts": [],
+"w20": false
+},
+{
+"t": "EBP",
+"y": "EBP.WA",
+"n": "Erste Bank Polska (d. Santander)",
+"alts": [
+"SPL.WA"
+],
+"w20": true
+},
+{
+"t": "ECH",
+"y": "ECH.WA",
+"n": "Echo Investment",
+"alts": [],
+"w20": false
+},
+{
+"t": "EDI",
+"y": "EDI.WA",
+"n": "ED Invest",
+"alts": [],
+"w20": false
+},
+{
+"t": "EEX",
+"y": "EEX.WA",
+"n": "Eko Export",
+"alts": [],
+"w20": false
+},
+{
+"t": "EFK",
+"y": "EFK.WA",
+"n": "Korporacja Gospodarcza Efekt",
+"alts": [],
+"w20": false
+},
+{
+"t": "EHG",
+"y": "EHG.WA",
+"n": "Eurohold",
+"alts": [],
+"w20": false
+},
+{
+"t": "EKP",
+"y": "EKP.WA",
+"n": "Elkop SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "ELT",
+"y": "ELT.WA",
+"n": "Elektrotim",
+"alts": [],
+"w20": false
+},
+{
+"t": "EMC",
+"y": "EMC.WA",
+"n": "EMC Instytut Medyczny",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENA",
+"y": "ENA.WA",
+"n": "Enea",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENE",
+"y": "ENE.WA",
+"n": "Enel-Med",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENG",
+"y": "ENG.WA",
+"n": "Energa",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENI",
+"y": "ENI.WA",
+"n": "Energoinstal",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENP",
+"y": "ENP.WA",
+"n": "Energoaparatura",
+"alts": [],
+"w20": false
+},
+{
+"t": "ENT",
+"y": "ENT.WA",
+"n": "Enter Air",
+"alts": [],
+"w20": false
+},
+{
+"t": "ERB",
+"y": "ERB.WA",
+"n": "Erbud",
+"alts": [],
+"w20": false
+},
+{
+"t": "ERG",
+"y": "ERG.WA",
+"n": "ERG",
+"alts": [],
+"w20": false
+},
+{
+"t": "EST",
+"y": "EST.WA",
+"n": "Enefi",
+"alts": [],
+"w20": false
+},
+{
+"t": "ETL",
+"y": "ETL.WA",
+"n": "Eurotel",
+"alts": [],
+"w20": false
+},
+{
+"t": "EUC",
+"y": "EUC.WA",
+"n": "EuCO",
+"alts": [],
+"w20": false
+},
+{
+"t": "EUR",
+"y": "EUR.WA",
+"n": "Eurocash",
+"alts": [],
+"w20": false
+},
+{
+"t": "FAB",
+"y": "FAB.WA",
+"n": "Fabrity Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "FEE",
+"y": "FEE.WA",
+"n": "Feerum",
+"alts": [],
+"w20": false
+},
+{
+"t": "FER",
+"y": "FER.WA",
+"n": "Ferrum",
+"alts": [],
+"w20": false
+},
+{
+"t": "FFI",
+"y": "FFI.WA",
+"n": "Fast Finance",
+"alts": [],
+"w20": false
+},
+{
+"t": "FMG",
+"y": "FMG.WA",
+"n": "ONE",
+"alts": [],
+"w20": false
+},
+{
+"t": "FON",
+"y": "FON.WA",
+"n": "Fon SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "FRO",
+"y": "FRO.WA",
+"n": "Ferro",
+"alts": [],
+"w20": false
+},
+{
+"t": "FSG",
+"y": "FSG.WA",
+"n": "Fasing",
+"alts": [],
+"w20": false
+},
+{
+"t": "FTE",
+"y": "FTE.WA",
+"n": "Forte",
+"alts": [],
+"w20": false
+},
+{
+"t": "GEA",
+"y": "GEA.WA",
+"n": "Grenevia",
+"alts": [],
+"w20": false
+},
+{
+"t": "GIF",
+"y": "GIF.WA",
+"n": "Gaming Factory",
+"alts": [],
+"w20": false
+},
+{
+"t": "GIG",
+"y": "GIG.WA",
+"n": "GI Group Poland",
+"alts": [],
+"w20": false
+},
+{
+"t": "GKI",
+"y": "GKI.WA",
+"n": "Grupa Immobile",
+"alts": [],
+"w20": false
+},
+{
+"t": "GLC",
+"y": "GLC.WA",
+"n": "Global Cosmed",
+"alts": [],
+"w20": false
+},
+{
+"t": "GMT",
+"y": "GMT.WA",
+"n": "Genomtec",
+"alts": [],
+"w20": false
+},
+{
+"t": "GOB",
+"y": "GOB.WA",
+"n": "Gobarto",
+"alts": [],
+"w20": false
+},
+{
+"t": "GOP",
+"y": "GOP.WA",
+"n": "Games Operators",
+"alts": [],
+"w20": false
+},
+{
+"t": "GPP",
+"y": "GPP.WA",
+"n": "Grupa Pracuj",
+"alts": [],
+"w20": false
+},
+{
+"t": "GPW",
+"y": "GPW.WA",
+"n": "GPW",
+"alts": [],
+"w20": false
+},
+{
+"t": "GRN",
+"y": "GRN.WA",
+"n": "Grodno",
+"alts": [],
+"w20": false
+},
+{
+"t": "GRX",
+"y": "GRX.WA",
+"n": "Greenx Metals Limited",
+"alts": [],
+"w20": false
+},
+{
+"t": "GTC",
+"y": "GTC.WA",
+"n": "Globe Trade Centre",
+"alts": [],
+"w20": false
+},
+{
+"t": "GTN",
+"y": "GTN.WA",
+"n": "Getin Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "HDR",
+"y": "HDR.WA",
+"n": "Hydrotor",
+"alts": [],
+"w20": false
+},
+{
+"t": "HEL",
+"y": "HEL.WA",
+"n": "Helio",
+"alts": [],
+"w20": false
+},
+{
+"t": "HLD",
+"y": "HLD.WA",
+"n": "Hollywood",
+"alts": [],
+"w20": false
+},
+{
+"t": "HMI",
+"y": "HMI.WA",
+"n": "HM Inwest",
+"alts": [],
+"w20": false
+},
+{
+"t": "HRP",
+"y": "HRP.WA",
+"n": "Harper Hygienics",
+"alts": [],
+"w20": false
+},
+{
+"t": "HRS",
+"y": "HRS.WA",
+"n": "Herkules",
+"alts": [],
+"w20": false
+},
+{
+"t": "HUG",
+"y": "HUG.WA",
+"n": "Huuuge",
+"alts": [],
+"w20": false
+},
+{
+"t": "IBS",
+"y": "IBS.WA",
+"n": "Wise Finance",
+"alts": [],
+"w20": false
+},
+{
+"t": "ICE",
+"y": "ICE.WA",
+"n": "Medinice",
+"alts": [],
+"w20": false
+},
+{
+"t": "IDG",
+"y": "IDG.WA",
+"n": "Indygotech Minerals",
+"alts": [],
+"w20": false
+},
+{
+"t": "IDM",
+"y": "IDM.WA",
+"n": "IDM",
+"alts": [],
+"w20": false
+},
+{
+"t": "IFC",
+"y": "IFC.WA",
+"n": "Investment Friends Capital SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "IFI",
+"y": "IFI.WA",
+"n": "Ifirma",
+"alts": [],
+"w20": false
+},
+{
+"t": "IFR",
+"y": "IFR.WA",
+"n": "Investment Friends SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "IIA",
+"y": "IIA.WA",
+"n": "Immofinanz",
+"alts": [],
+"w20": false
+},
+{
+"t": "IMC",
+"y": "IMC.WA",
+"n": "IMC",
+"alts": [],
+"w20": false
+},
+{
+"t": "IMP",
+"y": "IMP.WA",
+"n": "Imperio ASI",
+"alts": [],
+"w20": false
+},
+{
+"t": "IMS",
+"y": "IMS.WA",
+"n": "IMS",
+"alts": [],
+"w20": false
+},
+{
+"t": "INC",
+"y": "INC.WA",
+"n": "INC",
+"alts": [],
+"w20": false
+},
+{
+"t": "ING",
+"y": "ING.WA",
+"n": "ING Bank Śląski",
+"alts": [],
+"w20": false
+},
+{
+"t": "INK",
+"y": "INK.WA",
+"n": "Instal Kraków",
+"alts": [],
+"w20": false
+},
+{
+"t": "INL",
+"y": "INL.WA",
+"n": "Introl",
+"alts": [],
+"w20": false
+},
+{
+"t": "INP",
+"y": "INP.WA",
+"n": "Inpro",
+"alts": [],
+"w20": false
+},
+{
+"t": "IPE",
+"y": "IPE.WA",
+"n": "IPOPEMA Securities",
+"alts": [],
+"w20": false
+},
+{
+"t": "IPO",
+"y": "IPO.WA",
+"n": "Intersport Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "IRL",
+"y": "IRL.WA",
+"n": "Inter RAO Lietuva",
+"alts": [],
+"w20": false
+},
+{
+"t": "ITB",
+"y": "ITB.WA",
+"n": "Interbud-Lublin",
+"alts": [],
+"w20": false
+},
+{
+"t": "IZB",
+"y": "IZB.WA",
+"n": "Izoblok",
+"alts": [],
+"w20": false
+},
+{
+"t": "IZO",
+"y": "IZO.WA",
+"n": "Izolacja-Jarocin",
+"alts": [],
+"w20": false
+},
+{
+"t": "IZS",
+"y": "IZS.WA",
+"n": "Izostal",
+"alts": [],
+"w20": false
+},
+{
+"t": "JSW",
+"y": "JSW.WA",
+"n": "JSW",
+"alts": [],
+"w20": false
+},
+{
+"t": "JWW",
+"y": "JWW.WA",
+"n": "JWW Invest",
+"alts": [],
+"w20": false
+},
+{
+"t": "KCH",
+"y": "KCH.WA",
+"n": "Krakchemia",
+"alts": [],
+"w20": false
+},
+{
+"t": "KCI",
+"y": "KCI.WA",
+"n": "KCI",
+"alts": [],
+"w20": false
+},
+{
+"t": "KDM",
+"y": "KDM.WA",
+"n": "KDM Shipping",
+"alts": [],
+"w20": false
+},
+{
+"t": "KER",
+"y": "KER.WA",
+"n": "Kernel",
+"alts": [],
+"w20": false
+},
+{
+"t": "KGH",
+"y": "KGH.WA",
+"n": "KGHM Polska Miedź",
+"alts": [],
+"w20": true
+},
+{
+"t": "KGL",
+"y": "KGL.WA",
+"n": "KGL",
+"alts": [],
+"w20": false
+},
+{
+"t": "KGN",
+"y": "KGN.WA",
+"n": "Kogeneracja",
+"alts": [],
+"w20": false
+},
+{
+"t": "KMP",
+"y": "KMP.WA",
+"n": "Kompap",
+"alts": [],
+"w20": false
+},
+{
+"t": "KOM",
+"y": "KOM.WA",
+"n": "Komputronik",
+"alts": [],
+"w20": false
+},
+{
+"t": "KPD",
+"y": "KPD.WA",
+"n": "KPPD",
+"alts": [],
+"w20": false
+},
+{
+"t": "KPL",
+"y": "KPL.WA",
+"n": "Kino Polska TV",
+"alts": [],
+"w20": false
+},
+{
+"t": "KRI",
+"y": "KRI.WA",
+"n": "Kredyt Inkaso",
+"alts": [],
+"w20": false
+},
+{
+"t": "KRK",
+"y": "KRK.WA",
+"n": "Krka",
+"alts": [],
+"w20": false
+},
+{
+"t": "KRU",
+"y": "KRU.WA",
+"n": "Kruk",
+"alts": [],
+"w20": true
+},
+{
+"t": "KSG",
+"y": "KSG.WA",
+"n": "KSG Agro",
+"alts": [],
+"w20": false
+},
+{
+"t": "KTY",
+"y": "KTY.WA",
+"n": "Grupa Kęty",
+"alts": [],
+"w20": true
+},
+{
+"t": "KVT",
+"y": "KVT.WA",
+"n": "Krynica Vitamin",
+"alts": [],
+"w20": false
+},
+{
+"t": "LAB",
+"y": "LAB.WA",
+"n": "Labo Print",
+"alts": [],
+"w20": false
+},
+{
+"t": "LBT",
+"y": "LBT.WA",
+"n": "Libet",
+"alts": [],
+"w20": false
+},
+{
+"t": "LBW",
+"y": "LBW.WA",
+"n": "Lubawa",
+"alts": [],
+"w20": false
+},
+{
+"t": "LEN",
+"y": "LEN.WA",
+"n": "Lena Lighting",
+"alts": [],
+"w20": false
+},
+{
+"t": "LES",
+"y": "LES.WA",
+"n": "Less",
+"alts": [],
+"w20": false
+},
+{
+"t": "LKD",
+"y": "LKD.WA",
+"n": "Lokum Deweloper",
+"alts": [],
+"w20": false
+},
+{
+"t": "LPP",
+"y": "LPP.WA",
+"n": "LPP",
+"alts": [],
+"w20": true
+},
+{
+"t": "LRK",
+"y": "LRK.WA",
+"n": "Lark.Pl",
+"alts": [],
+"w20": false
+},
+{
+"t": "LRQ",
+"y": "LRQ.WA",
+"n": "Larq",
+"alts": [],
+"w20": false
+},
+{
+"t": "LSI",
+"y": "LSI.WA",
+"n": "LSI Software",
+"alts": [],
+"w20": false
+},
+{
+"t": "LTX",
+"y": "LTX.WA",
+"n": "Lentex",
+"alts": [],
+"w20": false
+},
+{
+"t": "LWB",
+"y": "LWB.WA",
+"n": "Bogdanka",
+"alts": [],
+"w20": false
+},
+{
+"t": "MAB",
+"y": "MAB.WA",
+"n": "Mabion",
+"alts": [],
+"w20": false
+},
+{
+"t": "MAK",
+"y": "MAK.WA",
+"n": "Makarony Polskie",
+"alts": [],
+"w20": false
+},
+{
+"t": "MAN",
+"y": "MAN.WA",
+"n": "Manydev Studio SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "MBK",
+"y": "MBK.WA",
+"n": "mBank",
+"alts": [],
+"w20": true
+},
+{
+"t": "MBR",
+"y": "MBR.WA",
+"n": "Mo-Bruk",
+"alts": [],
+"w20": false
+},
+{
+"t": "MBW",
+"y": "MBW.WA",
+"n": "Marie Brizard Wine & Spirits",
+"alts": [],
+"w20": false
+},
+{
+"t": "MCI",
+"y": "MCI.WA",
+"n": "MCI Capital",
+"alts": [],
+"w20": false
+},
+{
+"t": "MCR",
+"y": "MCR.WA",
+"n": "Mercor",
+"alts": [],
+"w20": false
+},
+{
+"t": "MDG",
+"y": "MDG.WA",
+"n": "Medicalgorithmics",
+"alts": [],
+"w20": false
+},
+{
+"t": "MDI",
+"y": "MDI.WA",
+"n": "MDI Energia",
+"alts": [],
+"w20": false
+},
+{
+"t": "MDV",
+"y": "MDV.WA",
+"n": "Modivo (d. CCC)",
+"alts": [
+"CCC.WA"
+],
+"w20": true
+},
+{
+"t": "MEG",
+"y": "MEG.WA",
+"n": "Megaron",
+"alts": [],
+"w20": false
+},
+{
+"t": "MEX",
+"y": "MEX.WA",
+"n": "Mex Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "MFO",
+"y": "MFO.WA",
+"n": "MFO",
+"alts": [],
+"w20": false
+},
+{
+"t": "MGT",
+"y": "MGT.WA",
+"n": "Mangata Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "MIL",
+"y": "MIL.WA",
+"n": "Bank Millennium",
+"alts": [],
+"w20": false
+},
+{
+"t": "MIR",
+"y": "MIR.WA",
+"n": "Miraculum",
+"alts": [],
+"w20": false
+},
+{
+"t": "MLG",
+"y": "MLG.WA",
+"n": "MLP Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "MLK",
+"y": "MLK.WA",
+"n": "MLK Foods",
+"alts": [],
+"w20": false
+},
+{
+"t": "MLS",
+"y": "MLS.WA",
+"n": "ML System",
+"alts": [],
+"w20": false
+},
+{
+"t": "MNC",
+"y": "MNC.WA",
+"n": "Mennica Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "MOC",
+"y": "MOC.WA",
+"n": "Molecure",
+"alts": [],
+"w20": false
+},
+{
+"t": "MOJ",
+"y": "MOJ.WA",
+"n": "MOJ",
+"alts": [],
+"w20": false
+},
+{
+"t": "MOL",
+"y": "MOL.WA",
+"n": "MOL",
+"alts": [],
+"w20": false
+},
+{
+"t": "MON",
+"y": "MON.WA",
+"n": "Monnari Trade",
+"alts": [],
+"w20": false
+},
+{
+"t": "MOV",
+"y": "MOV.WA",
+"n": "Movie Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "MRB",
+"y": "MRB.WA",
+"n": "Mirbud",
+"alts": [],
+"w20": false
+},
+{
+"t": "MRC",
+"y": "MRC.WA",
+"n": "Mercator Medical",
+"alts": [],
+"w20": false
+},
+{
+"t": "MSP",
+"y": "MSP.WA",
+"n": "Mostostal Płock",
+"alts": [],
+"w20": false
+},
+{
+"t": "MSW",
+"y": "MSW.WA",
+"n": "Mostostal Warszawa",
+"alts": [],
+"w20": false
+},
+{
+"t": "MSZ",
+"y": "MSZ.WA",
+"n": "Mostostal Zabrze",
+"alts": [],
+"w20": false
+},
+{
+"t": "MUR",
+"y": "MUR.WA",
+"n": "Murapol",
+"alts": [],
+"w20": false
+},
+{
+"t": "MVP",
+"y": "MVP.WA",
+"n": "Marvipol Development",
+"alts": [],
+"w20": false
+},
+{
+"t": "MWT",
+"y": "MWT.WA",
+"n": "M.W. Trade",
+"alts": [],
+"w20": false
+},
+{
+"t": "MXC",
+"y": "MXC.WA",
+"n": "Maxcom",
+"alts": [],
+"w20": false
+},
+{
+"t": "MZA",
+"y": "MZA.WA",
+"n": "Muza",
+"alts": [],
+"w20": false
+},
+{
+"t": "NEU",
+"y": "NEU.WA",
+"n": "Neuca",
+"alts": [],
+"w20": false
+},
+{
+"t": "NNG",
+"y": "NNG.WA",
+"n": "Nanogroup",
+"alts": [],
+"w20": false
+},
+{
+"t": "NTC",
+"y": "NTC.WA",
+"n": "New Tech Capital",
+"alts": [],
+"w20": false
+},
+{
+"t": "NTT",
+"y": "NTT.WA",
+"n": "NTT System",
+"alts": [],
+"w20": false
+},
+{
+"t": "NTU",
+"y": "NTU.WA",
+"n": "Novaturas",
+"alts": [],
+"w20": false
+},
+{
+"t": "NVA",
+"y": "NVA.WA",
+"n": "P.A. Nova",
+"alts": [],
+"w20": false
+},
+{
+"t": "NVG",
+"y": "NVG.WA",
+"n": "Novavis Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "NVT",
+"y": "NVT.WA",
+"n": "Novita",
+"alts": [],
+"w20": false
+},
+{
+"t": "NWA",
+"y": "NWA.WA",
+"n": "NWAI Dom Maklerski",
+"alts": [],
+"w20": false
+},
+{
+"t": "NWG",
+"y": "NWG.WA",
+"n": "Newag",
+"alts": [],
+"w20": false
+},
+{
+"t": "NXG",
+"y": "NXG.WA",
+"n": "Nexity Global",
+"alts": [],
+"w20": false
+},
+{
+"t": "OBL",
+"y": "OBL.WA",
+"n": "Orzeł Biały",
+"alts": [],
+"w20": false
+},
+{
+"t": "ODL",
+"y": "ODL.WA",
+"n": "Odlewnie Polskie",
+"alts": [],
+"w20": false
+},
+{
+"t": "OEX",
+"y": "OEX.WA",
+"n": "OEX",
+"alts": [],
+"w20": false
+},
+{
+"t": "OML",
+"y": "OML.WA",
+"n": "One More Level",
+"alts": [],
+"w20": false
+},
+{
+"t": "OND",
+"y": "OND.WA",
+"n": "Onde",
+"alts": [],
+"w20": false
+},
+{
+"t": "ONO",
+"y": "ONO.WA",
+"n": "Onesano",
+"alts": [],
+"w20": false
+},
+{
+"t": "OPG",
+"y": "OPG.WA",
+"n": "Cpi Fim",
+"alts": [],
+"w20": false
+},
+{
+"t": "OPL",
+"y": "OPL.WA",
+"n": "Orange Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "OPM",
+"y": "OPM.WA",
+"n": "Opteam",
+"alts": [],
+"w20": false
+},
+{
+"t": "OPN",
+"y": "OPN.WA",
+"n": "Oponeo.Pl",
+"alts": [],
+"w20": false
+},
+{
+"t": "OTM",
+"y": "OTM.WA",
+"n": "Otmuchów",
+"alts": [],
+"w20": false
+},
+{
+"t": "OTS",
+"y": "OTS.WA",
+"n": "OT Logistics",
+"alts": [],
+"w20": false
+},
+{
+"t": "OVO",
+"y": "OVO.WA",
+"n": "Ovostar",
+"alts": [],
+"w20": false
+},
+{
+"t": "PAS",
+"y": "PAS.WA",
+"n": "Passus",
+"alts": [],
+"w20": false
+},
+{
+"t": "PAT",
+"y": "PAT.WA",
+"n": "Patentus",
+"alts": [],
+"w20": false
+},
+{
+"t": "PBF",
+"y": "PBF.WA",
+"n": "PBS Finanse",
+"alts": [],
+"w20": false
+},
+{
+"t": "PBG",
+"y": "PBG.WA",
+"n": "PBG",
+"alts": [],
+"w20": false
+},
+{
+"t": "PBX",
+"y": "PBX.WA",
+"n": "Pekabex",
+"alts": [],
+"w20": false
+},
+{
+"t": "PCE",
+"y": "PCE.WA",
+"n": "Azoty Police",
+"alts": [],
+"w20": false
+},
+{
+"t": "PCF",
+"y": "PCF.WA",
+"n": "PCF Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "PCG",
+"y": "PCG.WA",
+"n": "PC Guard",
+"alts": [],
+"w20": false
+},
+{
+"t": "PCO",
+"y": "PCO.WA",
+"n": "Pepco Group",
+"alts": [],
+"w20": true
+},
+{
+"t": "PCR",
+"y": "PCR.WA",
+"n": "PCC Rokita",
+"alts": [],
+"w20": false
+},
+{
+"t": "PCX",
+"y": "PCX.WA",
+"n": "PCC Exol",
+"alts": [],
+"w20": false
+},
+{
+"t": "PEN",
+"y": "PEN.WA",
+"n": "Photon Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "PEO",
+"y": "PEO.WA",
+"n": "Bank Pekao",
+"alts": [],
+"w20": true
+},
+{
+"t": "PEP",
+"y": "PEP.WA",
+"n": "Polenergia",
+"alts": [],
+"w20": false
+},
+{
+"t": "PGE",
+"y": "PGE.WA",
+"n": "PGE",
+"alts": [],
+"w20": true
+},
+{
+"t": "PGM",
+"y": "PGM.WA",
+"n": "PMPG Polskie Media",
+"alts": [],
+"w20": false
+},
+{
+"t": "PGV",
+"y": "PGV.WA",
+"n": "PGF Polska Grupa Fotowoltaiczna",
+"alts": [],
+"w20": false
+},
+{
+"t": "PHN",
+"y": "PHN.WA",
+"n": "Polski Holding Nieruchomości",
+"alts": [],
+"w20": false
+},
+{
+"t": "PHR",
+"y": "PHR.WA",
+"n": "Pharmena",
+"alts": [],
+"w20": false
+},
+{
+"t": "PJP",
+"y": "PJP.WA",
+"n": "PJP Makrum",
+"alts": [],
+"w20": false
+},
+{
+"t": "PKN",
+"y": "PKN.WA",
+"n": "Orlen",
+"alts": [],
+"w20": true
+},
+{
+"t": "PKO",
+"y": "PKO.WA",
+"n": "PKO Bank Polski",
+"alts": [],
+"w20": true
+},
+{
+"t": "PKP",
+"y": "PKP.WA",
+"n": "PKP Cargo",
+"alts": [],
+"w20": false
+},
+{
+"t": "PLW",
+"y": "PLW.WA",
+"n": "PlayWay",
+"alts": [],
+"w20": false
+},
+{
+"t": "PLZ",
+"y": "PLZ.WA",
+"n": "Plaza Centers",
+"alts": [],
+"w20": false
+},
+{
+"t": "PMA",
+"y": "PMA.WA",
+"n": "Prima Moda",
+"alts": [],
+"w20": false
+},
+{
+"t": "PMP",
+"y": "PMP.WA",
+"n": "Pamapol",
+"alts": [],
+"w20": false
+},
+{
+"t": "PPS",
+"y": "PPS.WA",
+"n": "Pepees",
+"alts": [],
+"w20": false
+},
+{
+"t": "PRI",
+"y": "PRI.WA",
+"n": "NPL Nova",
+"alts": [],
+"w20": false
+},
+{
+"t": "PRM",
+"y": "PRM.WA",
+"n": "Prochem",
+"alts": [],
+"w20": false
+},
+{
+"t": "PRT",
+"y": "PRT.WA",
+"n": "Protektor",
+"alts": [],
+"w20": false
+},
+{
+"t": "PTG",
+"y": "PTG.WA",
+"n": "Poltreg",
+"alts": [],
+"w20": false
+},
+{
+"t": "PTH",
+"y": "PTH.WA",
+"n": "Primetech",
+"alts": [],
+"w20": false
+},
+{
+"t": "PUR",
+"y": "PUR.WA",
+"n": "Pure Biologics",
+"alts": [],
+"w20": false
+},
+{
+"t": "PWX",
+"y": "PWX.WA",
+"n": "Polwax",
+"alts": [],
+"w20": false
+},
+{
+"t": "PXM",
+"y": "PXM.WA",
+"n": "Polimex Mostostal",
+"alts": [],
+"w20": false
+},
+{
+"t": "PZU",
+"y": "PZU.WA",
+"n": "PZU",
+"alts": [],
+"w20": true
+},
+{
+"t": "QNT",
+"y": "QNT.WA",
+"n": "Quantum Software",
+"alts": [],
+"w20": false
+},
+{
+"t": "QRS",
+"y": "QRS.WA",
+"n": "Quercus TFI",
+"alts": [],
+"w20": false
+},
+{
+"t": "RAE",
+"y": "RAE.WA",
+"n": "RAEN",
+"alts": [],
+"w20": false
+},
+{
+"t": "RAF",
+"y": "RAF.WA",
+"n": "Rafamet",
+"alts": [],
+"w20": false
+},
+{
+"t": "RBW",
+"y": "RBW.WA",
+"n": "Rainbow Tours",
+"alts": [],
+"w20": false
+},
+{
+"t": "RDN",
+"y": "RDN.WA",
+"n": "Redan",
+"alts": [],
+"w20": false
+},
+{
+"t": "REG",
+"y": "REG.WA",
+"n": "Regnon",
+"alts": [],
+"w20": false
+},
+{
+"t": "RES",
+"y": "RES.WA",
+"n": "Resbud SE",
+"alts": [],
+"w20": false
+},
+{
+"t": "RFK",
+"y": "RFK.WA",
+"n": "Rafako",
+"alts": [],
+"w20": false
+},
+{
+"t": "RHD",
+"y": "RHD.WA",
+"n": "Reinhold Europe",
+"alts": [],
+"w20": false
+},
+{
+"t": "RLP",
+"y": "RLP.WA",
+"n": "Relpol",
+"alts": [],
+"w20": false
+},
+{
+"t": "RMK",
+"y": "RMK.WA",
+"n": "Remak-Energomontaż",
+"alts": [],
+"w20": false
+},
+{
+"t": "RNC",
+"y": "RNC.WA",
+"n": "Reino Capital",
+"alts": [],
+"w20": false
+},
+{
+"t": "RNK",
+"y": "RNK.WA",
+"n": "Rank Progress",
+"alts": [],
+"w20": false
+},
+{
+"t": "RPC",
+"y": "RPC.WA",
+"n": "ZM Ropczyce",
+"alts": [],
+"w20": false
+},
+{
+"t": "RVU",
+"y": "RVU.WA",
+"n": "Ryvu Therapeutics",
+"alts": [],
+"w20": false
+},
+{
+"t": "RWL",
+"y": "RWL.WA",
+"n": "Rawlplug",
+"alts": [],
+"w20": false
+},
+{
+"t": "SAN",
+"y": "SAN.WA",
+"n": "Banco Santander",
+"alts": [],
+"w20": false
+},
+{
+"t": "SCP",
+"y": "SCP.WA",
+"n": "Scope Fluidics",
+"alts": [],
+"w20": false
+},
+{
+"t": "SCW",
+"y": "SCW.WA",
+"n": "Scanway",
+"alts": [],
+"w20": false
+},
+{
+"t": "SEK",
+"y": "SEK.WA",
+"n": "SEKO",
+"alts": [],
+"w20": false
+},
+{
+"t": "SEL",
+"y": "SEL.WA",
+"n": "Selena FM",
+"alts": [],
+"w20": false
+},
+{
+"t": "SEN",
+"y": "SEN.WA",
+"n": "Serinus Energy",
+"alts": [],
+"w20": false
+},
+{
+"t": "SES",
+"y": "SES.WA",
+"n": "Sescom",
+"alts": [],
+"w20": false
+},
+{
+"t": "SFG",
+"y": "SFG.WA",
+"n": "Silvano Fashion",
+"alts": [],
+"w20": false
+},
+{
+"t": "SFS",
+"y": "SFS.WA",
+"n": "Sfinks Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "SGN",
+"y": "SGN.WA",
+"n": "Sygnity",
+"alts": [],
+"w20": false
+},
+{
+"t": "SGR",
+"y": "SGR.WA",
+"n": "Sadovaya Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "SHD",
+"y": "SHD.WA",
+"n": "Soho Development",
+"alts": [],
+"w20": false
+},
+{
+"t": "SHG",
+"y": "SHG.WA",
+"n": "Starhedge",
+"alts": [],
+"w20": false
+},
+{
+"t": "SHO",
+"y": "SHO.WA",
+"n": "Shoper",
+"alts": [],
+"w20": false
+},
+{
+"t": "SIM",
+"y": "SIM.WA",
+"n": "Simfabric",
+"alts": [],
+"w20": false
+},
+{
+"t": "SKA",
+"y": "SKA.WA",
+"n": "Śnieżka",
+"alts": [],
+"w20": false
+},
+{
+"t": "SKH",
+"y": "SKH.WA",
+"n": "Skarbiec Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "SKL",
+"y": "SKL.WA",
+"n": "Skyline Investment",
+"alts": [],
+"w20": false
+},
+{
+"t": "SLV",
+"y": "SLV.WA",
+"n": "Selvita",
+"alts": [],
+"w20": false
+},
+{
+"t": "SNK",
+"y": "SNK.WA",
+"n": "Sanok Rubber Company",
+"alts": [],
+"w20": false
+},
+{
+"t": "SNT",
+"y": "SNT.WA",
+"n": "Synektik",
+"alts": [],
+"w20": false
+},
+{
+"t": "SNW",
+"y": "SNW.WA",
+"n": "Sanwil Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "SNX",
+"y": "SNX.WA",
+"n": "Sunex",
+"alts": [],
+"w20": false
+},
+{
+"t": "SOL",
+"y": "SOL.WA",
+"n": "Solar Company",
+"alts": [],
+"w20": false
+},
+{
+"t": "SON",
+"y": "SON.WA",
+"n": "Sonel",
+"alts": [],
+"w20": false
+},
+{
+"t": "SPH",
+"y": "SPH.WA",
+"n": "Sopharma AD",
+"alts": [],
+"w20": false
+},
+{
+"t": "SPR",
+"y": "SPR.WA",
+"n": "Spyrosoft",
+"alts": [],
+"w20": false
+},
+{
+"t": "STF",
+"y": "STF.WA",
+"n": "Stalprofil",
+"alts": [],
+"w20": false
+},
+{
+"t": "STH",
+"y": "STH.WA",
+"n": "STS Holding",
+"alts": [],
+"w20": false
+},
+{
+"t": "STP",
+"y": "STP.WA",
+"n": "Stalprodukt",
+"alts": [],
+"w20": false
+},
+{
+"t": "STS",
+"y": "STS.WA",
+"n": "Satis Group",
+"alts": [],
+"w20": false
+},
+{
+"t": "STX",
+"y": "STX.WA",
+"n": "Stalexport Autostrady",
+"alts": [],
+"w20": false
+},
+{
+"t": "SVE",
+"y": "SVE.WA",
+"n": "Synthaverse",
+"alts": [],
+"w20": false
+},
+{
+"t": "SVRS",
+"y": "SVRS.WA",
+"n": "Silvair",
+"alts": [],
+"w20": false
+},
+{
+"t": "SWG",
+"y": "SWG.WA",
+"n": "Seco/Warwick",
+"alts": [],
+"w20": false
+},
+{
+"t": "TAR",
+"y": "TAR.WA",
+"n": "Tarczyński",
+"alts": [],
+"w20": false
+},
+{
+"t": "TBL",
+"y": "TBL.WA",
+"n": "T-BULL",
+"alts": [],
+"w20": false
+},
+{
+"t": "TEN",
+"y": "TEN.WA",
+"n": "Ten Square Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "THG",
+"y": "THG.WA",
+"n": "Tenderhut",
+"alts": [],
+"w20": false
+},
+{
+"t": "TIM",
+"y": "TIM.WA",
+"n": "TIM",
+"alts": [],
+"w20": false
+},
+{
+"t": "TLX",
+"y": "TLX.WA",
+"n": "Talex",
+"alts": [],
+"w20": false
+},
+{
+"t": "TMR",
+"y": "TMR.WA",
+"n": "Tatry Mountain Resorts",
+"alts": [],
+"w20": false
+},
+{
+"t": "TOA",
+"y": "TOA.WA",
+"n": "TOYA",
+"alts": [],
+"w20": false
+},
+{
+"t": "TOR",
+"y": "TOR.WA",
+"n": "Torpol",
+"alts": [],
+"w20": false
+},
+{
+"t": "TOW",
+"y": "TOW.WA",
+"n": "Tower Investments",
+"alts": [],
+"w20": false
+},
+{
+"t": "TPE",
+"y": "TPE.WA",
+"n": "Tauron Polska Energia",
+"alts": [],
+"w20": true
+},
+{
+"t": "TRI",
+"y": "TRI.WA",
+"n": "Triton Development",
+"alts": [],
+"w20": false
+},
+{
+"t": "TRK",
+"y": "TRK.WA",
+"n": "Trakcja",
+"alts": [],
+"w20": false
+},
+{
+"t": "TRN",
+"y": "TRN.WA",
+"n": "Trans Polonia",
+"alts": [],
+"w20": false
+},
+{
+"t": "TRR",
+"y": "TRR.WA",
+"n": "Termo-Rex",
+"alts": [],
+"w20": false
+},
+{
+"t": "TSG",
+"y": "TSG.WA",
+"n": "Tesgas",
+"alts": [],
+"w20": false
+},
+{
+"t": "TXT",
+"y": "TXT.WA",
+"n": "Text",
+"alts": [],
+"w20": false
+},
+{
+"t": "UCG",
+"y": "UCG.WA",
+"n": "UniCredit",
+"alts": [],
+"w20": false
+},
+{
+"t": "ULG",
+"y": "ULG.WA",
+"n": "Ultimate Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "ULM",
+"y": "ULM.WA",
+"n": "Ulma Construccion Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "UNF",
+"y": "UNF.WA",
+"n": "Unfold.Vc Asi",
+"alts": [],
+"w20": false
+},
+{
+"t": "UNI",
+"y": "UNI.WA",
+"n": "Unibep",
+"alts": [],
+"w20": false
+},
+{
+"t": "UNT",
+"y": "UNT.WA",
+"n": "Unimot",
+"alts": [],
+"w20": false
+},
+{
+"t": "URT",
+"y": "URT.WA",
+"n": "Urteste",
+"alts": [],
+"w20": false
+},
+{
+"t": "VGO",
+"y": "VGO.WA",
+"n": "Vigo Photonics",
+"alts": [],
+"w20": false
+},
+{
+"t": "VIN",
+"y": "VIN.WA",
+"n": "Vindexus",
+"alts": [],
+"w20": false
+},
+{
+"t": "VOT",
+"y": "VOT.WA",
+"n": "Votum",
+"alts": [],
+"w20": false
+},
+{
+"t": "VOX",
+"y": "VOX.WA",
+"n": "VOXEL",
+"alts": [],
+"w20": false
+},
+{
+"t": "VRC",
+"y": "VRC.WA",
+"n": "Vercom",
+"alts": [],
+"w20": false
+},
+{
+"t": "VRG",
+"y": "VRG.WA",
+"n": "VRG",
+"alts": [],
+"w20": false
+},
+{
+"t": "VTL",
+"y": "VTL.WA",
+"n": "Vistal Gdynia",
+"alts": [],
+"w20": false
+},
+{
+"t": "VVD",
+"y": "VVD.WA",
+"n": "Vivid Games",
+"alts": [],
+"w20": false
+},
+{
+"t": "WAS",
+"y": "WAS.WA",
+"n": "Wasko",
+"alts": [],
+"w20": false
+},
+{
+"t": "WIK",
+"y": "WIK.WA",
+"n": "Wikana",
+"alts": [],
+"w20": false
+},
+{
+"t": "WIS",
+"y": "WIS.WA",
+"n": "Baltic Bridge",
+"alts": [],
+"w20": false
+},
+{
+"t": "WLT",
+"y": "WLT.WA",
+"n": "Wielton",
+"alts": [],
+"w20": false
+},
+{
+"t": "WOJ",
+"y": "WOJ.WA",
+"n": "Wojas",
+"alts": [],
+"w20": false
+},
+{
+"t": "WPL",
+"y": "WPL.WA",
+"n": "Wirtualna Polska",
+"alts": [],
+"w20": false
+},
+{
+"t": "WTN",
+"y": "WTN.WA",
+"n": "Wittchen",
+"alts": [],
+"w20": false
+},
+{
+"t": "WWL",
+"y": "WWL.WA",
+"n": "Wawel",
+"alts": [],
+"w20": false
+},
+{
+"t": "WXF",
+"y": "WXF.WA",
+"n": "Warimpex",
+"alts": [],
+"w20": false
+},
+{
+"t": "XPL",
+"y": "XPL.WA",
+"n": "Xplus",
+"alts": [],
+"w20": false
+},
+{
+"t": "XTB",
+"y": "XTB.WA",
+"n": "XTB",
+"alts": [],
+"w20": false
+},
+{
+"t": "XTP",
+"y": "XTP.WA",
+"n": "XTPL",
+"alts": [],
+"w20": false
+},
+{
+"t": "YAN",
+"y": "YAN.WA",
+"n": "Neptis",
+"alts": [],
+"w20": false
+},
+{
+"t": "YOL",
+"y": "YOL.WA",
+"n": "Blugo",
+"alts": [],
+"w20": false
+},
+{
+"t": "YRL",
+"y": "YRL.WA",
+"n": "Yarrl",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZAB",
+"y": "ZAB.WA",
+"n": "Żabka Group",
+"alts": [],
+"w20": true
+},
+{
+"t": "ZAP",
+"y": "ZAP.WA",
+"n": "Azoty Puławy",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZEP",
+"y": "ZEP.WA",
+"n": "ZE PAK",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZMT",
+"y": "ZMT.WA",
+"n": "Zamet",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZRE",
+"y": "ZRE.WA",
+"n": "Zremb-Chojnice",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZUE",
+"y": "ZUE.WA",
+"n": "ZUE",
+"alts": [],
+"w20": false
+},
+{
+"t": "ZUK",
+"y": "ZUK.WA",
+"n": "ZUK Stąporków",
+"alts": [],
+"w20": false
+}
+]
+}
