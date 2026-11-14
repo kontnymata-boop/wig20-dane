@@ -987,7 +987,8 @@ function analyzeOne(t){
   try{
     const Bs=sliceBars(pb.bars,1300);
     const A=analyze(Bs,PROFILES[state.settings.profile],{fee:state.settings.fee});
-    if(A.ok){ A.bars=Bs; A.full=pb.bars; A.unit=co.isIndex?' pkt':' zł'; A.live=pb.live;
+    const dsym=(state.data[t]&&state.data[t].sym)||'', etf=!!co.isIndex && /^ETF/i.test(dsym);
+    if(A.ok){ A.bars=Bs; A.full=pb.bars; A.unit=(co.isIndex&&!etf)?' pkt':' zł'; A.proxyNote=etf?'wg ETF Beta WIG20TR':''; A.live=pb.live;
       A.ichi={D:ichiFor(pb.bars), W:ichiFor(resample(pb.bars,'W')), M:ichiFor(resample(pb.bars,'M'))}; }
     state.an[t]=A;
   }catch(e){ console.error(e); state.an[t]={ok:false,msg:'Błąd analizy: '+e.message}; }
@@ -1069,7 +1070,7 @@ async function refreshAll(opts={}){
       for(const co of list){
         const sym=symList(co.y).find(s=>feed.data[s]&&feed.data[s].t);
         if(!sym){ rest.push(co); continue; }
-        try{ const x=feed.data[sym]; storeResult(co.t,{bars:sliceBars(compactToBars(x),2600), meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+sym, via:'serwer danych RadMat', at}); progress(true); }
+        try{ const x=feed.data[sym]; storeResult(co.t,{bars:sliceBars(compactToBars(x),2600), meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, sym:x.sym||sym, src:'Yahoo Finance · '+(x.sym||sym), via:'serwer danych RadMat', at}); progress(true); }
         catch(e){ rest.push(co); }
       }
       queue=rest; state.feedUpdated=at;
@@ -1200,7 +1201,7 @@ function renderMarket(){
   const st=STATUS[A.status];
   const bear = A.close < A.I.smaT[A.L];
   const mv=A.live?A.live.price:A.close, mc=dispChange(A);
-  el.innerHTML=`<span class="mk-name">WIG20</span><span class="mk-val">${fmt(mv,2)} pkt</span>
+  el.innerHTML=`<span class="mk-name">WIG20${A.proxyNote?` <span class="small">(${A.proxyNote})</span>`:''}</span><span class="mk-val">${fmt(mv,2)}${A.unit}</span>
     <span class="num ${cls(mc)}">${arrow(mc)} ${pct(mc,2)}</span> ${liveLbl(A)}
     <span>Trend: <b>${esc(A.trend)}</b></span>
     <span>Siła techniczna: <b>${A.score}/100</b></span>
@@ -1331,8 +1332,8 @@ function openDetail(t, keepScroll){
   el.innerHTML=`
   <div class="det-head"><div class="wrap">
     <button class="btn" data-act="close">← Wróć</button>
-    <div class="det-title"><h2>${esc(co.t)} <span>${esc(co.n)}</span></h2>
-      <div class="det-price"><b>${fmt(A.live?A.live.price:A.close)} ${co.isIndex?'pkt':'zł'}</b> <span class="${cls(dispChange(A))}">${arrow(dispChange(A))} ${pct(dispChange(A),2)}</span>
+    <div class="det-title"><h2>${esc(co.t)} <span>${esc(co.n)}${A.proxyNote?' ('+esc(A.proxyNote)+')':''}</span></h2>
+      <div class="det-price"><b>${fmt(A.live?A.live.price:A.close)}${A.unit}</b> <span class="${cls(dispChange(A))}">${arrow(dispChange(A))} ${pct(dispChange(A),2)}</span>
         <span class="small">${A.live?'· '+liveLbl(A)+' (dane opóźnione ok. 15 min) · sygnał liczony na zamknięciu '+dPL(A.lastDate):'· zamknięcie '+dPL(A.lastDate)}</span>
         <span id="refOneMsg" class="small"></span></div>
     </div>
