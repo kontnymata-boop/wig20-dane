@@ -149,6 +149,7 @@ def clean_name(n):
 
 
 def yahoo_wse_list():
+    import re
     """Wszystkie akcje notowane w Warszawie wg wyszukiwarki Yahoo: rynek główny (XWAR) i NewConnect (XNCO)."""
     out, off = [], 0
     while off < 3000:
@@ -163,7 +164,8 @@ def yahoo_wse_list():
         for x in q:
             sym, sn = x.get("symbol") or "", x.get("shortName") or ""
             mk = "XNCO" if "XNCO" in sn else "XWAR" if "XWAR" in sn else None
-            if mk and sym.endswith(".WA"):
+            nm = (x.get("longName") or "")
+            if mk and sym.endswith(".WA") and len(sym) <= 8 and not re.search(r"fundusz|fizan|\bfiz\b|certyfikat", nm, re.I):  # bez funduszy (FIZ)
                 out.append({"t": sym[:-3], "y": sym, "n": clean_name(x.get("longName") or sym[:-3]), "nc": mk == "XNCO"})
         if len(q) < 250:
             break
