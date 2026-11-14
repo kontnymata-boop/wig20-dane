@@ -318,7 +318,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.2 (14.11.2026)';
+const APP_VERSION = '2.3 (14.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -883,27 +883,34 @@ function potential(it){
   if(potCache.m.has(it.t)) return potCache.m.get(it.t);
   const v=potentialCalc(it); potCache.m.set(it.t,v); return v;
 }
-function potentialCalc(it){
-  const S=itP(it);
-  if(S.sc==null || !['KUP','OBSERWUJ','TRZYMAJ'].includes(S.st)) return null;
-  if(!(it.obr>=POT.minObr)) return null;
-  if(it.atr!=null && it.atr>POT.maxAtr) return null;
+const FK_PTS=[0,0,8,15,20];           // kondycja: bardzo słaba, słaba (wykluczone), przeciętna, dobra, bardzo dobra
+const FK_NONE=6;                      // brak oceny kondycji
+function potentialEval(it){
+  const S=itP(it), no=why=>({ok:false, why});
+  if(S.sc==null || !['KUP','OBSERWUJ','TRZYMAJ'].includes(S.st)) return no(`brak sygnału kupna (obecnie: ${(STATUS[S.st]||STATUS.BRAK).label})`);
+  if(!(it.obr>=POT.minObr)) return no(`za mała płynność (średni obrót ${fmtVol(it.obr)} zł dziennie, potrzeba co najmniej 1 mln zł)`);
+  if(it.atr!=null && it.atr>POT.maxAtr) return no(`zbyt duża zmienność kursu (średni dzienny ruch ${pct(it.atr,1).replace('+','')})`);
   const g=k=>it.ichi&&it.ichi[k]?it.ichi[k].sc:null, iD=g('D'), iW=g('W'), iM=g('M');
-  if(iD==null||iW==null||iM==null||iD<0||iW<0||iM<0) return null;
-  if(S.up==null||S.dn==null||S.dn<=0||S.up<POT.minUp||S.up/S.dn<POT.minRR) return null;
-  if(S.st==='OBSERWUJ' && S.en!=null && it.atr && S.en>it.atr) return null; // poziom wybicia za daleko (> 1 ATR)
+  if(iD==null||iW==null||iM==null) return no('za krótka historia notowań do oceny Ichimoku');
+  const bad=[iD<0?'dziennym':null,iW<0?'tygodniowym':null,iM<0?'miesięcznym':null].filter(Boolean);
+  if(bad.length) return no(`spadkowe Ichimoku na wykresie ${bad.join(' i ')}`);
+  if(S.up==null||S.dn==null||S.dn<=0||S.up<POT.minUp||S.up/S.dn<POT.minRR) return no('za mały możliwy zysk do celu w porównaniu z ryzykiem do stopu');
+  if(S.st==='OBSERWUJ' && S.en!=null && it.atr && S.en>it.atr) return no('poziom wybicia jest jeszcze za daleko od kursu');
+  if(it.fk && it.fk.l<=1) return no(`${it.fk.n} kondycja finansowa`);
   const bt=S.bt||{n:0};
   const parts={
-    sig: S.st==='KUP'?25:S.st==='OBSERWUJ'?15:10,
-    sc: S.sc/100*25,
-    ichi: (iD+iW+iM+12)/24*20,
+    sig: S.st==='KUP'?20:S.st==='OBSERWUJ'?12:8,
+    sc: S.sc/100*20,
+    ichi: (iD+iW+iM+12)/24*15,
     bt: bt.n>=3 ? (bt.wr||0)*7.5 + clamp((bt.avg||0)/0.05,0,1)*7.5 : 5,
-    up: clamp(S.up/0.25,0,1)*15,
+    up: clamp(S.up/0.25,0,1)*10,
+    fk: it.fk ? FK_PTS[it.fk.l] : FK_NONE,
     pen: (S.rsi||0)>=75 ? 10 : 0
   };
-  const total=Math.round(clamp(parts.sig+parts.sc+parts.ichi+parts.bt+parts.up-parts.pen,0,100));
-  return {total, parts, en:S.en||0, up:S.up, dn:S.dn, rr:S.up/S.dn, bt};
+  const total=Math.round(clamp(parts.sig+parts.sc+parts.ichi+parts.bt+parts.up+parts.fk-parts.pen,0,100));
+  return {ok:true, total, parts, en:S.en||0, up:S.up, dn:S.dn, rr:S.up/S.dn, bt};
 }
+function potentialCalc(it){ const r=potentialEval(it); return r.ok?r:null; }
 function potRanking(){ return baseItems().map(it=>({it,p:potential(it)})).filter(x=>x.p).sort((a,b)=>b.p.total-a.p.total||(b.it.obr||0)-(a.it.obr||0)); }
 function hasPotFields(){ return baseItems().some(it=>itP(it).up!=null); }
 function topCard(x,i){
@@ -923,7 +930,7 @@ function topCard(x,i){
       <div><span class="small">Zysk / ryzyko</span><b>${fmt(p.rr,1)}</b><span class="small">siła ${S.sc}/100</span></div>
     </div>
     <div class="tc-row">${ichiChipsSum(it)}<span class="small">RSI ${S.rsi!=null?fmt(S.rsi,0):'–'}</span></div>
-    ${it.fk?`<div class="tc-fund">Kondycja finansowa: <b>${esc(it.fk.n)}</b> ${fdots(it.fk.l)}</div>`:''}
+    <div class="tc-fund">Kondycja finansowa: ${it.fk?`<b>${esc(it.fk.n)}</b> ${fdots(it.fk.l)}`:'<b>brak oceny</b>'}</div>
     <div class="tc-note">${why}<br>Ten system na tej spółce (ok. 5 lat): ${btTxt}.</div>
   </div>`;
 }
@@ -935,7 +942,7 @@ function renderTop(){
   const mk=state.sum[INDEX_DEF.t], bear=mk&&itP(mk).bear;
   const body = !ok ? `<div class="small">Naciśnij <b>⟳ Aktualizuj</b>, aby pobrać dane potrzebne do rankingu.</div>`
     : !picks.length ? `<div class="top-warn">Dziś żadna płynna spółka nie spełnia wszystkich warunków. Według systemu lepiej poczekać – ranking sam się zaktualizuje.</div>`
-    : `<div class="top-grid">${picks.map(topCard).join('')}</div>`;
+    : `<div class="top-grid">${picks.map(topCard).join('')}</div>${picks.length<3?`<p class="small" style="margin:8px 0 0">Dziś wszystkie warunki ${picks.length===1?'spełnia tylko 1 spółka':'spełniają tylko 2 spółki'}.</p>`:''}`;
   el.innerHTML=`<div class="top-head"><h2>Top 3 – największy potencjał wzrostowy</h2><span class="small">horyzont ${P.short} · warunki spełnia ${rank.length} z ${items.length} spółek</span><span class="spacer"></span><button class="btn sm" id="topHow" aria-expanded="${state.topHow}">${state.topHow?'Ukryj zasady':'Jak wybieram?'}</button></div>
     ${bear?`<div class="top-warn">⚠ WIG20 jest poniżej średniej ${P.trend}-sesyjnej – w słabym rynku nawet dobre układy częściej zawodzą.</div>`:''}
     ${body}
@@ -946,18 +953,19 @@ function renderTop(){
         <li>płynność: średni obrót co najmniej 1 mln zł dziennie (łatwo kupić i sprzedać),</li>
         <li>Ichimoku dzienne, tygodniowe i miesięczne nie jest spadkowe (trendy zgodne),</li>
         <li>zysk do celu co najmniej 1,5 raza większy niż strata do stopu,</li>
-        <li>zmienność umiarkowana (średni dzienny ruch ceny – ATR – do 6%).</li>
+        <li>zmienność umiarkowana (średni dzienny ruch ceny – ATR – do 6%),</li>
+        <li>kondycja finansowa co najmniej przeciętna – spółki o słabej i bardzo słabej kondycji pomijam.</li>
       </ul>
-      Potem każda spółka dostaje punkty (razem do 100): sygnał do 25 (KUP 25, OBSERWUJ 15, TRZYMAJ 10), siła techniczna do 25, zgodność Ichimoku D·T·M do 20, wyniki tego systemu na danej spółce w ostatnich ok. 5 latach do 15, przestrzeń do celu do 15 (25% i więcej = komplet). Gdy RSI ≥ 75 (wykupienie), odejmuję 10 punktów. Cel i stop liczę z obecnego kursu i zmienności (ATR) dla wybranego horyzontu – horyzont zmienisz w Ustawieniach.
+      Potem każda spółka dostaje punkty (razem do 100): sygnał do 20 (KUP 20, OBSERWUJ 12, TRZYMAJ 8), siła techniczna do 20, kondycja finansowa do 20 (bardzo dobra 20, dobra 15, przeciętna 8, brak oceny 6), zgodność Ichimoku D·T·M do 15, wyniki tego systemu na danej spółce w ostatnich ok. 5 latach do 15, przestrzeń do celu do 10 (25% i więcej = komplet). Gdy RSI ≥ 75 (wykupienie), odejmuję 10 punktów. Cel i stop liczę z obecnego kursu i zmienności (ATR) dla wybranego horyzontu – horyzont zmienisz w Ustawieniach.
     </div>
-    <div class="small top-disc">Ranking jest mechaniczny i opiera się na wykresie. Kondycja finansowa jest pokazana na kartach, ale nie zmienia kolejności. Ranking nie zna wiadomości o spółkach. To nie jest rekomendacja inwestycyjna.</div>`;
+    <div class="small top-disc">Ranking jest mechaniczny: łączy układ techniczny z kondycją finansową (dane Yahoo Finance). Nie zna wiadomości o spółkach. To nie jest rekomendacja inwestycyjna.</div>`;
   $('#topHow').onclick=()=>{ state.topHow=!state.topHow; renderTop(); };
   $$('#top3 .tcard').forEach(c=>{ c.onclick=()=>showCompany(c.dataset.t); c.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); showCompany(c.dataset.t); } }; });
 }
 function potLine(t){
   const it=state.sum[t]; if(!it||it.idx||!hasPotFields()) return '';
   const p=potential(it);
-  if(!p) return `<p class="note potline">Potencjał wzrostowy: spółka nie spełnia dziś warunków rankingu Top 3.</p>`;
+  if(!p){ const r=potentialEval(it); return `<p class="note potline">Potencjał wzrostowy: spółka nie spełnia dziś warunków rankingu Top 3 – ${esc(r.why||'')}.</p>`; }
   const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
@@ -1619,9 +1627,9 @@ function renderHelp(){
   <h3>Dane i aktualizacja</h3>
   <p>Notowania wszystkich spółek rynku głównego GPW pobiera automat na GitHubie (z Yahoo Finance): co 30 minut w trakcie sesji oraz pełne dane po jej zamknięciu. Aplikacja czyta gotowy plik, więc działa jako zwykły plik HTML – na komputerze i na telefonie. Przycisk <b>⟳ Aktualizuj</b> pobiera najnowszy stan, a przy włączonej aktualizacji automatycznej aplikacja odświeża się sama (co 15 minut w trakcie sesji i po jej zamknięciu). W trakcie sesji widać bieżący kurs (opóźniony), a sygnały liczone są z zamkniętych sesji. Wykres i test strategii wczytują się po otwarciu spółki.</p>
   <h3>Top 3 – największy potencjał wzrostowy</h3>
-  <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku. Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
+  <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku, a kondycja finansowa jest co najmniej przeciętna (lepsza kondycja daje więcej punktów). Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
   <h3>Kondycja spółki</h3>
-  <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), krótki opis po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3.</p>
+  <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), krótki opis po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3 i wpływa na ranking.</p>
   <h3>Filtry i lista</h3>
   <ul>
     <li><b>★ Obserwowane</b> – Twoja lista; gwiazdkę klikasz przy spółce na liście albo w jej szczegółach.</li>
