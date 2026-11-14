@@ -88,8 +88,10 @@ def compact(res):
 def chart(sym, rng, interval):
     last = None
     for host in ("query1", "query2"):
+        span = (f"period1={int(time.time()) - int(rng[1:-1]) * 366 * 86400}&period2={int(time.time()) + 86400}"
+                if rng.startswith("p") else f"range={rng}")      # "p10y" = jawne daty od–do
         url = (f"https://{host}.finance.yahoo.com/v8/finance/chart/{sym}"
-               f"?range={rng}&interval={interval}&includePrePost=false")
+               f"?{span}&interval={interval}&includePrePost=false")
         for attempt in range(3):
             try:
                 r = session().get(url, timeout=30)
@@ -196,16 +198,27 @@ def merge(old, new, intraday=False, keep=KEEP_DAYS):
     return out
 
 
+def is_daily(x):
+    """Czy notowania są dzienne (Yahoo potrafi zwrócić świece tygodniowe mimo interval=1d)."""
+    ts = (x or {}).get("t") or []
+    if len(ts) < 12:
+        return True
+    gaps = sorted((b - a) / 86400 for a, b in zip(ts[-61:-1], ts[-60:]))
+    return gaps[len(gaps) // 2] <= 4
+
+
 def fetch_full(sym, min_len, old=None):
     """Pełna historia dzienna. Yahoo dla części małych spółek przy zakresie 10 lat zwraca dane urwane albo pojedynczy
     punkt – wtedy próbuję innych zakresów, a na końcu łączę najdłuższy wynik (lub poprzednie dane) z ostatnim miesiącem."""
     empty = {"meta": {}, "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
 
     def good(x):
-        return x is not None and len(x["t"]) >= min_len and age_days(x) <= 21
+        return x is not None and len(x["t"]) >= min_len and age_days(x) <= 21 and is_daily(x)
 
+    if old and not is_daily(old):
+        old = None
     got = []
-    for i, rng in enumerate(("10y", "max", "5y", "2y", "1y")):
+    for i, rng in enumerate(("10y", "p10y", "5y", "2y", "1y", "max")):
         try:
             x = chart(sym, rng, "1d")
         except LookupError:
@@ -217,7 +230,8 @@ def fetch_full(sym, min_len, old=None):
         x = merge(empty, x)            # przycięcie do KEEP_DAYS sesji
         if good(x):
             return x
-        got.append(x)
+        if is_daily(x):
+            got.append(x)
     if old and old.get("t"):
         got.append(old)
     if not got:
@@ -329,7 +343,7 @@ def main():
         info = {"t": t, "n": e["n"], "y": e["y"], "w20": bool(e.get("w20")), "idx": bool(e.get("idx")), "nc": bool(e.get("nc"))}
         min_len = 300 if e.get("idx") else 30
         try:
-            if old and not full and old.get("sym") and age_days(old) < 20:
+            if old and not full and old.get("sym") and age_days(old) < 20 and is_daily(old) and len(old["t"]) >= 200:
                 data = merge(old, chart(old["sym"], "5d", "1d"))
                 data["sym"] = old["sym"]
             else:
