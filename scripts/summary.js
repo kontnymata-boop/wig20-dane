@@ -51,10 +51,29 @@ for (const u of uni.items) {
       h52: L >= 20 ? r(Bs.c[L] / Math.max(...Bs.h.slice(-250)) - 1, 4) : null,
       m3: L >= 63 ? r(Bs.c[L] / Bs.c[L - 63] - 1, 4) : null, atr: null
     };
+    // wskaźniki do wyszukiwania tanich spółek z rodzącym się wzrostem („złote strzały”)
+    const mean = a => { const z = a.filter(v => v != null && isFinite(v)); return z.length ? z.reduce((s, v) => s + v, 0) / z.length : null; };
+    if (L >= 60) {
+      const v5 = mean(Bs.v.slice(-5)), v50 = mean(Bs.v.slice(-55, -5));
+      it.vr = v5 != null && v50 ? r(v5 / v50, 2) : null;                       // wolumen: 5 ostatnich sesji / 50 wcześniejszych
+      it.m1 = r(Bs.c[L] / Bs.c[L - 21] - 1, 4);                                 // zmiana z ok. miesiąca
+      it.l52 = r(Bs.c[L] / Math.min(...Bs.c.slice(-250)) - 1, 4);               // ile nad najniższym zamknięciem z roku
+      if (L >= 130) {
+        const prevMax = Math.max(...Bs.c.slice(-130, -5)), recentMax = Math.max(...Bs.c.slice(-5));
+        it.brk = recentMax > prevMax ? 1 : 0;                                    // nowy szczyt 6-miesięczny w ostatnim tygodniu
+      }
+      it.nz = Bs.v.slice(-20).filter(v => !v).length;                            // sesje bez obrotu w ostatnich 20
+    }
     // ocena kondycji finansowej (scripts/fundamentals.py → f/<SKRÓT>.json)
     try {
       const ff = path.join(store, 'f', u.t + '.json');
-      if (fs.existsSync(ff)) { const g = JSON.parse(fs.readFileSync(ff, 'utf8')).grade; if (g) it.fk = { l: g.lvl, n: g.lbl }; }
+      if (fs.existsSync(ff)) {
+        const F = JSON.parse(fs.readFileSync(ff, 'utf8')), g = F.grade, fm = F.m || {};
+        if (g) it.fk = { l: g.lvl, n: g.lbl };
+        if (fm.mcap) it.mc = Math.round(fm.mcap);
+        if (fm.pe != null && isFinite(fm.pe)) it.pe = r(fm.pe, 1);
+        if (fm.pb != null && isFinite(fm.pb)) it.pb = r(fm.pb, 2);
+      }
     } catch (e) { /* brak oceny */ }
     for (const p of Object.keys(E.PROFILES)) {
       const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
