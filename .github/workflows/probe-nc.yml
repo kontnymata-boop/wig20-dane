@@ -10,3 +10,5 @@ jobs:
         with: {python-version: '3.12'}
       - run: pip install "curl_cffi>=0.7"
       - run: python probe/nc.py
+      - uses: actions/upload-artifact@v4
+        with: {name: wse, path: wse_all.json}
