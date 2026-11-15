@@ -14,6 +14,7 @@ Podsumowanie sygnałów (summary.json) liczy osobno scripts/summary.js – tym s
 """
 import argparse
 import json
+import re
 import os
 import random
 import sys
@@ -188,6 +189,114 @@ def yahoo_wse_list():
     return out
 
 
+# ---------------- Indeksy GPW ----------------
+# Notowania: Yahoo udostępnia indeksy GPW tylko w świecach godzinowych (ok. 3 lat) – składam z nich świece dzienne;
+# starszą historię dzienną dokładam z bankier.pl (dane do początku 2026 r.). Skład indeksów: biznesradar.pl (raz na dobę).
+#        skrót         nazwa                  grupa     Yahoo            bankier.pl     biznesradar (skład)
+INDICES = [
+    ("WIG20",      "WIG20",               "main",   "WIG20.WA",      "WIG20",       "WIG20"),
+    ("WIG",        "WIG",                 "main",   "WIG.WA",        "WIG",         None),
+    ("WIG30",      "WIG30",               "main",   "WIG30.WA",      "WIG30",       "WIG30"),
+    ("MWIG40",     "mWIG40",              "main",   "MWIG40.WA",     "MWIG40",      "mWIG40"),
+    ("SWIG80",     "sWIG80",              "main",   "SWIG80.WA",     "SWIG80",      "sWIG80"),
+    ("WIG140",     "WIG140",              "main",   "WIG140.WA",     "WIG140",      "WIG140"),
+    ("WIG-POLAND", "WIG-Poland",          "main",   "WIG-POLAND.WA", "WIG-POLAND",  None),
+    ("NCINDEX",    "NCIndex",             "main",   "NCINDEX.WA",    "NCINDEX",     None),
+    ("WIG-BANKI",  "WIG-banki",           "sector", "WIG-BANKI.WA",  "WIG-BANKI",   "WIGBANKI"),
+    ("WIG-BUDOW",  "WIG-budownictwo",     "sector", "WIG-BUDOW.WA",  "WIG-BUDOW",   "WIGBUDOW"),
+    ("WIG-CHEMIA", "WIG-chemia",          "sector", "WIG-CHEMIA.WA", "WIG-CHEMIA",  "WIGCHEMIA"),
+    ("WIG-ENERG",  "WIG-energia",         "sector", "WIG-ENERG.WA",  "WIG-ENERG",   "WIGENERG"),
+    ("WIG-GORNIC", "WIG-górnictwo",       "sector", "WIG-GORNIC.WA", "WIG-GORNIC",  "WIGGORNIC"),
+    ("WIG-GRY",    "WIG-gry",             "sector", "WIG-GRY.WA",    "WIG-GRY",     "WIGGRY"),
+    ("WIG-INFO",   "WIG-informatyka",     "sector", "WIG-INFO.WA",   "WIG-INFO",    "WIGINFO"),
+    ("WIG-LEKI",   "WIG-leki",            "sector", "WIG-LEKI.WA",   "WIG-LEKI",    "WIGLEKI"),
+    ("WIG-MEDIA",  "WIG-media",           "sector", "WIG-MEDIA.WA",  "WIG-MEDIA",   "WIGMEDIA"),
+    ("WIG-MOTO",   "WIG-motoryzacja",     "sector", "WIG-MOTO.WA",   "WIG-MOTO",    "WIGMOTO"),
+    ("WIG-NRCHOM", "WIG-nieruchomości",   "sector", "WIG-NRCHOM.WA", "WIG-NRCHOM",  "WIGNRCHOM"),
+    ("WIG-ODZIEZ", "WIG-odzież",          "sector", "WIG-ODZIEZ.WA", "WIG-ODZIEZ",  "WIGODZIEZ"),
+    ("WIG-PALIWA", "WIG-paliwa",          "sector", "WIG-PALIWA.WA", "WIG-PALIWA",  "WIGPALIWA"),
+    ("WIG-SPOZYW", "WIG-spożywczy",       "sector", "WIG-SPOZYW.WA", "WIG-SPOZYW",  "WIGSPOZYW"),
+    ("WIG-MS-FIN", "WIG.MS-FIN",          "macro",  "WIG-MS-FIN.WA", "WIG.MS-FIN",  "WIGMSFIN"),
+    ("WIG-MS-BAS", "WIG.MS-BAS",          "macro",  "WIG-MS-BAS.WA", "WIG.MS-BAS",  "WIGMSBAS"),
+    ("WIG-MS-ECM", "WIG.MS-ECM",          "macro",  "WIG-MS-ECM.WA", "WIG.MS-ECM",  "WIGMSECM"),
+    ("WIGDIV",     "WIGdiv",              "other",  "WIGDIV.WA",     "WIGDIV",      "WIGdiv"),
+    ("WIGTECHTR",  "WIGtech",             "other",  "WIGTECHTR.WA",  None,          "WIGtechTR"),
+    ("WIGMED",     "WIGmed",              "other",  "WIGMED.WA",     None,          "WIGmed"),
+    ("WIGIND",     "WIGind",              "other",  "WIGIND.WA",     None,          "WIGind"),
+    ("WIG-GAMES5", "WIG.GAMES5",          "other",  "WIG-GAMES5.WA", "WIG.GAMES5",  "WIGGAMES5"),
+    ("WIG-CEE",    "WIG-CEE",             "other",  "WIG-CEE.WA",    "WIG-CEE",     "WIGCEE"),
+    ("WIG-UKRAIN", "WIG-Ukraine",         "other",  "WIG-UKRAIN.WA", "WIG-UKRAIN",  "WIGUkrain"),
+    ("NCFINDEX",   "NCFIndex",            "other",  "NCFINDEX.WA",   None,          "NCFIndex"),
+    ("INNOVATOR",  "INNOVATOR",           "other",  "INNOVATOR.WA",  None,          "INNOVATOR"),
+]
+
+
+def hourly_to_daily(hx):
+    """Świece godzinowe → dzienne (otwarcie pierwszej godziny, maks./min. dnia, zamknięcie ostatniej)."""
+    off = (hx.get("meta") or {}).get("off")
+    days = {}
+    for i, t in enumerate(hx["t"]):
+        c = hx["c"][i]
+        if c is None:
+            continue
+        o, h, l = (hx["o"][i] if hx["o"][i] is not None else c), (hx["h"][i] if hx["h"][i] is not None else c), (hx["l"][i] if hx["l"][i] is not None else c)
+        k = day_key(t, off, False)
+        r = days.get(k)
+        if r is None:
+            days[k] = [t, o, max(h, o, c), min(l, o, c), c]
+        else:
+            r[2] = max(r[2], h, c); r[3] = min(r[3], l, c); r[4] = c
+    out = {"meta": dict(hx.get("meta") or {}), "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
+    for k in sorted(days):
+        t, o, h, l, c = days[k]
+        out["t"].append(t); out["o"].append(o); out["h"].append(h); out["l"].append(l); out["c"].append(c); out["v"].append(0)
+    return out
+
+
+def bankier_daily(sym):
+    """Historia dzienna indeksu z bankier.pl (OHLC, bez wolumenu)."""
+    r = session().get(f"https://www.bankier.pl/new-charts/get-data?symbol={sym}&intraday=false&type=ohlc&max_period=true", timeout=30)
+    rows = sorted((json.loads(r.text).get("main") or []), key=lambda x: x[0])
+    out = {"meta": {"off": 3600}, "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
+    for x in rows:
+        if len(x) < 5 or x[4] is None:
+            continue
+        out["t"].append(int(x[0] // 1000) + 8 * 3600)      # 9:00 czasu polskiego tego dnia
+        out["o"].append(x[1]); out["h"].append(x[2]); out["l"].append(x[3]); out["c"].append(x[4]); out["v"].append(0)
+    return out
+
+
+def splice_history(old_part, new_part):
+    """Starsza historia (bankier) tylko przed pierwszym dniem z Yahoo – i tylko gdy na wspólnych dniach kursy się zgadzają."""
+    off = (new_part.get("meta") or {}).get("off")
+    if not old_part or not old_part["t"] or not new_part["t"]:
+        return new_part, None
+    nk = {day_key(t, off, False): new_part["c"][i] for i, t in enumerate(new_part["t"])}
+    ok_ = {day_key(t, 3600, False): old_part["c"][i] for i, t in enumerate(old_part["t"])}
+    common = [d for d in nk if d in ok_ and ok_[d]]
+    ratios = sorted(nk[d] / ok_[d] for d in common)
+    if len(ratios) < 20 or abs(ratios[len(ratios) // 2] - 1) > 0.005:
+        return new_part, f"bankier pominięty (wspólnych dni: {len(ratios)})"
+    first = min(nk)
+    keep = [i for i, t in enumerate(old_part["t"]) if day_key(t, 3600, False) < first]
+    head = {"meta": new_part.get("meta") or {}, **{k: [old_part[k][i] for i in keep] for k in ("t", "o", "h", "l", "c", "v")}}
+    return merge(head, new_part), None
+
+
+def index_members(slug):
+    """Skład indeksu z biznesradar.pl – lista skrótów spółek (np. „ABE (ABPL)” → ABE)."""
+    r = session().get(f"https://www.biznesradar.pl/gielda/indeks:{slug}", timeout=30)
+    b = r.text
+    tables = re.findall(r"<table.*?</table>", b, re.S)
+    body = max(tables, key=lambda x: x.count("/notowania/")) if tables else b
+    out = []
+    for lab in re.findall(r'<a href="/notowania/[^"#?]+"[^>]*>\s*(?:<[^>]+>\s*)*([^<]{2,60})<', body):
+        tk = lab.split(" (")[0].strip()
+        if re.fullmatch(r"[A-Z0-9]{2,5}", tk) and tk not in out:
+            out.append(tk)
+    return out
+
+
 def day_key(t, off, intraday):
     if intraday:
         return t
@@ -355,7 +464,7 @@ def main():
         if c["t"] in nc_set:
             c["nc"] = True
     print(f"Spółki: {len(cfg)} (dodane z listy Yahoo: {added}, NewConnect: {sum(1 for c in cfg if c.get('nc'))})")
-    entities = [INDEX] + cfg
+    entities = cfg
     if args.limit:
         entities = entities[: args.limit]
 
@@ -394,9 +503,74 @@ def main():
         time.sleep(random.random() * 0.3)
         return info
 
+    def work_idx(spec):
+        t, name, grp, ysym, bsym, _ = spec
+        path, hpath = os.path.join(store, "d", f"{t}.json"), os.path.join(store, "h", f"{t}.json")
+        old, oldh = load(path), load(hpath)
+        info = {"t": t, "n": name, "y": ysym, "w20": False, "idx": True, "nc": False, "grp": grp}
+        try:
+            note = None
+            if old and not full and old.get("src") == "idx" and age_days(old) < 20 and len(old["t"]) >= 200:
+                hx = chart(ysym, "5d", "60m")
+                data = merge(old, hourly_to_daily(hx))
+                hdata = merge(oldh, hx, intraday=True, keep=700) if oldh and age_days(oldh) < 5 else hx
+            else:
+                hx = chart(ysym, "730d", "60m")
+                data = merge({"meta": {}, "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}, hourly_to_daily(hx))
+                if bsym:
+                    try:
+                        data, note = splice_history(bankier_daily(bsym), data)
+                    except Exception as ex:
+                        note = f"bankier: {ex}"[:120]
+                hdata = merge({"meta": {}, "t": [], "o": [], "h": [], "l": [], "c": [], "v": []}, hx, intraday=True, keep=700)
+            if len(data["t"]) < 60 or age_days(data) > 21:
+                raise LookupError(f"za mało notowań ({len(data['t'])})")
+            data.update(sym=ysym, src="idx")
+            dump(path, data)
+            dump(hpath, dict(hdata, sym=ysym, ok=True))
+            info.update(ok=True, sym=ysym, bars=len(data["t"]), last=day_key(data["t"][-1], (data.get("meta") or {}).get("off"), False))
+            if note:
+                info["note"] = note
+        except Exception as ex:
+            info.update(ok=False, err=str(ex)[:200])
+            if old and old.get("src") == "idx" and age_days(old) < 21:
+                info.update(ok=True, sym=ysym, stale=True)
+        time.sleep(random.random() * 0.3)
+        return info
+
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         infos = list(pool.map(work, entities))
+        iinfos = list(pool.map(work_idx, INDICES))
+    print(f"Indeksy: {sum(1 for i in iinfos if i.get('ok'))}/{len(iinfos)} OK" +
+          "".join(f"\n  {i['t']}: {i.get('err') or i.get('note')}" for i in iinfos if i.get("err") or i.get("note")))
+
+    # skład indeksów (biznesradar.pl) – raz na dobę albo gdy go brak
+    members = dict(prev.get("members") or {})
+    if full or not members or (prev.get("membersAt") or "")[:10] != now_w.strftime("%Y-%m-%d"):
+        got = 0
+        for t, _, _, _, _, slug in INDICES:
+            if not slug:
+                continue
+            try:
+                m = index_members(slug)
+                if len(m) >= 3:
+                    members[t] = m; got += 1
+            except Exception as ex:
+                print(f"  skład {t}: {ex}")
+            time.sleep(0.4 + random.random() * 0.4)
+        members_at = now_w.isoformat(timespec="minutes") if got else (prev.get("membersAt") or "")
+        print(f"Skład indeksów: {got} pobranych, razem {len(members)}")
+    else:
+        members_at = prev.get("membersAt") or ""
+    for i in infos:
+        i["ix"] = [t for t, m in members.items() if i["t"] in m]
+        if members.get("WIG20"):
+            i["w20"] = i["t"] in members["WIG20"]
+    for i in iinfos:
+        if i["t"] in members:
+            i["nm"] = len(members[i["t"]])
+    infos = iinfos + infos
     ok = [i for i in infos if i.get("ok")]
     print(f"Dzienne: {len(ok)}/{len(infos)} OK w {time.time() - t0:.0f} s")
     for i in infos:
@@ -411,12 +585,11 @@ def main():
         c, v = x["c"][-20:], x["v"][-20:]
         return sum(a * b for a, b in zip(c, v)) / max(1, len(c))
 
-    idx_h = [i for i in ok if i.get("idx")]          # WIG20 zawsze – wykres Ichimoku 1 godz. dla indeksu
     cand = [i for i in ok if not i.get("idx")]
     if not full:
         cand.sort(key=lambda i: (not i.get("w20"), -turnover(i["t"])))
         cand = cand[:60]
-    cand = idx_h + cand
+
 
     def work_h(i):
         path = os.path.join(store, "h", f"{i['t']}.json")
@@ -443,7 +616,8 @@ def main():
         sys.exit(1)
     uni = {"ok": True, "fmt": DFMT, "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "lastFull": now_w.isoformat(timespec="minutes") if full else last_full,
-           "mode": "full" if full else "quick", "resolved": resolved, "disc": disc, "items": infos}
+           "mode": "full" if full else "quick", "resolved": resolved, "disc": disc, "items": infos,
+           "members": members, "membersAt": members_at}
     dump(os.path.join(store, "universe.json"), uni)
 
     # zgodność ze starszą wersją aplikacji (WIG20 Sygnały 1.3)

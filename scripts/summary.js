@@ -48,6 +48,8 @@ for (const u of uni.items) {
       t: u.t, n: u.n, y: x.sym || u.y, w20: !!u.w20, idx: !!u.idx, nc: !!u.nc, d: Bs.d[L], c: sig(Bs.c[L]),
       ch: L > 0 ? r(Bs.c[L] / Bs.c[L - 1] - 1, 4) : null, obr: Math.round(obr), live,
       sp: Bs.c.slice(-60).map(sig), s: {}, ichi: {},
+      ix: u.ix && u.ix.length ? u.ix : undefined, grp: u.grp || undefined, nm: u.nm || undefined,
+      y1: L >= 250 ? r(Bs.c[L] / Bs.c[L - 250] - 1, 4) : undefined,
       h52: L >= 20 ? r(Bs.c[L] / Math.max(...Bs.h.slice(-250)) - 1, 4) : null,
       m3: L >= 63 ? r(Bs.c[L] / Bs.c[L - 63] - 1, 4) : null, atr: null
     };
