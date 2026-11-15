@@ -328,6 +328,51 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 .star.on{color:#e0a100}
 .star.big{font-size:26px;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
 .more{display:block;margin:12px auto 0}
+
+/* dywidendy */
+.dvtag{display:inline-block;font-size:10.5px;font-weight:700;border:1px solid var(--border);color:var(--pos-text);background:var(--page);border-radius:5px;padding:0 5px;margin-left:4px;vertical-align:2px;line-height:15px;white-space:nowrap}
+.dvtag.soon{background:var(--watch);color:#0b0b0b;border-color:transparent}
+.det-title .dvtag{font-size:12px;vertical-align:4px}
+.dv-head{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
+.dv-head h3{margin:0}
+.dv-soon{background:var(--surface-2);border:1px solid var(--border);border-left:4px solid var(--watch);border-radius:10px;padding:9px 12px;font-size:14.5px;line-height:1.5;margin:0 0 10px}
+.pf-div{font-size:13.5px;line-height:1.5;background:var(--page);border:1px solid var(--border);border-radius:10px;padding:7px 10px}
+/* powiadomienia */
+.bell{position:relative;padding:8px 12px}
+.bell svg{display:block}
+.bell-cnt{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:999px;background:var(--sell);color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center;padding:0 5px;border:2px solid var(--page)}
+.nt-stack{position:fixed;right:14px;top:74px;z-index:70;display:flex;flex-direction:column;gap:8px;width:min(390px,calc(100vw - 24px));pointer-events:none}
+.nt{pointer-events:auto;background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:5px solid var(--hold);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:10px 12px;display:flex;flex-direction:column;gap:6px;animation:ntIn .25s ease-out}
+.nt.sell,.nt-list li.sell{border-left-color:var(--sell)} .nt.target,.nt.up,.nt-list li.target,.nt-list li.up{border-left-color:var(--buy)} .nt.near,.nt-list li.near{border-left-color:var(--watch)} .nt.div,.nt-list li.div{border-left-color:var(--s3)}
+.nt-top{display:flex;align-items:flex-start;gap:8px}
+.nt-top b{flex:1;font-size:15px;line-height:1.3;padding-top:3px}
+.nt-x{border:0;background:none;cursor:pointer;font-size:15px;color:var(--text-2);padding:2px 4px;min-width:30px;min-height:30px;border-radius:8px}
+.nt-x:hover{background:var(--surface-2)}
+.nt-txt{font-size:13.5px;line-height:1.45;color:var(--text)}
+.nt-act{display:flex;align-items:center;gap:8px;justify-content:space-between}
+@keyframes ntIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.nt-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.nt-list li{border:1px solid var(--border);border-left:5px solid var(--hold);border-radius:10px;padding:8px 10px;background:var(--page)}
+.nt-list li.new{box-shadow:inset 0 0 0 1px var(--accent)}
+.nt-list .nt-meta{font-size:12px;color:var(--text-2);display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:6px}
+@media (max-width:600px){ .nt-stack{top:auto;bottom:12px;right:12px} .tabs{overflow-x:auto;scrollbar-width:none;gap:0} .tabs::-webkit-scrollbar{display:none} .tabs button{flex:1 0 auto;font-size:13.5px;padding:10px 6px;gap:3px} .tabs .tabcnt{padding:0 5px;font-size:11.5px} .tabs .tabalert{padding:0 5px} }
+/* IKE / IKZE */
+.ike h2{margin:0 0 6px;font-size:20px}
+.ike-lead{font-size:15px;line-height:1.55;margin:0}
+.ike-me{border-left:4px solid var(--buy)}
+.ike-me p{line-height:1.55}
+.ike-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:860px){ .ike-grid{grid-template-columns:1fr} }
+.ike-box h3{margin:0 0 6px;font-size:17px}
+.ike-box ul{margin:6px 0 0;padding-left:20px;line-height:1.5}
+.ike-box li{margin:0 0 5px}
+.ike-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:10px}
+.ike-tips{margin:0 0 10px;padding-left:22px;line-height:1.55}
+.ike-tips li{margin:0 0 7px}
+.ike-src{font-size:12.5px;color:var(--text-2);line-height:1.5;margin:0}
+#viewIke{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+#viewIke[hidden]{display:none}
+#viewIke .card{margin:0}
 </style>
 </head>
 <body>
@@ -338,6 +383,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
       <span class="ttl">Sygnały GPW<small id="profileLbl">Analiza techniczna spółek z Giełdy Papierów Wartościowych</small></span>
     </div>
     <button class="btn primary" id="btnRefresh" title="Pobierz najnowsze notowania i sygnały"><span class="spin">⟳</span> <span id="btnRefreshTxt">Aktualizuj</span></button>
+    <button class="btn bell" id="btnBell" title="Powiadomienia o spółkach z portfela" aria-label="Powiadomienia o spółkach z portfela"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-cnt" id="bellCnt" hidden></span></button>
     <button class="btn" id="btnSettings">⚙ Ustawienia</button>
     <button class="btn" id="btnHelp" aria-label="Pomoc">?</button>
   </div>
@@ -349,6 +395,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
     <button role="tab" data-tab="sig" class="on" aria-selected="true">Sygnały</button>
     <button role="tab" data-tab="zs" aria-selected="false">Złote strzały</button>
     <button role="tab" data-tab="pf" aria-selected="false">Mój portfel <span class="tabcnt" id="pfCount" hidden></span><span class="tabalert" id="pfAlert" hidden aria-label="są pozycje do sprzedaży">▼</span></button>
+    <button role="tab" data-tab="ike" aria-selected="false">IKE/IKZE</button>
   </nav>
   <div id="viewSig">
   <section class="card notice" id="notice" hidden></section>
@@ -375,6 +422,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   </div>
   <div id="viewZs" hidden></div>
   <div id="viewPf" hidden></div>
+  <div id="viewIke" hidden></div>
   <footer class="disc">
     Aplikacja jest narzędziem edukacyjnym. Sygnały powstają automatycznie z prostych reguł analizy technicznej (średnie kroczące, MACD, RSI, ADX, ATR, Ichimoku) i nie są rekomendacją inwestycyjną w rozumieniu przepisów prawa ani poradą finansową. Wyniki historyczne nie gwarantują przyszłych. Decyzje inwestycyjne podejmujesz na własne ryzyko.
     Dane: Yahoo Finance (notowania opóźnione), pobierane automatycznie przez serwer danych RadMat.
@@ -382,11 +430,18 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 </main>
 
 <div class="overlay" id="detail" hidden></div>
+<div class="nt-stack" id="ntStack" aria-live="polite"></div>
 
 <dialog id="dlgSettings">
   <div class="dlg-head"><h2>Ustawienia</h2><button class="btn ghost sm" data-close>✕</button></div>
   <div class="dlg-body" id="setBody"></div>
   <div class="dlg-foot"><button class="btn" data-close>Anuluj</button><button class="btn primary" id="btnSaveSet">Zapisz</button></div>
+</dialog>
+
+<dialog id="dlgNotes">
+  <div class="dlg-head"><h2>Powiadomienia – Mój portfel</h2><button class="btn ghost sm" data-close>✕</button></div>
+  <div class="dlg-body" id="ntBody"></div>
+  <div class="dlg-foot"><button class="btn" id="ntClear">Wyczyść listę</button><button class="btn primary" data-close>Zamknij</button></div>
 </dialog>
 
 <dialog id="dlgHelp">
@@ -399,10 +454,10 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.0 (15.11.2026)';
+const APP_VERSION = '3.1 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
-const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
+const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
 const INDEX_DEF = {t:'WIG20', isIndex:true};
 const PAGE = 100;
 
@@ -803,7 +858,7 @@ const state={
   settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
   filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE, topHow:false,
   busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
-  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, pfForm:{}, pfSell:null, pfDel:null, tab:'sig', legendKey:null, autoBackoffUntil:0
+  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, pfForm:{}, pfSell:null, pfDel:null, nt:[], ike:{}, tab:'sig', legendKey:null, autoBackoffUntil:0
 };
 function loadSettings(){
   const s=Object.assign({}, DEFAULT_SETTINGS, store.get(LS_SET,{}));
@@ -842,7 +897,7 @@ async function fetchSummary(){
 function applySummary(j,flash){
   const old=state.sum; const m={};
   for(const it of j.items){ m[it.t]=it; if(flash && old[it.t] && (old[it.t].c!==it.c || (old[it.t].live&&old[it.t].live.p)!==(it.live&&it.live.p))) state.flash.add(it.t); }
-  state.sum=m; state.sumMeta={updated:j.updated, mode:j.mode, count:j.count};
+  state.sum=m; state.sumMeta={updated:j.updated, mode:j.mode, count:j.count, dv:!!j.dv};
 }
 function lsIndex(){ return store.get(LS_DIDX,[]); }
 function cacheDaily(t,x){
@@ -851,7 +906,7 @@ function cacheDaily(t,x){
   if(!store.set(LS_D+t,x)){ while(idx.length>1){ store.del(LS_D+idx.pop()); } store.set(LS_D+t,x); }
   store.set(LS_DIDX,idx);
 }
-function dailyFrom(t,x,at){ return {bars:sliceBars(compactToBars(x),2600), sym:x.sym, meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+(x.sym||t), via:'serwer danych RadMat', at:at||Date.now()}; }
+function dailyFrom(t,x,at){ return {bars:sliceBars(compactToBars(x),2600), dv:Array.isArray(x.dv)?x.dv:[], sym:x.sym, meta:x.meta&&x.meta.time?{time:x.meta.time*1000}:null, src:'Yahoo Finance · '+(x.sym||t), via:'serwer danych RadMat', at:at||Date.now()}; }
 async function ensureDaily(t,force){
   if(state.data[t] && !force) return state.data[t];
   if(!force){ const c=store.get(LS_D+t,null); if(c&&c.x){ state.data[t]=dailyFrom(t,c.x,c.at); return state.data[t]; } }
@@ -910,7 +965,7 @@ async function refreshAll(opts={}){
     const j=await fetchSummary(); if(gen!==state.gen) return;
     applySummary(j,true); store.set(LS_SUM,j);
     store.set(LS_META,{lastFetch:Date.now(), dataTime:Date.parse(j.updated)||0});
-    hideNotice(); renderAll(); ok=true;
+    hideNotice(); renderAll(); ok=true; pfWatchCheck();
     setStatus('ok',`Zaktualizowano o ${hhmm(Date.now())} · stan notowań: ${fmtDataTime(j.updated)} · ${j.count} spółek`+(state.settings.autoRefresh?' · aktualizacja automatyczna włączona':''));
     const t=state.detail;
     if(t){
@@ -950,7 +1005,7 @@ const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?'
 const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
 const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
-function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); }
+function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); renderBell(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const all=Object.values(state.sum).filter(i=>!i.idx), n=all.length, nNc=all.filter(i=>i.nc).length; $('#profileLbl').textContent=`${n?(nNc?(n-nNc)+' spółek z rynku głównego GPW i '+nNc+' z NewConnect · ':n+' spółek z rynku głównego GPW · '):''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
 function renderMarket(){
   const el=$('#market'), it=state.sum[INDEX_DEF.t];
@@ -1061,6 +1116,231 @@ function potLine(t){
   const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
+/* ================= DYWIDENDY ================= */
+const plN=(n,a,b,c)=>{ n=Math.abs(n); return n===1?a:(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?b:c; };
+const dvOf=t=>{ const it=state.sum[t]; return it&&!it.idx&&it.dv?it.dv:null; };
+const dShort=iso=>{ if(!iso) return '–'; const [y,m,d]=iso.split('-'); return `${d}.${m}`; };
+const pctU=(x,d=1)=>pct(x,d).replace('+','');
+function dvNext(dv){ const nx=dv&&dv.nx; return nx&&nx.d>=todayISO()?nx:null; }
+function dvTag(t){
+  const dv=dvOf(t); if(!dv) return '';
+  const nx=dvNext(dv), last=dv.h&&dv.h[0];
+  if(nx) return ` <span class="dvtag soon" title="Zapowiedziana dywidenda – dzień odcięcia ${dPL(nx.d)}${nx.a?`, ${fmt(nx.a)} zł na akcję`:''}">dyw. ${dShort(nx.d)}</span>`;
+  if(dv.y>=0.0005) return ` <span class="dvtag" title="Dywidendy z ostatnich 12 miesięcy: ${fmt(dv.a)} zł na akcję, czyli ${pctU(dv.y)} obecnego kursu${last?` · ostatnia: ${fmt(last[1])} zł, dzień odcięcia ${dPL(last[0])}`:''}">dyw. ${pctU(dv.y)}</span>`;
+  return '';
+}
+function dvCardHTML(t){
+  const it=state.sum[t]; if(!it||it.idx) return '';
+  const dv=it.dv, known=state.sumMeta&&state.sumMeta.dv;
+  if(!dv) return known?`<section class="card"><div class="dv-head"><h3 class="sec">Dywidenda</h3></div><p class="small" style="margin:0">Yahoo Finance nie notuje wypłat dywidendy przez tę spółkę w ostatnich latach.</p></section>`:'';
+  const nx=dvNext(dv), h=dv.h||[], last=h[0], price=itPrice(it), today=todayISO();
+  const src=(state.data[t]&&state.data[t].dv&&state.data[t].dv.length)?state.data[t].dv.filter(a=>a[0]<=today):h.slice().reverse();
+  const years={}; src.forEach(([d,a])=>{ const y=d.slice(0,4); const o=years[y]||(years[y]={s:0,n:0}); o.s+=a; o.n++; });
+  const ys=Object.keys(years).sort().reverse().slice(0,10), held=state.pf.pos.find(p=>p.t===t);
+  return `<section class="card"><div class="dv-head"><h3 class="sec">Dywidenda</h3>${dv.y>=0.0005?`<span class="fgrade">stopa ${pctU(dv.y)} <span class="small">(12 mies.)</span></span>`:''}</div>
+    ${nx?`<p class="dv-soon"><b>Zapowiedziana dywidenda:</b> dzień odcięcia <b>${dPL(nx.d)}</b>${nx.a?`, <b>${fmt(nx.a)} zł</b> na akcję (${pctU(nx.a/price)} obecnego kursu)`:''}${nx.p?`, wypłata ${dPL(nx.p)}`:''}. Żeby ją dostać, trzeba mieć akcje na koniec sesji poprzedzającej dzień odcięcia.${held&&nx.a?` Przy Twoich ${fmt(held.q,0)} akcjach to ok. ${zl(nx.a*held.q)} brutto.`:''}</p>`:''}
+    <div class="fmetrics">
+      <div><div class="k">Ostatnia dywidenda</div><div class="v">${last?fmt(last[1])+' zł':'–'}</div><div class="k">${last?'odcięcie '+dPL(last[0]):'na akcję'}</div></div>
+      <div><div class="k">Suma z 12 miesięcy</div><div class="v">${fmt(dv.a||0)} zł</div><div class="k">na akcję</div></div>
+      <div><div class="k">Stopa dywidendy</div><div class="v">${dv.y?pctU(dv.y):'–'}</div><div class="k">suma z 12 mies. / kurs</div></div>
+      ${held&&last?`<div><div class="k">Twoje akcje × ostatnia</div><div class="v">${zl(last[1]*held.q)}</div><div class="k">brutto, ${fmt(held.q,0)} akcji</div></div>`:''}
+    </div>
+    ${ys.length?`<details><summary>Dywidendy w poszczególnych latach</summary><div class="tbl-scroll"><table class="t"><tr><th>Rok</th><th>Na akcję</th><th>Liczba wypłat</th></tr>${ys.map(y=>`<tr><td>${y}</td><td>${fmt(years[y].s)} zł</td><td>${years[y].n}</td></tr>`).join('')}</table></div></details>`:''}
+    <p class="note">W dniu odcięcia kurs zwykle spada mniej więcej o kwotę dywidendy – to nie strata, bo dywidendę dostajesz osobno (na zwykłym rachunku pomniejszoną o 19% podatku). Na wykresie dziennym dni odcięcia oznacza kółko „D”. Dane: Yahoo Finance.</p>
+  </section>`;
+}
+function pfDivs(p,it){
+  const dv=it&&!it.idx?it.dv:null; if(!dv) return null;
+  const today=todayISO(), from=p.d||today;
+  const got=(dv.h||[]).filter(([d])=>d>from&&d<=today), per=got.reduce((a,x)=>a+x[1],0), nx=dvNext(dv);
+  return {sum:per*p.q, n:got.length, nx, nxVal:nx&&nx.a?nx.a*p.q:null};
+}
+function pfDivHTML(r){
+  const D=r.dv; if(!D||(!D.n&&!D.nx)) return '';
+  const a=D.n?`<b>Dywidendy od zakupu:</b> <b class="pos">${zlS(D.sum)}</b> brutto (${D.n} ${plN(D.n,'wypłata','wypłaty','wypłat')}), po 19% podatku ok. ${zl(D.sum*0.81)}.`:'';
+  const b=D.nx?`<b>Zapowiedziana dywidenda:</b> dzień odcięcia ${dPL(D.nx.d)}${D.nxVal?` – za Twoje akcje ok. ${zl(D.nxVal)} brutto`:''}. Akcje trzeba mieć na koniec sesji przed tym dniem.`:'';
+  return `<div class="pf-div">${a}${a&&b?'<br>':''}${b}</div>`;
+}
+/* ================= POWIADOMIENIA (spółki z portfela) ================= */
+const LS_NT='radmat_gpw_powiadomienia_v1', LS_NT_ST='radmat_gpw_powiad_stan_v1';
+const NT_SIG=new Set(['KUP','SPRZEDAJ']), NT_HINT=new Set(['sell','warn']);
+function ntLoad(){ const a=store.get(LS_NT,[]); state.nt=Array.isArray(a)?a:[]; }
+function ntSave(){ while(state.nt.length>60) state.nt.shift(); store.set(LS_NT,state.nt); }
+const ntUnread=()=>state.nt.filter(n=>!n.read).length;
+function renderBell(){
+  const b=$('#btnBell'), c=$('#bellCnt'); if(!b) return; const n=ntUnread();
+  c.textContent=n>9?'9+':String(n); c.hidden=!n;
+  const t=n?`${n} ${plN(n,'nowe powiadomienie','nowe powiadomienia','nowych powiadomień')} o spółkach z portfela`:'Powiadomienia o spółkach z portfela';
+  b.title=t; b.setAttribute('aria-label',t);
+}
+/* Porównuje stan spółek z portfela z poprzednim sprawdzeniem; quiet – tylko zapamiętaj stan (np. po zmianie portfela). */
+function pfWatchCheck(opt={}){
+  if(!state.pf||!Object.keys(state.sum).length) return [];
+  const prof=state.settings.profile, saved=store.get(LS_NT_ST,{})||{}, items=saved.items||{};
+  const quiet=!!opt.quiet||saved.prof!==prof, fresh=[], held=new Set(state.pf.pos.map(p=>p.t));
+  for(const p of state.pf.pos){
+    const r=pfCalc(p), it=r.it, h=r.h;
+    if(!it||it.idx||r.price==null) continue;
+    const S=itP(it); if(S.st==='BRAK'||h.lv==='na') continue;
+    const atr=it.atr!=null&&it.c?it.atr*it.c:null, old=items[p.t];
+    let tg=0;
+    if(h.target!=null&&atr){ tg=r.price>=h.target?2:r.price>=h.target-0.5*atr?1:0; if(old&&(old.tg||0)>tg&&r.price>=h.target-atr) tg=old.tg; }
+    const nx=r.dv&&r.dv.nx?r.dv.nx.d:null, cur={st:S.st, lv:h.lv, tg, nx};
+    if(old&&!quiet){
+      const L=[], M=[]; let k=null, title=null;
+      if(tg>(old.tg||0) && cur.lv!=='sell'){       // przy wskazówce SPRZEDAJ (kurs pod stopem) informacja o celu nie ma sensu
+        if(tg===2){ k='target'; title=`${p.t} – kurs osiągnął cel`; L.push(`Kurs ${fmt(r.price)} zł osiągnął cel ${fmt(h.target)} zł (${pct(h.target/r.avg-1,1)} od Twojej ceny zakupu).`); M.push(`Możesz sprzedać część akcji i zabezpieczyć zysk, a resztę trzymać ze stopem ${fmt(h.stop)} zł.`); }
+        else { k='near'; title=`${p.t} – kurs zbliża się do celu`; L.push(`Kurs ${fmt(r.price)} zł – do celu ${fmt(h.target)} zł brakuje ${pctU(h.target/r.price-1)}.`); }
+      }
+      if(cur.lv!==old.lv && HINT[old.lv] && (NT_HINT.has(cur.lv)||NT_HINT.has(old.lv))){
+        if(cur.lv==='sell'){ k='sell'; title=`${p.t} – wskazówka: SPRZEDAJ`; }
+        else if(cur.lv==='warn'){ if(k!=='target') k='sell'; title=title||`${p.t} – rozważ sprzedaż`; }
+        else { k=k||'up'; title=title||`${p.t} – sytuacja się poprawiła`; }
+        L.push(`Wskazówka dla Twojej pozycji: ${HINT[old.lv].lbl} → ${HINT[cur.lv].lbl}.`);
+        if(!(cur.lv==='take'&&M.length)) M.push(h.why[0]||'');
+      }
+      if(cur.st!==old.st && NT_SIG.has(cur.st) && STATUS[old.st]){
+        k=k||(cur.st==='KUP'?'up':'sell'); title=title||`${p.t} – zmiana sygnału na ${STATUS[cur.st].label}`;
+        L.push(`Sygnał systemu: ${STATUS[old.st].label} → ${STATUS[cur.st].label}${S.sd?' ('+dPL(S.sd)+')':''}.`);
+      }
+      if(nx&&nx!==old.nx){
+        k=k||'div'; title=title||`${p.t} – zapowiedziana dywidenda`;
+        L.push(`Dywidenda: dzień odcięcia ${dPL(nx)}${r.dv.nxVal?`, za Twoje akcje ok. ${zl(r.dv.nxVal)} brutto`:''}.`); M.push('Żeby dostać dywidendę, trzeba mieć akcje na koniec sesji przed dniem odcięcia.');
+      }
+      if(L.length) fresh.push({id:pfId(), t:p.t, at:Date.now(), k, title, lines:L, more:M.filter(Boolean), read:false});
+    }
+    items[p.t]=cur;
+  }
+  for(const t of Object.keys(items)) if(!held.has(t)) delete items[t];
+  store.set(LS_NT_ST,{prof, items});
+  if(fresh.length){
+    state.nt.push(...fresh); ntSave(); renderBell();
+    if(state.settings.ntPopup!==false){ if(fresh.length<=2) fresh.forEach(n=>ntToast(n)); else ntToastMany(fresh); }
+    if(state.settings.ntSound) ntBeep();
+    if($('#dlgNotes').open) renderNotes();
+    if(state.tab==='pf') renderPfSafe();
+  }
+  return fresh;
+}
+function ntToast(n){
+  const box=$('#ntStack'); if(!box) return;
+  while(box.children.length>=4) box.firstElementChild.remove();
+  const el=document.createElement('div'); el.className='nt '+(n.k||''); el.setAttribute('role','alert'); el.dataset.id=n.id;
+  el.innerHTML=`<div class="nt-top"><b>${esc(n.title)}</b><button class="nt-x" aria-label="Zamknij powiadomienie">✕</button></div><div class="nt-txt">${n.lines.map(esc).join('<br>')}</div><div class="nt-act"><button class="btn sm" data-go>Pokaż spółkę</button><span class="small">Mój portfel · ${hhmm(n.at)}</span></div>`;
+  let tm=null; const close=read=>{ clearTimeout(tm); if(read) ntMark(n.id); el.remove(); };
+  el.querySelector('.nt-x').onclick=()=>close(true);
+  el.querySelector('[data-go]').onclick=()=>{ close(true); if($('#dlgNotes').open) $('#dlgNotes').close(); showCompany(n.t); };
+  box.appendChild(el);
+  tm=setTimeout(()=>close(false),30000);
+  el.onmouseenter=()=>clearTimeout(tm); el.onmouseleave=()=>{ tm=setTimeout(()=>close(false),12000); };
+}
+function ntToastMany(list){
+  const box=$('#ntStack'); if(!box) return;
+  box.innerHTML='';
+  const k=list.some(n=>n.k==='sell')?'sell':list.some(n=>n.k==='target')?'target':'';
+  const el=document.createElement('div'); el.className='nt '+k; el.setAttribute('role','alert');
+  el.innerHTML=`<div class="nt-top"><b>${list.length} ${plN(list.length,'nowe powiadomienie','nowe powiadomienia','nowych powiadomień')} – Mój portfel</b><button class="nt-x" aria-label="Zamknij powiadomienie">✕</button></div><div class="nt-txt">${list.map(n=>'• '+esc(n.title)).join('<br>')}</div><div class="nt-act"><button class="btn sm" data-go>Pokaż szczegóły</button><span class="small">${hhmm(Date.now())}</span></div>`;
+  let tm=null; const close=()=>{ clearTimeout(tm); el.remove(); };
+  el.querySelector('.nt-x').onclick=close;
+  el.querySelector('[data-go]').onclick=()=>{ close(); openNotes(); };
+  box.appendChild(el);
+  tm=setTimeout(close,30000);
+  el.onmouseenter=()=>clearTimeout(tm); el.onmouseleave=()=>{ tm=setTimeout(close,12000); };
+}
+function ntMark(id){ const n=state.nt.find(x=>x.id===id); if(n&&!n.read){ n.read=true; ntSave(); renderBell(); } }
+function ntBeep(){
+  try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return; const a=state.audio||(state.audio=new AC()); if(a.state==='suspended') a.resume();
+    const t0=a.currentTime+0.02; [880,1320].forEach((f,i)=>{ const o=a.createOscillator(), g=a.createGain(), t=t0+i*0.18; o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.14,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.16); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+0.18); });
+  }catch(e){}
+}
+function openNotes(){ renderNotes(); $('#dlgNotes').showModal(); if(state.nt.some(n=>!n.read)){ state.nt.forEach(n=>{ n.read=true; }); ntSave(); renderBell(); } }
+function renderNotes(){
+  const s=state.settings, list=state.nt.slice().reverse();
+  $('#ntBody').innerHTML=`<p class="small" style="margin:0 0 10px">Powiadomienia dotyczą spółek z zakładki <b>Mój portfel</b>. Pojawiają się, gdy kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, gdy sygnał systemu zmienia się na KUP lub SPRZEDAJ, gdy wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) i gdy spółka zapowie dywidendę. Sprawdzam to przy każdej aktualizacji notowań${s.autoRefresh?' – aktualizacja automatyczna jest włączona.':'. Włącz aktualizację automatyczną w Ustawieniach, żeby nie przegapić zmian.'}</p>
+    <div class="inline" style="margin:0 0 12px"><label class="small"><input type="checkbox" id="ntPopup" ${s.ntPopup!==false?'checked':''}> wyskakujące okienka</label><label class="small"><input type="checkbox" id="ntSound" ${s.ntSound?'checked':''}> sygnał dźwiękowy</label></div>
+    ${list.length?`<ul class="nt-list">${list.map(n=>`<li class="${esc(n.k||'')}${n.read?'':' new'}"><b>${esc(n.title)}</b><div class="nt-txt">${n.lines.map(esc).join('<br>')}</div>${(n.more||[]).length?`<div class="nt-txt small" style="margin-top:4px;color:var(--text-2)">${n.more.map(esc).join(' ')}</div>`:''}<div class="nt-meta"><span>${new Date(n.at).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${n.read?'':' · nowe'}</span><button class="btn sm" data-go="${esc(n.t)}">Pokaż spółkę</button></div></li>`).join('')}</ul>`
+      : `<div class="empty"><h3>Brak powiadomień</h3>${state.pf.pos.length?'Gdy w spółkach z Twojego portfela coś się zmieni, zobaczysz to tutaj.':'Najpierw dodaj spółki w zakładce Mój portfel.'}</div>`}`;
+  $('#ntPopup').onchange=e=>{ s.ntPopup=e.target.checked; saveSettings(); };
+  $('#ntSound').onchange=e=>{ s.ntSound=e.target.checked; saveSettings(); if(s.ntSound) ntBeep(); };
+  $$('#ntBody [data-go]').forEach(b=>b.onclick=()=>{ $('#dlgNotes').close(); showCompany(b.dataset.go); });
+  $('#ntClear').hidden=!list.length;
+}
+/* ================= IKE / IKZE ================= */
+// Limity wpłat wg obwieszczeń MRPiPS (na 2026 r. – z 10 i 17.11.2025; na 2027 r. – z 30.10.2026)
+const IKE_LIM={2026:{ike:28260, ikze:11304, ikzeJdg:16956}, 2027:{ike:30099, ikze:12039.60, ikzeJdg:18059.40}};
+const IKE_ASOF='listopad 2026';
+function ikeYears(){ const y=new Date().getFullYear(), ks=Object.keys(IKE_LIM).map(Number).sort((a,b)=>a-b); const cur=IKE_LIM[y]?y:ks[ks.length-1]; return {cur, next:IKE_LIM[cur+1]?cur+1:null, known:!!IKE_LIM[y]}; }
+const zlR=x=>fmt(x,Math.round(x)===x?0:2)+' zł';
+function renderIke(){
+  const el=$('#viewIke'); if(!el) return;
+  const Y=ikeYears(), L=IKE_LIM[Y.cur], N=Y.next?IKE_LIM[Y.next]:null, F=state.ike;
+  let me='', gain0=10000;
+  if(state.pf.pos.length&&Object.keys(state.sum).length){
+    const {tot}=pfAll(), gain=Math.max(0,tot.pnl), real=Math.max(0,tot.real), div=tot.div||0, base=gain+real+div;
+    const parts=[]; if(gain>0) parts.push(`niezrealizowany zysk ${zl(gain)}`); if(real>0) parts.push(`zysk ze sprzedaży ${zl(real)}`); if(div>0) parts.push(`dywidendy ${zl(div)}`);
+    if(base>0){ gain0=Math.round(base);
+      me=`<section class="card ike-me"><h3 class="sec">Twój portfel</h3><p style="margin:0">W zakładce Mój portfel masz: ${parts.join(', ')}. Na zwykłym rachunku maklerskim od takich zysków płaci się 19% podatku – to ok. <b>${zl(base*0.19)}</b>${gain>0?' (od niezrealizowanego zysku dopiero po sprzedaży akcji)':''}. Gdyby te akcje były na IKE, przy wypłacie po 60. roku życia podatek wyniósłby <b>0 zł</b>.</p><p class="small" style="margin:6px 0 0">Wyliczenie przybliżone: w zeznaniu PIT-38 zyski i straty z całego roku się sumują, a od dywidend na zwykłym rachunku podatek pobiera od razu biuro maklerskie.</p></section>`; }
+  }
+  if(F.gain==null) F.gain=fmt(gain0,0);
+  if(F.jdg==null) F.jdg='0';
+  if(F.rate==null) F.rate='0.12';
+  if(F.ikze==null) F.ikze=fmt(F.jdg==='1'?L.ikzeJdg:L.ikze,2);
+  el.innerHTML=`
+  <section class="card ike">
+    <h2>IKE i IKZE – giełda z ulgą podatkową</h2>
+    <p class="ike-lead">Na zwykłym rachunku maklerskim od zysku ze sprzedaży akcji i od dywidend płacisz <b>19% podatku</b> (tzw. podatek Belki). IKE i IKZE to konta emerytalne, które mogą działać jak <b>rachunek maklerski</b> – kupujesz na nich te same akcje z GPW co na zwykłym rachunku, ale z ulgą podatkową. Każdy może mieć jedno IKE i jedno IKZE.</p>
+  </section>
+  ${me}
+  <div class="ike-grid">
+    <section class="card ike-box"><h3>IKE – bez podatku od zysków</h3>
+      <ul>
+        <li>Limit wpłat: <b>${zlR(L.ike)}</b> w ${Y.cur} r.${N?` (w ${Y.next} r.: ${zlR(N.ike)})`:''}.</li>
+        <li>Zyski ze sprzedaży akcji i dywidendy zostają na koncie <b>bez podatku</b> – możesz kupować i sprzedawać, ile chcesz, i nie rozliczasz się co roku w PIT-38.</li>
+        <li>Wypłata <b>bez podatku</b> po ukończeniu 60 lat (albo 55 lat z uprawnieniami emerytalnymi), jeśli wpłacałeś w co najmniej 5 latach kalendarzowych albo ponad połowę wpłat zrobiłeś co najmniej 5 lat przed wypłatą.</li>
+        <li>Wcześniejsza wypłata (tzw. zwrot) – zapłacisz 19% od zysku, czyli tyle, ile na zwykłym rachunku.</li>
+      </ul></section>
+    <section class="card ike-box"><h3>IKZE – zwrot podatku co roku</h3>
+      <ul>
+        <li>Limit wpłat: <b>${zlR(L.ikze)}</b> w ${Y.cur} r. (przy działalności gospodarczej ${zlR(L.ikzeJdg)})${N?`; w ${Y.next} r.: ${zlR(N.ikze)} (działalność: ${zlR(N.ikzeJdg)})`:''}.</li>
+        <li>Wpłaty <b>odliczasz od dochodu</b> w rocznym zeznaniu PIT – przy stawce 12% odzyskujesz 12 gr z każdej wpłaconej złotówki, przy 32% – 32 gr.</li>
+        <li>Wypłata po ukończeniu 65 lat (przy wpłatach w co najmniej 5 latach kalendarzowych) – <b>10% podatku</b> od całej wypłacanej kwoty.</li>
+        <li>Wcześniejsza wypłata – cała kwota jest doliczana do dochodu i opodatkowana według skali. IKZE ma sens dla pieniędzy odkładanych naprawdę na długo.</li>
+      </ul></section>
+  </div>
+  <section class="card ike"><h3 class="sec">Kalkulator – ile zyskasz na podatku</h3>
+    <div class="pf-grid">
+      <label class="fld">Zysk z akcji, który chcesz osiągnąć (zł)<input id="ikeGain" inputmode="decimal" value="${esc(F.gain)}"></label>
+      <label class="fld">Wpłata na IKZE w ${Y.cur} r. (zł)<input id="ikeIkze" inputmode="decimal" value="${esc(F.ikze)}"></label>
+      <label class="fld">Twoja stawka podatku<select id="ikeRate" class="pf-select"><option value="0.12" ${F.rate==='0.12'?'selected':''}>12% (skala podatkowa)</option><option value="0.32" ${F.rate==='0.32'?'selected':''}>32% (dochód ponad 120 tys. zł)</option><option value="0.19" ${F.rate==='0.19'?'selected':''}>19% (podatek liniowy)</option></select></label>
+      <label class="fld">Działalność gospodarcza<select id="ikeJdg" class="pf-select"><option value="0" ${F.jdg!=='1'?'selected':''}>nie</option><option value="1" ${F.jdg==='1'?'selected':''}>tak (wyższy limit IKZE)</option></select></label>
+    </div>
+    <div class="ike-res" id="ikeRes"></div>
+  </section>
+  <section class="card ike"><h3 class="sec">Warto wiedzieć</h3>
+    <ol class="ike-tips">
+      <li><b>Limit przepada.</b> Niewykorzystanej części nie przeniesiesz na kolejny rok${Y.next?` – do 31 grudnia ${Y.cur} r. wpłacasz według limitu na ${Y.cur} r., od 1 stycznia według nowego`:''}.</li>
+      <li><b>Dywidendy i zyski na IKE nie zużywają limitu</b> – limit dotyczy tylko Twoich wpłat.</li>
+      <li><b>Straty na IKE nie odliczysz</b> od zysków na zwykłym rachunku (i odwrotnie). Dlatego na IKE dobrze sprawdzają się spółki trzymane dłużej i dywidendowe, a bardzo ryzykowne zakupy (np. spółki groszowe) wiele osób trzyma na zwykłym rachunku, gdzie stratę rozlicza się w PIT-38.</li>
+      <li><b>Prowizje są takie jak na zwykłym rachunku.</b> Minimalna prowizja zjada zysk przy małych zleceniach – lepiej kupować rzadziej, za większe kwoty.</li>
+      <li><b>mBank:</b> posiadacz rachunku osobistego w mBanku może otworzyć IKE eMakler i IKZE eMakler. Można tam kupować akcje i ETF-y z GPW oraz z giełd zagranicznych. Przed zakupem sprawdź w mBanku, czy dana spółka (zwłaszcza z NewConnect) jest dostępna na IKE/IKZE, i jakie są prowizje.</li>
+      <li>Jeśli zamkniesz IKE przed terminem, biuro maklerskie samo pobierze i odprowadzi 19% podatku od zysku.</li>
+    </ol>
+    <p class="ike-src">Limity wpłat i zasady według ustawy o IKE i IKZE oraz obwieszczeń Ministra Rodziny, Pracy i Polityki Społecznej (stan: ${IKE_ASOF}).${Y.known?'':' <b>Limity na bieżący rok mogą być wyższe – sprawdź aktualne obwieszczenie.</b>'} Więcej: <a href="https://www.mbank.pl/indywidualny/inwestycje-i-oszczednosci/emerytura/" target="_blank" rel="noopener">IKE i IKZE w mBanku</a>. To informacja ogólna, nie porada podatkowa ani inwestycyjna.</p>
+  </section>`;
+  const calc=()=>{
+    const g=Math.max(0,parseNum(F.gain)||0), rate=Number(F.rate)||0.12, lim=F.jdg==='1'?L.ikzeJdg:L.ikze, w=Math.max(0,parseNum(F.ikze)||0), ded=Math.min(w,lim);
+    $('#ikeRes').innerHTML=`
+      <div class="kpi"><div class="k">IKE: podatek, którego nie zapłacisz</div><div class="v pos">${zl(g*0.19)}</div><div class="s">19% od zysku ${zl(g)}</div></div>
+      <div class="kpi"><div class="k">IKZE: zwrot w rozliczeniu PIT za ${Y.cur} r.</div><div class="v pos">${zl(ded*rate)}</div><div class="s">${fmt(rate*100,0)}% od wpłaty ${zl(ded)}</div></div>
+      <div class="kpi"><div class="k">IKZE: najwyższy możliwy zwrot za ${Y.cur} r.</div><div class="v">${zl(lim*rate)}</div><div class="s">przy wpłacie pełnego limitu ${zlR(lim)}</div></div>
+      ${w>lim?`<p class="pf-err" style="grid-column:1/-1;margin:0">Limit IKZE na ${Y.cur} r. to ${zlR(lim)} – większej wpłaty nie odliczysz.</p>`:''}
+      <p class="small" style="grid-column:1/-1;margin:0">Przy IKZE pamiętaj o 10% podatku od całej kwoty przy wypłacie po 65. roku życia. Przy ryczałcie od przychodów ewidencjonowanych wpłatę na IKZE odlicza się od przychodu – zwrot zależy od Twojej stawki ryczałtu.</p>`;
+  };
+  const bind=(id,key,ev='input')=>{ const e=$('#'+id); e.addEventListener(ev,()=>{ F[key]=e.value; if(key==='jdg'){ const lo=F.jdg==='1'?L.ikze:L.ikzeJdg, hi=F.jdg==='1'?L.ikzeJdg:L.ikze; if(parseNum(F.ikze)===lo){ F.ikze=fmt(hi,2); $('#ikeIkze').value=F.ikze; } } calc(); }); };
+  bind('ikeGain','gain'); bind('ikeIkze','ikze'); bind('ikeRate','rate','change'); bind('ikeJdg','jdg','change');
+  calc();
+}
 /* ================= MÓJ PORTFEL ================= */
 const LS_PF='radmat_gpw_portfel_v1', LS_TAB='radmat_gpw_tab', LS_PF_SNAP='radmat_gpw_portfel_kopie', LS_PF_DRAFT='radmat_gpw_portfel_szkic', LS_VIEW='radmat_gpw_widok';
 const HINT={
@@ -1084,6 +1364,7 @@ function pfSave(){
   try{ const snaps=store.get(LS_PF_SNAP,[]), cur=JSON.stringify(state.pf), last=snaps[snaps.length-1];
     if(!last||last.s!==cur){ snaps.push({at:state.pfSavedAt, s:cur, n:state.pf.pos.length}); while(snaps.length>15) snaps.shift(); store.set(LS_PF_SNAP,snaps); } }catch(e){}
   if(!state.pfPersistAsked && navigator.storage && navigator.storage.persist){ state.pfPersistAsked=true; navigator.storage.persist().catch(()=>{}); }
+  try{ pfWatchCheck({quiet:true}); }catch(e){}
   return true;
 }
 function storageWorks(){ try{ const k='radmat_test_'+Date.now(); localStorage.setItem(k,'1'); const ok=localStorage.getItem(k)==='1'; localStorage.removeItem(k); return ok; }catch(e){ return false; } }
@@ -1149,12 +1430,12 @@ function pfCalc(p){
   const ch=it?itChange(it):null;
   let day=(ch!=null&&price!=null)?p.q*price*ch/(1+ch):null;
   if(day!=null&&p.d&&it&&p.d>=it.d) day=pnl;   // kupione w dniu ostatniej sesji lub później – dzisiejszy wynik liczę od ceny zakupu
-  return {p, it, price, avg, val, pnl, pnlPct, ch, day, h:pfHint(p,it,price,avg)};
+  return {p, it, price, avg, val, pnl, pnlPct, ch, day, h:pfHint(p,it,price,avg), dv:pfDivs(p,it)};
 }
 function pfAll(){
   const rows=state.pf.pos.map(pfCalc);
-  const tot={cost:0,val:0,day:0,dayBase:0,missing:0};
-  for(const r of rows){ tot.cost+=r.p.cost; if(r.val!=null){ tot.val+=r.val; } else { tot.val+=r.p.cost; tot.missing++; } if(r.day!=null){ tot.day+=r.day; tot.dayBase+=r.val-r.day; } }
+  const tot={cost:0,val:0,day:0,dayBase:0,missing:0,div:0};
+  for(const r of rows){ tot.cost+=r.p.cost; if(r.dv) tot.div+=r.dv.sum; if(r.val!=null){ tot.val+=r.val; } else { tot.val+=r.p.cost; tot.missing++; } if(r.day!=null){ tot.day+=r.day; tot.dayBase+=r.val-r.day; } }
   tot.pnl=tot.val-tot.cost; tot.pnlPct=tot.cost?tot.pnl/tot.cost:null; tot.dayPct=tot.dayBase?tot.day/tot.dayBase:null;
   tot.real=state.pf.hist.reduce((a,h)=>a+(h.pnl||0),0);
   for(const r of rows) r.share=tot.val?(r.val!=null?r.val:r.p.cost)/tot.val:0;
@@ -1165,12 +1446,12 @@ function pfAll(){
 /* ---------- widok ---------- */
 function renderTabs(){
   $$('#tabs [data-tab]').forEach(b=>{ const on=b.dataset.tab===state.tab; b.setAttribute('aria-selected',on); b.classList.toggle('on',on); });
-  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs';
+  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs'; $('#viewIke').hidden=state.tab!=='ike';
   const n=state.pf.pos.length, sells=n?state.pf.pos.map(pfCalc).filter(r=>r.h.lv==='sell').length:0;
   $('#pfCount').textContent=n?String(n):''; $('#pfCount').hidden=!n;
   $('#pfAlert').hidden=!sells; $('#pfAlert').title=sells?`${sells} ${sells===1?'spółka':'spółki'} ze wskazówką SPRZEDAJ`:'';
 }
-function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); window.scrollTo(0,0); }
+function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); if(t==='ike') renderIke(); window.scrollTo(0,0); }
 function pfCompanies(){ return Object.values(state.sum).filter(it=>!it.idx).sort((a,b)=>a.t.localeCompare(b.t)); }
 function pfFindTicker(v){
   v=String(v||'').trim(); if(!v) return null;
@@ -1192,7 +1473,11 @@ function renderPf(){
   if(big.length) alerts.push(`<li>⚠ <b>${esc(big[0].p.t)}</b> to ${pct(big[0].share,0).replace('+','')} wartości portfela – duża część pieniędzy w jednej spółce zwiększa ryzyko.</li>`);
   const weak=rows.filter(r=>r.it&&r.it.fk&&r.it.fk.l<=1);
   if(weak.length) alerts.push(`<li>⚠ Słaba kondycja finansowa: ${weak.map(r=>`<b>${esc(r.p.t)}</b>`).join(', ')}.</li>`);
-  if(rows.length && !alerts.length) alerts.push('<li>✓ Żadna pozycja nie wymaga dziś działania – trzymaj i pilnuj stopów.</li>');
+  const soon=rows.filter(r=>r.dv&&r.dv.nx);
+  if(soon.length) alerts.push(`<li><span class="dvtag soon" style="margin:0 4px 0 0">dyw.</span> Zapowiedziana dywidenda: ${soon.map(r=>`<b>${esc(r.p.t)}</b> (odcięcie ${dPL(r.dv.nx.d)})`).join(', ')}.</li>`);
+  if(rows.length && !alerts.some(a=>a.includes('badge')||a.startsWith('<li>⚠'))) alerts.push('<li>✓ Żadna pozycja nie wymaga dziś działania – trzymaj i pilnuj stopów.</li>');
+  const nUn=ntUnread();
+  if(nUn) alerts.unshift(`<li><b>${nUn} ${plN(nUn,'nowe powiadomienie','nowe powiadomienia','nowych powiadomień')}</b> o spółkach z portfela – <a href="#" id="pfNtOpen">pokaż</a>.</li>`);
   const sum = rows.length ? `
     <section class="card pf-sum">
       <div class="pf-kpis">
@@ -1201,6 +1486,7 @@ function renderPf(){
         <div class="kpi"><div class="k">Zysk / strata</div><div class="v ${cls(tot.pnl)}">${zlS(tot.pnl)}</div><div class="s ${cls(tot.pnl)}">${pct(tot.pnlPct,2)}</div></div>
         <div class="kpi"><div class="k">Dziś</div><div class="v ${cls(tot.day)}">${zlS(tot.day)}</div><div class="s ${cls(tot.day)}">${pct(tot.dayPct,2)}</div></div>
         ${state.pf.hist.length?`<div class="kpi"><div class="k">Zysk zrealizowany</div><div class="v ${cls(tot.real)}">${zlS(tot.real)}</div><div class="s">${state.pf.hist.length} ${state.pf.hist.length===1?'sprzedaż':'sprzedaży'}</div></div>`:''}
+        ${tot.div>0?`<div class="kpi"><div class="k">Dywidendy od zakupu</div><div class="v pos">${zlS(tot.div)}</div><div class="s">brutto · razem z kursem ${zlS(tot.pnl+tot.div)}</div></div>`:''}
         <div class="kpi"><div class="k">Spółki</div><div class="v">${rows.length}</div></div>
       </div>
       <ul class="pf-alerts">${alerts.join('')}</ul>
@@ -1249,7 +1535,7 @@ function pfCard(r){
   const p=r.p, it=r.it, h=r.h, H=HINT[h.lv], name=it?it.n:(p.n||p.t), f=state.pfSell&&state.pfSell.id===p.id?state.pfSell:null;
   const del=state.pfDel===p.id;
   return `<article class="card pf-card" data-id="${esc(p.id)}">
-    <div class="pf-top"><button class="pf-name" data-open="${esc(p.t)}" title="Otwórz wykres i analizę"><span class="tk">${esc(p.t)}${ncTag(p.t)}</span><span class="nm">${esc(name)}</span></button><span class="badge ${H.cls}">${H.icon} ${H.lbl}</span></div>
+    <div class="pf-top"><button class="pf-name" data-open="${esc(p.t)}" title="Otwórz wykres i analizę"><span class="tk">${esc(p.t)}${ncTag(p.t)}${dvTag(p.t)}</span><span class="nm">${esc(name)}</span></button><span class="badge ${H.cls}">${H.icon} ${H.lbl}</span></div>
     <div class="pf-nums">
       <div><span class="k">Akcje</span><b>${fmt(p.q,0)}</b></div>
       <div><span class="k">Śr. cena zakupu</span><b>${fmt(r.avg)}</b></div>
@@ -1262,6 +1548,7 @@ function pfCard(r){
     </div>
     <ul class="pf-why">${h.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>
     ${h.stop!=null||h.target!=null?`<div class="pf-lv"><span>Stop <b>${fmt(h.stop)} zł</b></span><span>${h.target!=null&&r.price>=h.target?`Cel <b>${fmt(h.target)} zł</b> ✓ osiągnięty`:`Cel <b>${fmt(h.target)} zł</b>`}</span>${p.d?`<span class="small">kupione ${dPL(p.d)} · ${pfHeld(p.d)}</span>`:''}</div>`:''}
+    ${pfDivHTML(r)}
     ${f?`<div class="pf-sell"><b>Sprzedaż ${esc(p.t)}</b>
       <div class="pf-grid"><label class="fld">Ile akcji<input id="psQ" inputmode="numeric" value="${esc(f.q)}"></label><label class="fld">Cena sprzedaży (zł)<input id="psPx" inputmode="decimal" value="${esc(f.px)}"></label><label class="fld">Data<input id="psD" type="date" max="${todayISO()}" value="${esc(f.d)}"></label></div>
       <div class="pf-actions"><button class="btn primary" data-act="sellok">Zapisz sprzedaż</button><button class="btn" data-act="sellcancel">Anuluj</button><span class="pf-err">${esc(f.err||'')}</span></div></div>`:''}
@@ -1312,6 +1599,7 @@ function pfBind(){
   });
   if($('#pfHistClear')) $('#pfHistClear').onclick=e=>{ if(e.target.dataset.sure){ state.pf.hist=[]; pfSave(); renderPf(); } else { e.target.dataset.sure='1'; e.target.textContent='Na pewno wyczyścić?'; e.target.classList.add('danger'); } };
   $('#pfExport').onclick=pfExport;
+  if($('#pfNtOpen')) $('#pfNtOpen').onclick=e=>{ e.preventDefault(); openNotes(); };
   $('#pfImport').onchange=pfImport;
 }
 async function pfPriceOn(t,iso){
@@ -1409,7 +1697,7 @@ function pfDetailBox(t){
   const r=pfCalc(p), H=HINT[r.h.lv];
   return `<section class="card pf-detail"><div class="pf-top"><h3 class="sec">W Twoim portfelu</h3><span class="badge ${H.cls}">${H.icon} ${H.lbl}</span></div>
     <p>${fmt(p.q,0)} akcji · średnia cena zakupu ${fmt(r.avg)} zł · wartość ${zl(r.val)} · <b class="${cls(r.pnl)}">${zlS(r.pnl)} (${pct(r.pnlPct,2)})</b></p>
-    <ul class="pf-why">${r.h.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul></section>`;
+    <ul class="pf-why">${r.h.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>${pfDivHTML(r)}</section>`;
 }
 function pfAddFromDetail(t){
   const it=state.sum[t]; closeDetail();
@@ -1584,7 +1872,7 @@ function renderList(){ saveView();
       : lv.breakout!=null ? `<span class="small">Wybicie</span> <b class="num">${fmt(lv.breakout)}</b><br><span class="small">Wsparcie</span> <span class="num">${fmt(lv.support)}</span>` : `<span class="small">${S.st==='BRAK'?'za krótka historia notowań':'–'}</span>`;
     const star=state.watch.has(it.t);
     return `<div class="row${state.flash.has(it.t)?' flash':''}" data-t="${esc(it.t)}">
-      <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}${ncTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
+      <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}${ncTag(it.t)}${dvTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
       <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div><div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div></div>
       <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>${it.obr!=null && it.obr<5e4 ? `<div class="small lowliq" title="Średni dzienny obrót z 20 sesji poniżej 50 tys. zł – sygnały mniej wiarygodne, trudno kupić/sprzedać po podanej cenie">⚠ obr. ${fmtVol(it.obr)} zł</div>` : `<div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div>`}</div>
       <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${S.fb?`<div class="small" title="Krótka historia notowań – analiza na krótszym horyzoncie">krótka historia</div>`:''}</div>
@@ -1634,6 +1922,10 @@ function openSettings(){
     <label><input type="checkbox" id="closedOnly" ${s.closedOnly?'checked':''}> Licz sygnały tylko z zamkniętych sesji (w trakcie sesji pomijaj niepełną świecę z dzisiaj)</label>
     <label><input type="checkbox" id="autoRefresh" ${s.autoRefresh?'checked':''}> Aktualizuj automatycznie: przy uruchomieniu, co 15 min w trakcie sesji (9:00–17:20) i po jej zamknięciu</label>
   </fieldset>
+  <fieldset class="fset"><legend>Powiadomienia (Mój portfel)</legend>
+    <label><input type="checkbox" id="ntPopupS" ${s.ntPopup!==false?'checked':''}> Pokazuj wyskakujące powiadomienia, gdy spółka z portfela zbliża się do celu lub go osiąga, zmienia się sygnał albo spółka zapowie dywidendę</label>
+    <label><input type="checkbox" id="ntSoundS" ${s.ntSound?'checked':''}> Sygnał dźwiękowy przy nowym powiadomieniu</label>
+  </fieldset>
   <fieldset class="fset"><legend>Serwer danych</legend>
     <label>Adres (zostaw puste, aby używać domyślnego)<input type="text" id="feed" value="${esc(s.feed||'')}" placeholder="${esc(DEFAULT_FEED)}" autocomplete="off"></label>
     <p class="note" style="margin-top:0">Notowania pobiera automat na GitHubie (repozytorium wig20-dane) co 30 minut w trakcie sesji i po jej zamknięciu.</p>
@@ -1649,9 +1941,9 @@ function saveSettingsFromForm(){
   const s=state.settings;
   s.profile=($('input[name=profile]:checked')||{}).value||s.profile;
   const fee=parseFloat(String($('#fee').value).replace(',','.')); s.fee=isFinite(fee)&&fee>=0?fee:0.3;
-  s.theme=$('#theme').value; s.closedOnly=$('#closedOnly').checked; s.autoRefresh=$('#autoRefresh').checked;
+  s.theme=$('#theme').value; s.closedOnly=$('#closedOnly').checked; s.autoRefresh=$('#autoRefresh').checked; s.ntPopup=$('#ntPopupS').checked; s.ntSound=$('#ntSoundS').checked;
   const f=$('#feed').value.trim(); const changed=f!==(s.feed||''); s.feed=f;
-  saveSettings(); applyTheme(); analyzeAll(); renderAll();
+  saveSettings(); applyTheme(); analyzeAll(); renderAll(); pfWatchCheck({quiet:true});
   $('#dlgSettings').close();
   if(changed) refreshAll();
 }
@@ -1723,7 +2015,7 @@ function openDetail(t, keepScroll){
   <div class="det-head"><div class="wrap">
     <button class="btn" data-act="close">← Wróć</button>
     <button class="star big ${state.watch.has(t)?'on':''}" id="btnStar" title="Obserwuj spółkę">${state.watch.has(t)?'★':'☆'}</button>${co.isIndex?'':`<button class="btn sm" id="btnPfAdd" title="Dodaj tę spółkę do swojego portfela">${state.pf.pos.some(x=>x.t===t)?'＋ Dokup':'＋ Do portfela'}</button>`}
-    <div class="det-title"><h2>${esc(co.t)}${ncTag(co.t)} <span>${esc(co.n)}${A.proxyNote?' ('+esc(A.proxyNote)+')':''}</span></h2>
+    <div class="det-title"><h2>${esc(co.t)}${ncTag(co.t)}${dvTag(co.t)} <span>${esc(co.n)}${A.proxyNote?' ('+esc(A.proxyNote)+')':''}</span></h2>
       <div class="det-price"><b>${fmt(A.live?A.live.price:A.close)}${A.unit}</b> <span class="${cls(dispChange(A))}">${arrow(dispChange(A))} ${pct(dispChange(A),2)}</span>
         <span class="small">${A.live?'· '+liveLbl(A)+' (dane opóźnione ok. 15 min) · sygnał liczony na zamknięciu '+dPL(A.lastDate):'· zamknięcie '+dPL(A.lastDate)}</span>
         <span id="refOneMsg" class="small"></span></div>
@@ -1742,6 +2034,7 @@ function openDetail(t, keepScroll){
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
     ${pfDetailBox(t)}
+    ${dvCardHTML(t)}
     ${fundCardHTML(t)}
     <section class="card">
       <div class="chart-tools" id="chartTools"></div>
@@ -1838,6 +2131,7 @@ function buildView(t){
   else B = mode==='ichimoku' ? A.full : A.bars;
   if(!B||B.c.length<5) return null;
   const v={B, mode, tf, unit:A.unit, P:A.P, hasVol:B.v.slice(-60).some(x=>x>0), events:[], levels:A.levels.stop!=null?A.levels:{}};
+  if(tf==='D'){ const dv=(state.data[t]&&state.data[t].dv)||[]; if(dv.length){ v.div={}; dv.forEach(([d,a])=>{ v.div[d]=a; }); } }
   if(mode==='classic'){
     v.I = (tf==='D') ? A.I : computeIndicators(B,A.P);
     if(tf==='D') v.events=A.events;
@@ -1971,6 +2265,7 @@ function showTip(i,x,y,W){
     ${v.hasVol?`<div class="tr"><span>Wolumen</span><span>${fmtVol(B.v[i])}</span></div>`:''}`;
   if(v.mode==='ichimoku'){ const K=v.K; h+=tr('Tenkan-sen',K.ten[i],'--s1')+tr('Kijun-sen',K.kij[i],'--s2')+tr('Senkou A',K.senA[i])+tr('Senkou B',K.senB[i])+tr('Chikou (kurs +26)',K.chik[i],'--s3'); }
   else { const I=v.I; h+=tr('Śr. '+v.P.fast,I.smaF[i],'--s1')+tr('Śr. '+v.P.slow,I.smaS[i],'--s2')+tr('Śr. '+v.P.trend,I.smaT[i],'--s3')+tr('RSI',I.rsi[i],null,1)+`<div class="tr"><span>MACD / sygnał</span><span>${fmt(I.macd[i],2)} / ${fmt(I.sig[i],2)}</span></div>`; }
+  if(v.div&&v.div[B.d[i]]!=null) h+=`<div class="ev"><b style="color:var(--s3)">● Dywidenda ${fmt(v.div[B.d[i]])} zł na akcję</b><br>dzień odcięcia – kurs zwykle spada mniej więcej o kwotę dywidendy</div>`;
   (v.events||[]).filter(e=>e.i===i).forEach(e=>{ h+=`<div class="ev"><b style="color:${e.type==='buy'?'var(--up)':'var(--down)'}">${e.type==='buy'?'▲ Sygnał kupna':'▼ Sygnał sprzedaży'}</b><br>${e.reasons.map(esc).join('<br>')}</div>`; });
   tip.innerHTML=h; tip.hidden=false;
   const tw=tip.offsetWidth, th=tip.offsetHeight;
@@ -2057,6 +2352,11 @@ function drawChart(cv,v,opt){
       g.closePath(); g.stroke(); g.fill();
     }
   }
+  // dni odcięcia dywidendy (kółko „D” pod świecą)
+  if(v.div){ g.save(); g.font='700 10px system-ui,sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+    for(let i=from;i<=to;i++){ const a=v.div[B.d[i]]; if(a==null) continue; const xx=X(i), yy=Math.min(pp.y+pp.h-9, Yp(B.l[i])+(ichi?13:26));
+      g.beginPath(); g.arc(xx,yy,7,0,7); g.fillStyle=C.s3; g.fill(); g.lineWidth=2; g.strokeStyle=C.surface; g.stroke(); g.fillStyle='#fff'; g.fillText('D',xx,yy+.5); }
+    g.restore(); }
   // poziomy stop / cel + etykiety na osi bez nachodzenia
   const tags=[]; const inView=val=>val>mn&&val<mx;
   if(lv.stop!=null){
@@ -2200,6 +2500,12 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Powiadomienia</h3>
+  <p>Dzwonek w górnym pasku zbiera powiadomienia o spółkach z <b>Mojego portfela</b>. Nowe powiadomienie wyskakuje też w rogu ekranu, gdy: kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, sygnał systemu zmienia się na KUP lub SPRZEDAJ, wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) oraz gdy spółka zapowie dywidendę. Aplikacja sprawdza to przy każdej aktualizacji notowań – najwygodniej z włączoną aktualizacją automatyczną. Okienka i dźwięk wyłączysz w Ustawieniach albo w oknie powiadomień.</p>
+  <h3>Dywidendy</h3>
+  <p>Spółki, które w ostatnich 12 miesiącach wypłaciły dywidendę, mają na liście znaczek <span class="dvtag">dyw. 5,0%</span> ze stopą dywidendy (suma dywidend z 12 miesięcy podzielona przez kurs). Żółty znaczek <span class="dvtag soon">dyw. 20.06</span> oznacza zapowiedzianą dywidendę z datą dnia odcięcia. W szczegółach spółki jest karta „Dywidenda”: ostatnia wypłata, suma z 12 miesięcy i wypłaty w kolejnych latach, a na wykresie dziennym dni odcięcia oznacza kółko „D”. W portfelu aplikacja liczy dywidendy otrzymane od daty zakupu (szacunkowo, dla obecnej liczby akcji). Żeby dostać dywidendę, trzeba mieć akcje na koniec sesji przed dniem odcięcia. Dane o dywidendach pochodzą z Yahoo Finance i mogą być niepełne.</p>
+  <h3>IKE/IKZE</h3>
+  <p>Zakładka <b>IKE/IKZE</b> wyjaśnia, jak inwestować na giełdzie z ulgą podatkową: aktualne limity wpłat, zasady wypłaty i kalkulator, który pokazuje, ile podatku możesz zaoszczędzić (także na podstawie Twojego portfela).</p>
   <h3>Kondycja spółki</h3>
   <p>Po kliknięciu spółki pod sygnałem zobaczysz jej kondycję finansową: ocenę (od bardzo słabej do bardzo dobrej), opis działalności, krótki opis kondycji po polsku (rentowność, dynamika przychodów i zysku, zadłużenie, płynność, gotówka), wycenę, zdanie analityków oraz wyniki z ostatnich lat i kwartałów. Dane finansowe pochodzą z Yahoo Finance i są odświeżane raz na dobę. Ocena kondycji widnieje też na kartach Top 3 i wpływa na ranking.</p>
   <h3>Filtry i lista</h3>
@@ -2242,13 +2548,15 @@ function renderHelp(){
     <li><b>ATR</b> – średni dzienny zakres ruchu ceny; używany do ustawiania stopów proporcjonalnie do zmienności spółki.</li>
   </ul>
   <h3>Ważne</h3>
-  <p>To narzędzie edukacyjne. Reguły są proste i mechaniczne – nie uwzględniają wyników finansowych, wiadomości ani dywidend (kursy z Yahoo nie są korygowane o dywidendy, więc w dniu odcięcia dywidendy może pojawić się fałszywy spadek). Zawsze sprawdź test strategii dla danej spółki i podejmuj decyzje samodzielnie.</p>`;
+  <p>To narzędzie edukacyjne. Reguły są proste i mechaniczne – nie uwzględniają wyników finansowych, wiadomości ani dywidend (kursy z Yahoo nie są korygowane o dywidendy, więc w dniu odcięcia dywidendy może pojawić się spadek kursu – takie dni oznacza na wykresie dziennym kółko „D”). Zawsze sprawdź test strategii dla danej spółki i podejmuj decyzje samodzielnie.</p>`;
 }
 
 
 /* ---------------- Start ---------------- */
 function bindGlobal(){
   $('#btnRefresh').onclick=()=>refreshAll();
+  $('#btnBell').onclick=openNotes;
+  $('#ntClear').onclick=()=>{ state.nt=[]; ntSave(); renderNotes(); renderBell(); if(state.tab==='pf') renderPfSafe(); };
   $$('#tabs [data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
   $('#viewPf').addEventListener('focusout',()=>setTimeout(()=>{ if(state.pfPending&&state.tab==='pf') renderPfSafe(); },300));
   $('#btnSettings').onclick=openSettings;
@@ -2273,9 +2581,9 @@ function bindGlobal(){
   setInterval(autoTick,60e3);
 }
 function init(){
-  loadSettings(); pfLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig'||tb==='zs') state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
+  loadSettings(); pfLoad(); ntLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig'||tb==='zs'||tb==='ike') state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
   const j=store.get(LS_SUM,null); if(j&&Array.isArray(j.items)) applySummary(j,false);
-  renderAll();
+  renderAll(); pfWatchCheck();
   setStatus(j?'ok':'', j?`Dane z pamięci · stan notowań: ${fmtDataTime(j.updated)} – naciśnij „Aktualizuj”, aby pobrać najnowsze.`:'Brak danych – naciśnij „Aktualizuj”.');
   autoTick();
 }

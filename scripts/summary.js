@@ -64,6 +64,21 @@ for (const u of uni.items) {
       }
       it.nz = Bs.v.slice(-20).filter(v => !v).length;                            // sesje bez obrotu w ostatnich 20
     }
+    // dywidendy: suma z 12 miesięcy, stopa, ostatnie wypłaty i zapowiedziany dzień odcięcia
+    const dvAll = Array.isArray(x.dv) ? x.dv.filter(a => Array.isArray(a) && a[1] > 0) : [];
+    let nx = null;
+    try {
+      const ff0 = path.join(store, 'f', u.t + '.json');
+      if (fs.existsSync(ff0)) { const F0 = JSON.parse(fs.readFileSync(ff0, 'utf8')); const dvf = F0.div || {}; if (dvf.ex && dvf.ex > w.date) nx = { d: dvf.ex, p: dvf.pay || null, a: null }; }
+    } catch (e) { /* brak danych */ }
+    const fut = dvAll.filter(a => a[0] > w.date), past = dvAll.filter(a => a[0] <= w.date);
+    if (fut.length) nx = { d: fut[0][0], a: sig(fut[0][1]), p: nx && nx.d === fut[0][0] ? nx.p : null };
+    if (past.length || nx) {
+      const yAgo = new Date(Date.parse(w.date + 'T12:00:00Z') - 365 * 864e5).toISOString().slice(0, 10);
+      const ttm = past.filter(a => a[0] > yAgo).reduce((s, a) => s + a[1], 0);
+      it.dv = { a: ttm ? sig(ttm) : 0, y: ttm && it.c ? r(ttm / it.c, 4) : 0, h: past.slice(-10).reverse().map(a => [a[0], sig(a[1])]) };
+      if (nx) it.dv.nx = nx;
+    }
     // ocena kondycji finansowej (scripts/fundamentals.py → f/<SKRÓT>.json)
     try {
       const ff = path.join(store, 'f', u.t + '.json');
@@ -98,6 +113,6 @@ for (const u of uni.items) {
   } catch (e) { fails++; console.log('Błąd', u.t, e.message); }
 }
 items.sort((a, b) => a.t.localeCompare(b.t));
-const out = { ok: true, app: 'gpw-sygnaly', updated: uni.updated, mode: uni.mode, count: items.length, items };
+const out = { ok: true, app: 'gpw-sygnaly', updated: uni.updated, mode: uni.mode, dv: (uni.fmt || 1) >= 2, count: items.length, items };
 fs.writeFileSync(path.join(store, 'summary.json'), JSON.stringify(out));
 console.log(`summary.json: ${items.length} spółek, błędy: ${fails}, ${Math.round(fs.statSync(path.join(store, 'summary.json')).size / 1024)} KB`);

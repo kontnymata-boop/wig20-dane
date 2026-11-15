@@ -5,7 +5,8 @@ RadMat · Sygnały GPW – robot pobierający notowania (GitHub Actions)
 Dla wszystkich spółek rynku głównego GPW (scripts/companies.json) oraz NewConnect i nowych debiutów
 (lista z wyszukiwarki akcji Yahoo, odświeżana raz na dobę) pobiera z Yahoo Finance:
   • notowania dzienne – pełne 10 lat raz dziennie (po sesji), w ciągu sesji tylko ostatnie dni,
-  • notowania godzinowe – do wykresów Ichimoku 1 godz.
+  • notowania godzinowe – do wykresów Ichimoku 1 godz.,
+  • dywidendy (kwota na akcję i dzień odcięcia) – zapisywane razem z notowaniami dziennymi jako „dv”.
 Wynik trafia do folderu STORE (gałąź `data` repozytorium):
   d/<SKRÓT>.json, h/<SKRÓT>.json, universe.json
 Dodatkowo zapisuje data/wig20.json (zgodność ze starszą wersją aplikacji WIG20 Sygnały).
@@ -32,6 +33,7 @@ except ImportError:
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WAW = ZoneInfo("Europe/Warsaw")
 KEEP_DAYS = 2600          # ok. 10 lat sesji
+DFMT = 2                  # wersja formatu d/<SKRÓT>.json (2 = z dywidendami „dv”); zmiana wymusza pełne pobranie
 INDEX = {"t": "WIG20", "n": "WIG20 (wg ETF Beta WIG20TR)", "y": "WIG20.WA",
          "alts": ["^WIG20", "WIG20TR.WA", "ETFBW20TR.WA"], "w20": False, "idx": True}
 LEGACY = [  # skróty dla starej wersji aplikacji (data/wig20.json, klucze = symbole Yahoo)
@@ -82,6 +84,17 @@ def compact(res):
         out["v"].append(int(vol[i]) if i < len(vol) and vol[i] else 0)
     if not out["t"]:
         raise LookupError("pusta lista notowań")
+    # dywidendy (Yahoo: events.dividends – kwota na akcję, data = dzień odcięcia)
+    dv = {}
+    for v in ((res.get("events") or {}).get("dividends") or {}).values():
+        try:
+            a = float(v.get("amount"))
+            if a > 0:
+                dv[day_key(int(v["date"]), m.get("gmtoffset"), False)] = round(a, 4)
+        except Exception:
+            pass
+    if dv:
+        out["dv"] = [[d, dv[d]] for d in sorted(dv)]
     return out
 
 
@@ -91,7 +104,7 @@ def chart(sym, rng, interval):
         span = (f"period1={int(time.time()) - int(rng[1:-1]) * 366 * 86400}&period2={int(time.time()) + 86400}"
                 if rng.startswith("p") else f"range={rng}")      # "p10y" = jawne daty od–do
         url = (f"https://{host}.finance.yahoo.com/v8/finance/chart/{sym}"
-               f"?{span}&interval={interval}&includePrePost=false")
+               f"?{span}&interval={interval}&includePrePost=false" + ("&events=div" if interval == "1d" else ""))
         for attempt in range(3):
             try:
                 r = session().get(url, timeout=30)
@@ -195,6 +208,15 @@ def merge(old, new, intraday=False, keep=KEEP_DAYS):
     for k in keys:
         t, o, h, l, c, v = rows[k]
         out["t"].append(t); out["o"].append(o); out["h"].append(h); out["l"].append(l); out["c"].append(c); out["v"].append(v)
+    if not intraday:
+        dv = {}
+        for src in (old, new):
+            for d, a in (src.get("dv") or []):
+                dv[d] = a
+        first = keys[0] if keys else ""
+        dv = [[d, dv[d]] for d in sorted(dv) if d >= first]
+        if dv:
+            out["dv"] = dv
     return out
 
 
@@ -284,7 +306,7 @@ def main():
     prev = load(os.path.join(store, "universe.json")) or {}
     last_full = prev.get("lastFull") or ""
     after_close = now_w.weekday() < 5 and (now_w.hour > 17 or (now_w.hour == 17 and now_w.minute >= 30))
-    full = args.full or not prev or (after_close and last_full[:10] != now_w.strftime("%Y-%m-%d"))
+    full = args.full or not prev or prev.get("fmt") != DFMT or (after_close and last_full[:10] != now_w.strftime("%Y-%m-%d"))
     if not full and last_full:
         try:
             full = (now_w - datetime.fromisoformat(last_full)).total_seconds() > 30 * 3600
@@ -417,7 +439,7 @@ def main():
     if len([i for i in ok if not i.get("idx")]) < min(50, max(1, len(entities) // 2)):
         print("Za mało pobranych spółek – nie nadpisuję listy.")
         sys.exit(1)
-    uni = {"ok": True, "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    uni = {"ok": True, "fmt": DFMT, "updated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
            "lastFull": now_w.isoformat(timespec="minutes") if full else last_full,
            "mode": "full" if full else "quick", "resolved": resolved, "disc": disc, "items": infos}
     dump(os.path.join(store, "universe.json"), uni)

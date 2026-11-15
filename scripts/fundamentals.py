@@ -26,7 +26,7 @@ except ImportError:  # lokalne testy
     http = None
     IMPERSONATE = False
 
-QS_MODULES = "assetProfile,summaryDetail,financialData,defaultKeyStatistics,price"
+QS_MODULES = "assetProfile,summaryDetail,financialData,defaultKeyStatistics,price,calendarEvents"
 TS_KEYS = ["TotalRevenue", "NetIncome", "OperatingIncome", "EBITDA", "StockholdersEquity", "TotalDebt",
            "CashAndCashEquivalents", "CurrentAssets", "CurrentLiabilities", "FreeCashFlow", "OperatingCashFlow"]
 TS_TYPES = ",".join(f"{p}{k}" for p in ("annual", "quarterly", "trailing") for k in TS_KEYS)
@@ -93,7 +93,7 @@ INDUSTRIES = {
 }
 REC = {"strong_buy": "zdecydowanie kupuj", "buy": "kupuj", "hold": "trzymaj", "underperform": "słabiej od rynku",
        "sell": "sprzedaj", "strong_sell": "zdecydowanie sprzedaj"}
-FVER = 5  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
+FVER = 6  # zmiana wersji wymusza ponowne przeliczenie wszystkich plików f/
 LEVELS = ["bardzo słaba", "słaba", "przeciętna", "dobra", "bardzo dobra"]
 
 _local = threading.local()
@@ -464,11 +464,23 @@ def assess(t, name, qs, S, price=None, fx=None, opis=None, opis_src=None):
     for d in sorted(set(qrd) | set(qnd))[-5:]:
         quarters.append({"p": qlabel(d), "rev": qrd.get(d), "ni": qnd.get(d)})
 
+    # dywidenda: dzień odcięcia (także zapowiedziany), dzień wypłaty, roczna stopa wg Yahoo
+    ce = qs.get("calendarEvents") or {}
+
+    def iso(ts):
+        try:
+            return datetime.fromtimestamp(int(ts) + 3600, tz=timezone.utc).strftime("%Y-%m-%d") if ts else None
+        except Exception:
+            return None
+    div = {"ex": iso(raw(ce, "exDividendDate") or raw(sd, "exDividendDate")), "pay": iso(raw(ce, "dividendDate")),
+           "rate": raw(sd, "dividendRate"), "yield": raw(sd, "dividendYield")}
+    div = {k: v for k, v in div.items() if v is not None}
+
     has_any = bool(lines or extra or years)
     out = {
         "t": t, "v": FVER, "ok": has_any, "upd": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "src": "Yahoo Finance", "cur": cur, "asof": asof, "fin": is_fin,
-        "intro": intro, "grade": grade, "lines": lines, "extra": extra, "years": years, "quarters": quarters,
+        "intro": intro, "grade": grade, "lines": lines, "extra": extra, "years": years, "quarters": quarters, "div": div or None,
         "info": {"sector": sector_en or None, "industry": industry_en or None, "branza": branza,
                  "web": ap.get("website"), "opis": opis, "opisSrc": opis_src if opis else None,
                  "desc": None if opis else ((ap.get("longBusinessSummary") or "")[:900] or None)},
