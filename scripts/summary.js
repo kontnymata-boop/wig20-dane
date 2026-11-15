@@ -37,7 +37,7 @@ for (const u of uni.items) {
     const n = B.d.length;
     let live = null;
     if (n > 1 && B.d[n - 1] === w.date && !['Sat', 'Sun'].includes(w.wd) && w.min < 17 * 60 + 15) {
-      live = { p: sig(B.c[n - 1]), ch: r(B.c[n - 1] / B.c[n - 2] - 1, 4) };
+      live = { p: u.idx ? r(B.c[n - 1], 2) : sig(B.c[n - 1]), ch: r(B.c[n - 1] / B.c[n - 2] - 1, 4) };
       const o = {}; for (const k of Object.keys(B)) o[k] = B[k].slice(0, -1); B = o;
     }
     const Bs = E.sliceBars(B, 1300);
@@ -45,7 +45,7 @@ for (const u of uni.items) {
     const c20 = Bs.c.slice(-20), v20 = Bs.v.slice(-20);
     const obr = c20.reduce((s, c, i) => s + c * v20[i], 0) / Math.max(1, c20.length);
     const it = {
-      t: u.t, n: u.n, y: x.sym || u.y, w20: !!u.w20, idx: !!u.idx, nc: !!u.nc, d: Bs.d[L], c: sig(Bs.c[L]),
+      t: u.t, n: u.n, y: x.sym || u.y, w20: !!u.w20, idx: !!u.idx, nc: !!u.nc, d: Bs.d[L], c: u.idx ? r(Bs.c[L], 2) : sig(Bs.c[L]),
       ch: L > 0 ? r(Bs.c[L] / Bs.c[L - 1] - 1, 4) : null, obr: Math.round(obr), live,
       sp: Bs.c.slice(-60).map(sig), s: {}, ichi: {},
       ix: u.ix && u.ix.length ? u.ix : undefined, grp: u.grp || undefined, nm: u.nm || undefined,

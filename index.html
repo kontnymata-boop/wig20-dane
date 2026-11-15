@@ -148,6 +148,22 @@
 .potline{font-size:13.5px}
 @media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
 .lowliq{color:var(--text-2);font-weight:600}
+/* indeksy */
+.ix-top{display:flex;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;align-items:flex-start}
+.ix-tbl td,.ix-tbl th{white-space:nowrap}
+.ix-tbl tr[data-ix]{cursor:pointer} .ix-tbl tr[data-ix]:hover td{background:var(--surface-2)}
+.ix-tbl .nm{font-weight:700} .ix-tbl .cnt{font-size:12px;color:var(--text-2);font-weight:500}
+.ix-tbl canvas.spark{width:90px;height:26px}
+#viewIx{display:flex;flex-direction:column;gap:12px;margin-bottom:12px} #viewIx[hidden]{display:none} #viewIx .card{margin:0}
+.ix-tbl .mv{display:none;color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums}
+@media (max-width:600px){ .ix-tbl .hm,.ix-tbl .hm2{display:none} .ix-tbl .mv{display:block} .ix-tbl td,.ix-tbl th{padding-left:5px;padding-right:5px} .ix-tbl .cnt{display:block} .ix-bar{grid-template-columns:110px 1fr auto!important} }
+.mk-ix{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13.5px;color:var(--text-2)}
+.mk-ix button[data-mkix]{border:0;background:none;padding:2px 0;cursor:pointer;color:var(--text);font:inherit}
+.ixline{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ixchip{border:1px solid var(--border);background:var(--page);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--text);font-family:inherit}
+.ixchip:hover{background:var(--surface-2)}
+.chip-sel{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:7px 12px;font:inherit;font-size:13.5px;max-width:260px;cursor:pointer}
+.chip-sel.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:650}
 .idx-hit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;margin:0 0 8px;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;background:var(--surface-2);font-size:14px}
 .frz{color:var(--neg-text);font-weight:650}
 .frz-card{border-left:4px solid var(--watch);background:var(--surface-2)}
@@ -447,10 +463,12 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div class="statusbar" id="statusbar"><span class="dot" id="stDot"></span><span id="stText">Wczytywanie…</span><div class="progress" id="stProg" hidden><i></i></div><span id="stErr"></span></div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Widok">
     <button role="tab" data-tab="sig" class="on" aria-selected="true">Sygnały</button>
+    <button role="tab" data-tab="ix" aria-selected="false">Indeksy</button>
     <button role="tab" data-tab="zs" aria-selected="false">Złote strzały</button>
     <button role="tab" data-tab="pf" aria-selected="false">Mój portfel <span class="tabcnt" id="pfCount" hidden></span><span class="tabalert" id="pfAlert" hidden aria-label="są pozycje do sprzedaży">▼</span></button>
     <button role="tab" data-tab="ike" aria-selected="false">IKE/IKZE</button>
   </nav>
+  <div id="viewIx" hidden></div>
   <div id="viewSig">
   <section class="card notice" id="notice" hidden></section>
   <section class="card market" id="market" hidden></section>
@@ -508,7 +526,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.5 (15.11.2026)';
+const APP_VERSION = '3.6 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -969,7 +987,7 @@ async function ensureDaily(t,force){
   const at=Date.now(); state.data[t]=dailyFrom(t,x,at); cacheDaily(t,{x,at}); delete state.errors[t];
   return state.data[t];
 }
-function companyByT(t){ const it=state.sum[t]; if(it) return {t:it.t, n:it.idx?'Indeks WIG20':it.n, isIndex:!!it.idx}; return {t, n:t===INDEX_DEF.t?'Indeks WIG20':t, isIndex:t===INDEX_DEF.t}; }
+function companyByT(t){ const it=state.sum[t]; if(it) return {t:it.t, n:it.idx?'Indeks '+it.n:it.n, isIndex:!!it.idx}; return {t, n:t===INDEX_DEF.t?'Indeks WIG20':t, isIndex:t===INDEX_DEF.t}; }
 function barsForAnalysis(t){
   const x=state.data[t]; if(!x) return null;
   const b=x.bars, n=b.d.length; state.incomplete[t]=false;
@@ -1059,7 +1077,7 @@ const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?'
 const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
 const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
-function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); renderBell(); }
+function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); if(state.tab==='ix') renderIx(); renderBell(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const all=Object.values(state.sum).filter(i=>!i.idx), n=all.length, nNc=all.filter(i=>i.nc).length; $('#profileLbl').textContent=`${n?(nNc?(n-nNc)+' spółek z rynku głównego GPW i '+nNc+' z NewConnect · ':n+' spółek z rynku głównego GPW · '):''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
 function showW20List(){
   if(state.detail) closeDetail();
@@ -1080,11 +1098,13 @@ function renderMarket(){
   if(!it){ el.hidden=true; return; }
   const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it);
   el.hidden=false;
-  el.innerHTML=`<span class="mk-name">WIG20 <span class="small">(wg ETF Beta WIG20TR)</span></span><span class="mk-val">${fmt(itPrice(it),2)} zł</span>
+  const etf=/^ETF/i.test(it.y||'');
+  el.innerHTML=`<span class="mk-name">WIG20${etf?' <span class="small">(wg ETF Beta WIG20TR)</span>':''}</span><span class="mk-val">${fmt(itPrice(it),2)} ${etf?'zł':'pkt'}</span>
     <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span>
     <span>Trend: <b>${esc(S.tr||'–')}</b></span><span>Siła techniczna: <b>${S.sc!=null?S.sc+'/100':'–'}</b></span>
     <span class="badge ${st.cls}">${st.icon} ${st.label}</span><span class="small">sesja ${dPL(it.d)}</span>
     <button class="btn sm" id="mkW20" title="Pokaż na liście 20 spółek z indeksu WIG20">Spółki z WIG20 →</button>
+    <span class="mk-ix">${['WIG','MWIG40','SWIG80','NCINDEX'].map(k=>state.sum[k]).filter(Boolean).map(x=>{ const c=itChange(x); return `<button data-mkix="${esc(x.t)}" title="Pokaż wykres i sygnał ${esc(x.n)}">${esc(x.n)} <b class="${cls(c)}">${pct(c,2)}</b></button>`; }).join('')}${ixList().length>1?'<button class="btn sm" id="mkAll">Wszystkie indeksy i sektory →</button>':''}</span>
     <span class="mk-note">${S.bear?'⚠ Rynek (WIG20) jest poniżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – sygnały kupna są w takim otoczeniu bardziej ryzykowne.':'Rynek (WIG20) jest powyżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – otoczenie sprzyja sygnałom kupna.'}</span>`;
 }
 
@@ -1185,6 +1205,69 @@ function potLine(t){
   if(!p){ const r=potentialEval(it); return `<p class="note potline">Potencjał wzrostowy: spółka nie spełnia dziś warunków rankingu Top 3 – ${esc(r.why||'')}.</p>`; }
   const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
+}
+/* ================= INDEKSY ================= */
+const IX_GRP=[['main','Główne indeksy'],['sector','Indeksy sektorowe'],['macro','Makrosektory'],['other','Pozostałe indeksy']];
+const IX_ORDER=['WIG20','WIG','WIG30','MWIG40','SWIG80','WIG140','WIG-POLAND','NCINDEX'];
+const IX_ALL={WIG:'gpw','WIG-POLAND':'gpw',NCINDEX:'nc'};   // indeksy całego rynku – zamiast składu filtr rynku
+const LS_IX_SORT='radmat_gpw_indeksy_sort';
+function ixList(){
+  const g=x=>{ const i=IX_GRP.findIndex(([k])=>k===(x.grp||'main')); return i<0?9:i; }, o=x=>{ const i=IX_ORDER.indexOf(x.t); return i<0?99:i; };
+  return Object.values(state.sum).filter(it=>it.idx).sort((a,b)=>g(a)-g(b)||o(a)-o(b)||String(a.n).localeCompare(String(b.n),'pl'));
+}
+const ixName=t=>{ const it=state.sum[t]; return it?it.n:t; };
+const ixMembers=t=>baseItems().filter(i=>(i.ix||[]).includes(t)||(t==='WIG20'&&!i.ix&&i.w20));
+const nv=x=>x==null||!isFinite(x)?-1e9:x;
+function renderIx(){
+  const el=$('#viewIx'); if(!el) return;
+  const L=ixList();
+  if(!L.length){ el.innerHTML=`<section class="card"><p>Najpierw wczytaj notowania – naciśnij <b>⟳ Aktualizuj</b>.</p></section>`; return; }
+  if(state.ixSort==null) state.ixSort=store.get(LS_IX_SORT,'ord')||'ord';
+  const srt=state.ixSort, val=(it,k)=>k==='ch'?itChange(it):k==='sc'?itP(it).sc:it[k];
+  const sorted=list=>srt==='ord'?list:list.slice().sort((a,b)=>nv(val(b,srt))-nv(val(a,srt)));
+  const row=it=>{ const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it), n=IX_ALL[it.t]?0:ixMembers(it.t).length;
+    return `<tr data-ix="${esc(it.t)}"><td style="text-align:left"><span class="nm">${esc(it.n)}</span>${n?` <span class="cnt">${n} ${plN(n,'spółka','spółki','spółek')}</span>`:''}<span class="mv">${fmt(itPrice(it),2)} pkt</span></td><td class="hm2">${fmt(itPrice(it),2)}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td class="hm ${cls(it.m1)}">${pct(it.m1,1)}</td><td class="${cls(it.m3)}">${pct(it.m3,1)}</td><td class="hm ${cls(it.y1)}">${pct(it.y1,1)}</td><td style="text-align:left"><span class="badge ${st.cls}">${st.icon} ${st.label}</span></td><td class="hm2">${S.sc!=null?S.sc:'–'}</td><td class="hm"><canvas class="spark" data-t="${esc(it.t)}"></canvas></td></tr>`; };
+  const head=`<tr><th style="text-align:left">Indeks</th><th class="hm2">Wartość (pkt)</th><th>Dziś</th><th class="hm">1 mies.</th><th>3 mies.</th><th class="hm">12 mies.</th><th style="text-align:left">Sygnał</th><th class="hm2">Siła</th><th class="hm">60 sesji</th></tr>`;
+  const table=(g,lbl)=>{ const rows=sorted(L.filter(i=>(i.grp||'main')===g)); return rows.length?`<section class="card"><h3 class="sec">${lbl}</h3><div class="tbl-scroll"><table class="t ix-tbl">${head}${rows.map(row).join('')}</table></div></section>`:''; };
+  const sec=L.filter(i=>i.grp==='sector'&&i.m3!=null).sort((a,b)=>b.m3-a.m3);
+  const mx=Math.max(0,...sec.map(i=>i.m3)), mn=Math.max(0,...sec.map(i=>-i.m3)), span=(mx+mn)||1, z=mn/span*100;
+  const bars=sec.length?`<section class="card"><h3 class="sec">Sektory – zmiana w ostatnich 3 miesiącach</h3><div class="pb-list">${sec.map(i=>{ const w=Math.abs(i.m3)/span*100;
+      return `<div class="pb-row ix-bar" data-ix="${esc(i.t)}" style="cursor:pointer;grid-template-columns:150px 1fr auto" title="${esc(i.n)}: ${pct(i.m3,1)} w 3 miesiące, ${pct(itChange(i),2)} dziś"><span class="tk">${esc(String(i.n).replace(/^WIG-/,''))}</span><span class="pb-track"><span class="z" style="left:${z.toFixed(2)}%"></span><i class="${i.m3<0?'dn':'up'}" style="${i.m3<0?`right:${(100-z).toFixed(2)}%`:`left:${z.toFixed(2)}%`};width:${w.toFixed(2)}%"></i></span><span class="v ${cls(i.m3)}"><b>${pct(i.m3,1)}</b></span></div>`; }).join('')}</div>
+      <p class="small" style="margin:8px 0 0">Kliknij sektor, żeby zobaczyć wykres indeksu i spółki z tego sektora.</p></section>`:'';
+  el.innerHTML=`<section class="card"><div class="ix-top"><div><h2 style="margin:0 0 4px;font-size:20px">Indeksy GPW</h2><p class="small" style="margin:0;max-width:760px">Wartości w punktach. Sygnały liczę tak samo jak dla spółek (horyzont: ${esc(PROFILES[state.settings.profile].short)}). Indeksu nie kupisz bezpośrednio – sygnał pokazuje kierunek rynku albo sektora. Kliknij indeks, żeby zobaczyć wykres i spółki, które do niego należą.</p></div>
+      <label class="small">Sortuj: <select id="ixSort" class="pf-select">${[['ord','kolejność'],['ch','zmiana dziś'],['m1','1 miesiąc'],['m3','3 miesiące'],['y1','12 miesięcy'],['sc','siła techniczna']].map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div></section>
+    ${table('main','Główne indeksy')}${bars}${table('sector','Indeksy sektorowe')}${table('macro','Makrosektory')}${table('other','Pozostałe indeksy')}
+    <p class="note" style="margin:0">Notowania indeksów: Yahoo Finance (świece godzinowe złożone w dzienne) i bankier.pl (starsza historia); skład indeksów: biznesradar.pl, aktualizowany raz dziennie.</p>`;
+  $$('#viewIx [data-ix]').forEach(r=>r.onclick=()=>showCompany(r.dataset.ix));
+  $('#ixSort').onchange=e=>{ state.ixSort=e.target.value; store.set(LS_IX_SORT,state.ixSort); renderIx(); };
+  $$('#viewIx canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); });
+}
+function showIxList(spec){
+  if(state.detail) closeDetail();
+  if(state.tab!=='sig') setTab('sig');
+  state.sig='all'; state.search=''; const se=$('#search'); if(se) se.value=''; state.shown=PAGE;
+  if(spec==='w20'){ state.filter='w20'; state.ixf=''; }
+  else if(spec==='gpw'||spec==='nc'){ state.filter=spec; state.ixf=''; }
+  else { state.filter='all'; state.ixf=String(spec).replace(/^ix:/,''); }
+  renderFilters(); renderTiles(); renderList();
+  const f=$('#filters'); if(f) f.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function ixMembersCardHTML(t){
+  const it=state.sum[t]; if(!it) return '';
+  const all=IX_ALL[t];
+  const note=`<p class="note" style="margin:0 0 8px">Indeksu nie kupisz bezpośrednio – sygnał pokazuje kierunek ${it.grp==='sector'?'całego sektora':'rynku'}. Możesz z niego skorzystać, kupując spółki z indeksu albo fundusz ETF na ten indeks, jeśli taki jest notowany.</p>`;
+  const title=`Spółki w indeksie ${esc(it.n)}`;
+  if(all) return `<section class="card"><h3 class="sec">${title}</h3>${note}<p style="margin:0">${all==='nc'?'W NCIndex są wszystkie spółki z NewConnect.':'W indeksie '+esc(it.n)+' są prawie wszystkie spółki rynku głównego.'} <button class="btn sm" data-ixlist="${all}">Pokaż je na liście</button></p></section>`;
+  const rows=ixMembers(t).sort((a,b)=>((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio)||nv(itP(b).sc)-nv(itP(a).sc));
+  if(!rows.length) return `<section class="card"><h3 class="sec">${title}</h3>${note}<p class="small" style="margin:0">Brak danych o składzie indeksu – pojawią się po najbliższej aktualizacji.</p></section>`;
+  return `<section class="card"><div class="dv-head"><h3 class="sec">${title} (${rows.length})</h3><button class="btn sm" data-ixlist="${t==='WIG20'?'w20':'ix:'+esc(t)}">Pokaż na liście</button></div>${note}<div class="tbl-scroll"><table class="t w20t"><tr><th style="text-align:left">Spółka</th><th>Kurs</th><th>Zmiana</th><th style="text-align:left">Sygnał</th><th>Siła</th></tr>
+    ${rows.map(x=>{ const S=itP(x), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(x); return `<tr data-go="${esc(x.t)}" style="cursor:pointer"><td style="text-align:left"><b>${esc(x.t)}</b> <span class="small">${esc(x.n)}</span></td><td>${fmt(itPrice(x))}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td style="text-align:left"><span class="badge ${st.cls}">${st.icon} ${st.label}</span></td><td>${S.sc!=null?S.sc:'–'}</td></tr>`; }).join('')}
+    </table></div><p class="small" style="margin:6px 0 0">Kliknij spółkę, żeby zobaczyć jej wykres i analizę.</p></section>`;
+}
+function ixLineHTML(t){
+  const it=state.sum[t]; if(!it||it.idx||!(it.ix||[]).length) return '';
+  const ord=ixList().map(x=>x.t), ix=it.ix.slice().sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));
+  return `<p class="ixline small">W indeksach: ${ix.map(x=>`<button class="ixchip" data-ixopen="${esc(x)}" title="Pokaż wykres i sygnał indeksu">${esc(ixName(x))}</button>`).join('')}</p>`;
 }
 /* ================= NIEAKTUALNE NOTOWANIA ================= */
 const FZ_MIN=5;   // tyle kolejnych sesji z tym samym kursem i zerowym obrotem uznaję za „zamrożone” notowania
@@ -1680,12 +1763,12 @@ function pfStructBind(){
 /* ---------- widok ---------- */
 function renderTabs(){
   $$('#tabs [data-tab]').forEach(b=>{ const on=b.dataset.tab===state.tab; b.setAttribute('aria-selected',on); b.classList.toggle('on',on); });
-  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs'; $('#viewIke').hidden=state.tab!=='ike';
+  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs'; $('#viewIke').hidden=state.tab!=='ike'; $('#viewIx').hidden=state.tab!=='ix';
   const n=state.pf.pos.length, sells=n?state.pf.pos.map(pfCalc).filter(r=>r.h.lv==='sell').length:0;
   $('#pfCount').textContent=n?String(n):''; $('#pfCount').hidden=!n;
   $('#pfAlert').hidden=!sells; $('#pfAlert').title=sells?`${sells} ${sells===1?'spółka':'spółki'} ze wskazówką SPRZEDAJ`:'';
 }
-function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); if(t==='ike') renderIke(); window.scrollTo(0,0); }
+function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); if(t==='ike') renderIke(); if(t==='ix') renderIx(); window.scrollTo(0,0); }
 function pfCompanies(){ return Object.values(state.sum).filter(it=>!it.idx).sort((a,b)=>a.t.localeCompare(b.t)); }
 function pfFindTicker(v){
   v=String(v||'').trim(); if(!v) return null;
@@ -2059,14 +2142,19 @@ function filteredItems(){
   else if(state.filter==='small') rows=rows.filter(it=>it.obr<1e6);
   else if(state.filter==='gpw') rows=rows.filter(it=>!it.nc);
   else if(state.filter==='nc') rows=rows.filter(it=>it.nc);
+  if(state.ixf) rows=rows.filter(it=>(it.ix||[]).includes(state.ixf));
   if(q) rows=rows.filter(it=>(it.t+' '+it.n).toLowerCase().includes(q));
   return rows;
 }
 function renderFilters(){
   const all=baseItems(); const cnt={all:all.length, watch:all.filter(i=>state.watch.has(i.t)).length, w20:all.filter(i=>i.w20).length, gpw:all.filter(i=>!i.nc).length, nc:all.filter(i=>i.nc).length, liq:all.filter(i=>i.obr>=1e6).length, small:all.filter(i=>i.obr<1e6).length};
   const F=[['all','Wszystkie'],['watch','★ Obserwowane'],['w20','WIG20'],['gpw','Rynek główny'],['nc','NewConnect'],['liq','Płynne (obrót ≥ 1 mln zł)'],['small','Mniej płynne']].filter(([k])=>k!=='nc'||cnt.nc);
-  $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('');
-  $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
+  const ixs=ixList().filter(i=>!IX_ALL[i.t]&&ixMembers(i.t).length);
+  if(state.ixf&&!ixs.some(i=>i.t===state.ixf)) state.ixf='';
+  const sel=ixs.length?`<select class="chip-sel ${state.ixf?'on':''}" id="ixSel" aria-label="Pokaż spółki z wybranego indeksu lub sektora"><option value="">Indeks / sektor: wszystkie</option>${IX_GRP.map(([g,l])=>{ const o=ixs.filter(i=>(i.grp||'main')===g); return o.length?`<optgroup label="${l}">${o.map(i=>`<option value="${esc(i.t)}" ${state.ixf===i.t?'selected':''}>${esc(i.n)} (${ixMembers(i.t).length})</option>`).join('')}</optgroup>`:''; }).join('')}</select>`:'';
+  $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k&&!(state.ixf&&k==='all')?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('')+sel;
+  $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; if(b.dataset.fl==='w20'||b.dataset.fl==='all') state.ixf=''; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
+  const se=$('#ixSel'); if(se) se.onchange=()=>{ state.ixf=se.value; if(state.ixf&&state.filter==='w20') state.filter='all'; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); };
 }
 function renderTiles(){
   const rows=filteredItems(); const cnt={KUP:0,SPRZEDAJ:0,TRZYMAJ:0,OBSERWUJ:0,CZEKAJ:0,BRAK:0};
@@ -2081,8 +2169,8 @@ function ichiChipsSum(it){
     if(!s) return `<span class="ichip nt" title="Ichimoku ${names[k]}: za mało danych">${short[k]} ?</span>`;
     return `<span class="ichip ${s.sc>0?'up':s.sc<0?'dn':'nt'}" title="Ichimoku ${names[k]}: ${esc(s.lb)}">${short[k]} ${s.ic}</span>`; }).join('')+'</span>';
 }
-function saveView(){ store.set(LS_VIEW,{filter:state.filter, sig:state.sig, sort:state.sort}); }
-function loadView(){ const v=store.get(LS_VIEW,null); if(!v) return; if(v.filter) state.filter=v.filter; if(v.sig) state.sig=v.sig; if(v.sort){ state.sort=v.sort; const sel=$('#sort'); if(sel) sel.value=v.sort; } }
+function saveView(){ store.set(LS_VIEW,{filter:state.filter, sig:state.sig, sort:state.sort, ixf:state.ixf||''}); }
+function loadView(){ const v=store.get(LS_VIEW,null); if(!v) return; if(v.filter) state.filter=v.filter; if(v.sig) state.sig=v.sig; state.ixf=v.ixf||''; if(v.sort){ state.sort=v.sort; const sel=$('#sort'); if(sel) sel.value=v.sort; } }
 function renderList(){ saveView();
   let rows=filteredItems();
   if(state.sig!=='all') rows=rows.filter(it=>itP(it).st===state.sig);
@@ -2096,9 +2184,11 @@ function renderList(){ saveView();
     return ((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio) || sc(b)-sc(a) || (b.obr||0)-(a.obr||0);
   });
   const q=state.search.trim().toLowerCase();
-  const ix=q?Object.values(state.sum).find(it=>it.idx&&(it.t+' '+it.n+' indeks').toLowerCase().includes(q)):null;
-  const ixNote=ix?`<div class="idx-hit"><b>${esc(ix.t)}</b> to indeks, a nie spółka, więc nie ma go na liście. <button class="btn sm" data-open-idx="${esc(ix.t)}">Pokaż wykres i sygnał ${esc(ix.t)}</button> <button class="btn sm" data-w20>Pokaż 20 spółek z ${esc(ix.t)}</button></div>`:'';
-  const FL={all:'wszystkie spółki',watch:'obserwowane',w20:'WIG20',gpw:'rynek główny',nc:'NewConnect',liq:'płynne',small:'mniej płynne'};
+  const ixs=q?ixList().filter(it=>(it.t+' '+it.n+' indeks').toLowerCase().includes(q)).slice(0,6):[];
+  const one=ixs.length===1?ixs[0]:null, oneN=one&&!IX_ALL[one.t]?ixMembers(one.t).length:0;
+  const ixNote=ixs.length?`<div class="idx-hit">${one?`<b>${esc(one.n)}</b> to indeks, a nie spółka, więc nie ma go na liście.`:'Pasujące indeksy (nie ma ich na liście spółek):'} ${ixs.map(x=>`<button class="btn sm" data-open-idx="${esc(x.t)}">${one?'Pokaż wykres i sygnał '+esc(x.n):esc(x.n)}</button>`).join(' ')}${oneN?` <button class="btn sm" data-ixf="${esc(one.t)}">Pokaż ${oneN} ${plN(oneN,'spółkę','spółki','spółek')} z ${esc(one.n)}</button>`:''}</div>`:'';
+  const FL0={all:'wszystkie spółki',watch:'obserwowane',w20:'WIG20',gpw:'rynek główny',nc:'NewConnect',liq:'płynne',small:'mniej płynne'};
+  const FL=new Proxy(FL0,{get:(o,k)=>state.ixf?(k==='all'?ixName(state.ixf):(o[k]||k)+' · '+ixName(state.ixf)):o[k]});
   const sigNote=state.sig!=='all'?`<div class="idx-hit">Pokazuję tylko spółki z sygnałem <span class="badge ${(STATUS[state.sig]||STATUS.BRAK).cls}">${(STATUS[state.sig]||STATUS.BRAK).icon} ${(STATUS[state.sig]||STATUS.BRAK).label}</span> (${esc(FL[state.filter]||state.filter)}). <button class="btn sm" data-sigall>✕ Pokaż wszystkie sygnały</button></div>`:'';
   const head=ixNote+sigNote+`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
   if(!rows.length){
@@ -2275,11 +2365,11 @@ function openDetail(t, keepScroll){
       <p class="sig-text">${esc(S.text)}</p>
       ${reasons.length?`<ul class="sig-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
       ${levelsHTML(A)}
-      ${ichiSignalLine(A)}${potLine(state.detail)}
+      ${ichiSignalLine(A)}${potLine(state.detail)}${ixLineHTML(t)}
       ${A.fb?`<p class="note">ℹ Spółka ma krótką historię notowań (${A.fb.n} sesji). Wybrany horyzont ${esc(PROFILES[A.fb.from].short)} wymaga co najmniej ${A.fb.need} sesji, dlatego analizę liczę ${A.P.young?'w wersji skróconej (średnie 5/15/30 sesji)':'na horyzoncie krótkim (średnie 10/30/100 sesji)'}. Sygnały są mniej pewne niż przy długiej historii.</p>`:''}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
-    ${t===INDEX_DEF.t?w20CardHTML():''}
+    ${co.isIndex?ixMembersCardHTML(t):''}
     ${pfDetailBox(t)}
     ${dvCardHTML(t)}
     ${fundCardHTML(t)}
@@ -2343,6 +2433,8 @@ function bindDetail(){
   const ro=$('#btnRefOne',el); if(ro) ro.onclick=()=>refreshOne(state.detail);
   const pa=$('#btnPfAdd',el); if(pa) pa.onclick=()=>pfAddFromDetail(state.detail);
   $$('.w20t tr[data-go]',el).forEach(r=>r.onclick=()=>showCompany(r.dataset.go));
+  $$('[data-ixlist]',el).forEach(b=>b.onclick=()=>showIxList(b.dataset.ixlist));
+  $$('[data-ixopen]',el).forEach(b=>b.onclick=()=>showCompany(b.dataset.ixopen));
   const sb=$('#btnStar',el); if(sb) sb.onclick=()=>{ toggleWatch(state.detail); const on=state.watch.has(state.detail); sb.classList.toggle('on',on); sb.textContent=on?'★':'☆'; renderFilters(); renderList(); };
   renderChartTools();
   const cv=$('#chart',el); if(!cv) return;
@@ -2477,7 +2569,7 @@ async function ensureIntraday(t){
     const b=compactToBars(j,true);
     state.intra[t]={bars:b, at:Date.now(), ichi:ichiFor(b)};
     if(state.detail===t){ chartMsg(null); const card=$('#ichiCard'); if(card) card.outerHTML=ichiCardHTML(t); }
-  }catch(e){ if(state.detail===t) chartMsg(/404/.test(e.message)?'Brak notowań godzinowych dla tej spółki – robot pobiera je dla WIG20 i najpłynniejszych spółek, a dla pozostałych raz dziennie po sesji.':'Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,140), true); }
+  }catch(e){ if(state.detail===t) chartMsg(/404/.test(e.message)?'Brak notowań godzinowych dla tej spółki – robot pobiera je dla indeksów i najpłynniejszych spółek, a dla pozostałych raz dziennie po sesji.':'Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,140), true); }
 }
 function renderLegend(v){
   const el=$('#chartLegend'); if(!el) return;
@@ -2750,6 +2842,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Indeksy i sektory</h3>
+  <p>Zakładka <b>Indeksy</b> pokazuje wszystkie indeksy GPW: główne (WIG20, WIG, WIG30, mWIG40, sWIG80, WIG140, WIG-Poland, NCIndex), sektorowe (banki, budownictwo, chemia, energia, górnictwo, gry, informatyka, leki, media, motoryzacja, nieruchomości, odzież, paliwa, spożywczy), makrosektory i pozostałe (m.in. WIGdiv, WIGtech, WIGmed, WIG-CEE, WIG-Ukraine). Przy każdym widać wartość w punktach, zmianę z dnia, miesiąca, 3 i 12 miesięcy, sygnał i siłę techniczną, a wykres słupkowy porównuje sektory. Kliknięcie indeksu otwiera jego wykres (także Ichimoku 1 godz.) i tabelę spółek, które do niego należą. Na liście spółek w zakładce Sygnały możesz wybrać indeks lub sektor z rozwijanej listy „Indeks / sektor”, a w szczegółach spółki widać, do których indeksów należy.</p>
   <h3>Wykresy portfela</h3>
   <p>W zakładce <b>Mój portfel</b> pod podsumowaniem jest wykres <b>Zysk / strata dzień po dniu</b> – wynik całego portfela na koniec każdej sesji od pierwszego zakupu (zielony nad zerem, czerwony pod zerem). Najedź na wykres albo dotknij go, żeby zobaczyć wynik z danego dnia; zakres zmienisz przyciskami 1M–Całość. Pod wykresem jest tabela z wynikiem każdego dnia. Niżej, pod listą spółek, karta <b>Struktura portfela</b>: wykres kołowy z udziałem spółek w wartości portfela i słupki zysku lub straty każdej spółki.</p>
   <h3>Nieaktualne notowania</h3>
@@ -2825,11 +2919,13 @@ function bindGlobal(){
       if(state.filter==='watch'){ renderTiles(); renderList(); } else { const on=state.watch.has(t); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; } return; }
     const ix=e.target.closest('[data-open-idx]'); if(ix){ showCompany(ix.dataset.openIdx); return; }
     if(e.target.closest('[data-w20]')){ state.filter='w20'; state.sig='all'; state.search=''; $('#search').value=''; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); return; }
+    const xf=e.target.closest('[data-ixf]'); if(xf){ showIxList(xf.dataset.ixf==='WIG20'?'w20':'ix:'+xf.dataset.ixf); return; }
     if(e.target.closest('[data-sigall]')){ state.sig='all'; state.shown=PAGE; renderTiles(); renderList(); return; }
     const r=e.target.closest('.row[data-t]'); if(r) showCompany(r.dataset.t);
   };
   $('#more').onclick=()=>{ state.shown+=PAGE; renderList(); };
-  $('#market').onclick=e=>{ if(e.target.closest('#mkW20')){ showW20List(); return; } showCompany(INDEX_DEF.t); }; $('#market').style.cursor='pointer';
+  $('#market').onclick=e=>{ if(e.target.closest('#mkW20')){ showW20List(); return; } if(e.target.closest('#mkAll')){ setTab('ix'); return; }
+    const m=e.target.closest('[data-mkix]'); if(m){ showCompany(m.dataset.mkix); return; } showCompany(INDEX_DEF.t); }; $('#market').style.cursor='pointer';
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.detail && !document.querySelector('dialog[open]')) closeDetail(); });
   document.addEventListener('backbutton',e=>{ if(state.detail){ e.preventDefault(); closeDetail(); } else if(navigator.app&&navigator.app.exitApp) navigator.app.exitApp(); },false);
   let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); if(state.tab==='pf') pfHistDraw(); $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); }); },150); });
@@ -2838,7 +2934,7 @@ function bindGlobal(){
   setInterval(autoTick,60e3);
 }
 function init(){
-  loadSettings(); pfLoad(); ntLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig'||tb==='zs'||tb==='ike') state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
+  loadSettings(); pfLoad(); ntLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig'||tb==='zs'||tb==='ike'||tb==='ix') state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
   const j=store.get(LS_SUM,null); if(j&&Array.isArray(j.items)) applySummary(j,false);
   renderAll(); pfWatchCheck();
   setStatus(j?'ok':'', j?`Dane z pamięci · stan notowań: ${fmtDataTime(j.updated)} – naciśnij „Aktualizuj”, aby pobrać najnowsze.`:'Brak danych – naciśnij „Aktualizuj”.');
