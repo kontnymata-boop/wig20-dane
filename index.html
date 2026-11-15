@@ -508,7 +508,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.4 (15.11.2026)';
+const APP_VERSION = '3.5 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -1061,6 +1061,20 @@ const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
 function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); renderBell(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const all=Object.values(state.sum).filter(i=>!i.idx), n=all.length, nNc=all.filter(i=>i.nc).length; $('#profileLbl').textContent=`${n?(nNc?(n-nNc)+' spółek z rynku głównego GPW i '+nNc+' z NewConnect · ':n+' spółek z rynku głównego GPW · '):''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
+function showW20List(){
+  if(state.detail) closeDetail();
+  if(state.tab!=='sig') setTab('sig');
+  state.filter='w20'; state.sig='all'; state.search=''; const se=$('#search'); if(se) se.value=''; state.shown=PAGE;
+  renderFilters(); renderTiles(); renderList();
+  const f=$('#filters'); if(f) f.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function w20CardHTML(){
+  const rows=baseItems().filter(i=>i.w20).sort((a,b)=>((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio)||(itP(b).sc||0)-(itP(a).sc||0));
+  if(!rows.length) return '';
+  return `<section class="card"><h3 class="sec">Spółki z WIG20 (${rows.length})</h3><div class="tbl-scroll"><table class="t w20t"><tr><th style="text-align:left">Spółka</th><th>Kurs</th><th>Zmiana</th><th style="text-align:left">Sygnał</th><th>Siła</th></tr>
+    ${rows.map(it=>{ const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it); return `<tr data-go="${esc(it.t)}" style="cursor:pointer"><td style="text-align:left"><b>${esc(it.t)}</b> <span class="small">${esc(it.n)}</span></td><td>${fmt(itPrice(it))}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td style="text-align:left"><span class="badge ${st.cls}">${st.icon} ${st.label}</span></td><td>${S.sc!=null?S.sc:'–'}</td></tr>`; }).join('')}
+    </table></div><p class="small" style="margin:6px 0 0">Kliknij spółkę, żeby zobaczyć jej wykres i analizę.</p></section>`;
+}
 function renderMarket(){
   const el=$('#market'), it=state.sum[INDEX_DEF.t];
   if(!it){ el.hidden=true; return; }
@@ -1070,6 +1084,7 @@ function renderMarket(){
     <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span>
     <span>Trend: <b>${esc(S.tr||'–')}</b></span><span>Siła techniczna: <b>${S.sc!=null?S.sc+'/100':'–'}</b></span>
     <span class="badge ${st.cls}">${st.icon} ${st.label}</span><span class="small">sesja ${dPL(it.d)}</span>
+    <button class="btn sm" id="mkW20" title="Pokaż na liście 20 spółek z indeksu WIG20">Spółki z WIG20 →</button>
     <span class="mk-note">${S.bear?'⚠ Rynek (WIG20) jest poniżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – sygnały kupna są w takim otoczeniu bardziej ryzykowne.':'Rynek (WIG20) jest powyżej średniej '+PROFILES[state.settings.profile].trend+'-sesyjnej – otoczenie sprzyja sygnałom kupna.'}</span>`;
 }
 
@@ -2051,7 +2066,7 @@ function renderFilters(){
   const all=baseItems(); const cnt={all:all.length, watch:all.filter(i=>state.watch.has(i.t)).length, w20:all.filter(i=>i.w20).length, gpw:all.filter(i=>!i.nc).length, nc:all.filter(i=>i.nc).length, liq:all.filter(i=>i.obr>=1e6).length, small:all.filter(i=>i.obr<1e6).length};
   const F=[['all','Wszystkie'],['watch','★ Obserwowane'],['w20','WIG20'],['gpw','Rynek główny'],['nc','NewConnect'],['liq','Płynne (obrót ≥ 1 mln zł)'],['small','Mniej płynne']].filter(([k])=>k!=='nc'||cnt.nc);
   $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('');
-  $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
+  $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
 }
 function renderTiles(){
   const rows=filteredItems(); const cnt={KUP:0,SPRZEDAJ:0,TRZYMAJ:0,OBSERWUJ:0,CZEKAJ:0,BRAK:0};
@@ -2083,10 +2098,14 @@ function renderList(){ saveView();
   const q=state.search.trim().toLowerCase();
   const ix=q?Object.values(state.sum).find(it=>it.idx&&(it.t+' '+it.n+' indeks').toLowerCase().includes(q)):null;
   const ixNote=ix?`<div class="idx-hit"><b>${esc(ix.t)}</b> to indeks, a nie spółka, więc nie ma go na liście. <button class="btn sm" data-open-idx="${esc(ix.t)}">Pokaż wykres i sygnał ${esc(ix.t)}</button> <button class="btn sm" data-w20>Pokaż 20 spółek z ${esc(ix.t)}</button></div>`:'';
-  const head=ixNote+`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
+  const FL={all:'wszystkie spółki',watch:'obserwowane',w20:'WIG20',gpw:'rynek główny',nc:'NewConnect',liq:'płynne',small:'mniej płynne'};
+  const sigNote=state.sig!=='all'?`<div class="idx-hit">Pokazuję tylko spółki z sygnałem <span class="badge ${(STATUS[state.sig]||STATUS.BRAK).cls}">${(STATUS[state.sig]||STATUS.BRAK).icon} ${(STATUS[state.sig]||STATUS.BRAK).label}</span> (${esc(FL[state.filter]||state.filter)}). <button class="btn sm" data-sigall>✕ Pokaż wszystkie sygnały</button></div>`:'';
+  const head=ixNote+sigNote+`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
   if(!rows.length){
     const any=baseItems().length;
-    $('#list').innerHTML = any ? head+`<div class="empty">${state.filter==='watch'&&!state.search?'Nie masz jeszcze obserwowanych spółek – kliknij ☆ przy spółce, aby ją dodać.':'Brak spółek dla wybranego filtra.'}</div>`
+    $('#list').innerHTML = any ? head+`<div class="empty">${state.filter==='watch'&&!state.search?'Nie masz jeszcze obserwowanych spółek – kliknij ☆ przy spółce, aby ją dodać.'
+        :state.sig!=='all'&&filteredItems().length?`Żadna spółka (${esc(FL[state.filter]||state.filter)}${state.search?', wyszukiwanie „'+esc(state.search)+'”':''}) nie ma teraz sygnału ${(STATUS[state.sig]||STATUS.BRAK).label}.`
+        :'Brak spółek dla wybranego filtra.'}</div>`
       : `<div class="empty"><h3>Brak danych</h3>Naciśnij <b>⟳ Aktualizuj</b>, aby pobrać notowania.</div>`;
     $('#more').hidden=true; return;
   }
@@ -2260,6 +2279,7 @@ function openDetail(t, keepScroll){
       ${A.fb?`<p class="note">ℹ Spółka ma krótką historię notowań (${A.fb.n} sesji). Wybrany horyzont ${esc(PROFILES[A.fb.from].short)} wymaga co najmniej ${A.fb.need} sesji, dlatego analizę liczę ${A.P.young?'w wersji skróconej (średnie 5/15/30 sesji)':'na horyzoncie krótkim (średnie 10/30/100 sesji)'}. Sygnały są mniej pewne niż przy długiej historii.</p>`:''}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
+    ${t===INDEX_DEF.t?w20CardHTML():''}
     ${pfDetailBox(t)}
     ${dvCardHTML(t)}
     ${fundCardHTML(t)}
@@ -2322,6 +2342,7 @@ function bindDetail(){
   $$('[data-act=close]',el).forEach(b=>b.onclick=closeDetail);
   const ro=$('#btnRefOne',el); if(ro) ro.onclick=()=>refreshOne(state.detail);
   const pa=$('#btnPfAdd',el); if(pa) pa.onclick=()=>pfAddFromDetail(state.detail);
+  $$('.w20t tr[data-go]',el).forEach(r=>r.onclick=()=>showCompany(r.dataset.go));
   const sb=$('#btnStar',el); if(sb) sb.onclick=()=>{ toggleWatch(state.detail); const on=state.watch.has(state.detail); sb.classList.toggle('on',on); sb.textContent=on?'★':'☆'; renderFilters(); renderList(); };
   renderChartTools();
   const cv=$('#chart',el); if(!cv) return;
@@ -2803,11 +2824,12 @@ function bindGlobal(){
     if(s){ e.stopPropagation(); const t=s.dataset.star; toggleWatch(t); renderFilters();
       if(state.filter==='watch'){ renderTiles(); renderList(); } else { const on=state.watch.has(t); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; } return; }
     const ix=e.target.closest('[data-open-idx]'); if(ix){ showCompany(ix.dataset.openIdx); return; }
-    if(e.target.closest('[data-w20]')){ state.filter='w20'; state.search=''; $('#search').value=''; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); return; }
+    if(e.target.closest('[data-w20]')){ state.filter='w20'; state.sig='all'; state.search=''; $('#search').value=''; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); return; }
+    if(e.target.closest('[data-sigall]')){ state.sig='all'; state.shown=PAGE; renderTiles(); renderList(); return; }
     const r=e.target.closest('.row[data-t]'); if(r) showCompany(r.dataset.t);
   };
   $('#more').onclick=()=>{ state.shown+=PAGE; renderList(); };
-  $('#market').onclick=()=>showCompany(INDEX_DEF.t); $('#market').style.cursor='pointer';
+  $('#market').onclick=e=>{ if(e.target.closest('#mkW20')){ showW20List(); return; } showCompany(INDEX_DEF.t); }; $('#market').style.cursor='pointer';
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.detail && !document.querySelector('dialog[open]')) closeDetail(); });
   document.addEventListener('backbutton',e=>{ if(state.detail){ e.preventDefault(); closeDetail(); } else if(navigator.app&&navigator.app.exitApp) navigator.app.exitApp(); },false);
   let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); if(state.tab==='pf') pfHistDraw(); $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); }); },150); });
