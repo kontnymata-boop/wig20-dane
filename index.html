@@ -399,7 +399,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '2.9 (14.11.2026)';
+const APP_VERSION = '3.0 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', v:2};
@@ -413,6 +413,10 @@ const PROFILES = {
   sredni:{key:'sredni', name:'Średni horyzont (od kilku tygodni do kilku miesięcy)', short:'średni', fast:20, slow:50,  trend:200, brk:20, stopATR:2.5, trailATR:3,   targetATR:5, minScore:40},
   dlugi: {key:'dlugi',  name:'Długi horyzont (wiele miesięcy)', short:'długi', fast:50, slow:100, trend:200, brk:55, stopATR:3,   trailATR:4,   targetATR:8, minScore:40},
 };
+// profil zastępczy dla spółek z krótką historią notowań (debiuty, zmiany notowań) – nie pojawia się w Ustawieniach
+const YOUNG_PROFILE = {key:'mlody', name:'Skrócona analiza (krótka historia notowań)', short:'skrócony', fast:5, slow:15, trend:30, brk:10, stopATR:2, trailATR:2.5, targetATR:3, minScore:45, young:true};
+const profByKey = k => PROFILES[k] || (k==='mlody' ? YOUNG_PROFILE : null);
+const needFor = P => P.young ? P.trend+20 : P.trend+40;
 const f2 = x => (x==null||!isFinite(x)) ? '–' : x.toFixed(2).replace('.',',');
 
 function sma(a,n){
@@ -478,8 +482,15 @@ function computeIndicators(B,P){
 
 function analyze(B,P,opts={}){
   const fee=(opts.fee!=null?opts.fee:0.3)/100;
-  const N=B.c.length, L=N-1, need=P.trend+40;
-  if(N<need) return {ok:false, msg:`Za mało danych (${N} sesji, potrzeba co najmniej ${need}).`};
+  const N=B.c.length, L=N-1, need=needFor(P);
+  if(N<need){
+    // krótka historia: liczę na krótszym horyzoncie zamiast odmawiać analizy
+    if(!opts.noFallback){
+      const alt=[PROFILES.krotki, YOUNG_PROFILE].find(Q=>Q.trend<P.trend && N>=needFor(Q));
+      if(alt){ const A=analyze(B,alt,Object.assign({},opts,{noFallback:true})); if(A.ok) A.fb={from:P.key, to:alt.key, n:N, need}; return A; }
+    }
+    return {ok:false, msg:`Za mało danych (${N} sesji, potrzeba co najmniej ${needFor(YOUNG_PROFILE)}).`};
+  }
   const I=computeIndicators(B,P);
   const {d,o,h,l,c,v}=B;
   const hasVol = v.slice(-60).some(x=>x>0);
@@ -1093,7 +1104,7 @@ function bdaysBetween(a,b){ if(!a||!b||a>=b) return 0; let d=new Date(a+'T12:00:
 function pfHint(p,it,price,avg){
   if(!it||price==null) return {lv:'na', why:['Brak aktualnych notowań tej spółki – mogła zniknąć z giełdy albo zmienić skrót.'], stop:null, target:null};
   if(it.idx) return {lv:'na', why:['To indeks – nie da się go kupić bezpośrednio.'], stop:null, target:null};
-  const P=PROFILES[state.settings.profile], S=itP(it);
+  const S=itP(it), P=(S.fb&&profByKey(S.fb))||PROFILES[state.settings.profile];
   const atr=it.atr!=null&&it.c?it.atr*it.c:null, sp=it.sp||[];
   let win=Math.min(sp.length,22);
   if(p.d) win=Math.max(1,Math.min(sp.length,bdaysBetween(p.d,it.d)+1));
@@ -1576,7 +1587,7 @@ function renderList(){ saveView();
       <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}${ncTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
       <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div><div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div></div>
       <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>${it.obr!=null && it.obr<5e4 ? `<div class="small lowliq" title="Średni dzienny obrót z 20 sesji poniżej 50 tys. zł – sygnały mniej wiarygodne, trudno kupić/sprzedać po podanej cenie">⚠ obr. ${fmtVol(it.obr)} zł</div>` : `<div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div>`}</div>
-      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
+      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${S.fb?`<div class="small" title="Krótka historia notowań – analiza na krótszym horyzoncie">krótka historia</div>`:''}</div>
       <div class="meter"><div class="track"><div class="fill" style="width:${S.sc||0}%"></div></div><b>${S.sc!=null?S.sc+'/100':'–'}</b></div>
       <div>${ichiChipsSum(it)}</div>
       <div>${levels}</div>
@@ -1727,6 +1738,7 @@ function openDetail(t, keepScroll){
       ${reasons.length?`<ul class="sig-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
       ${levelsHTML(A)}
       ${ichiSignalLine(A)}${potLine(state.detail)}
+      ${A.fb?`<p class="note">ℹ Spółka ma krótką historię notowań (${A.fb.n} sesji). Wybrany horyzont ${esc(PROFILES[A.fb.from].short)} wymaga co najmniej ${A.fb.need} sesji, dlatego analizę liczę ${A.P.young?'w wersji skróconej (średnie 5/15/30 sesji)':'na horyzoncie krótkim (średnie 10/30/100 sesji)'}. Sygnały są mniej pewne niż przy długiej historii.</p>`:''}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
     ${pfDetailBox(t)}
@@ -2178,6 +2190,8 @@ function renderHelp(){
   <p>Notowania wszystkich spółek rynku głównego GPW pobiera automat na GitHubie (z Yahoo Finance): co 30 minut w trakcie sesji oraz pełne dane po jej zamknięciu. Aplikacja czyta gotowy plik, więc działa jako zwykły plik HTML – na komputerze i na telefonie. Przycisk <b>⟳ Aktualizuj</b> pobiera najnowszy stan, a przy włączonej aktualizacji automatycznej aplikacja odświeża się sama (co 15 minut w trakcie sesji i po jej zamknięciu). W trakcie sesji widać bieżący kurs (opóźniony), a sygnały liczone są z zamkniętych sesji. Wykres i test strategii wczytują się po otwarciu spółki.</p>
   <h3>Top 3 – największy potencjał wzrostowy</h3>
   <p>Nad listą aplikacja sama wybiera 3 spółki z całej GPW, w których układ techniczny daje dziś największy potencjał wzrostu przy rozsądnym ryzyku, a kondycja finansowa jest co najmniej przeciętna (lepsza kondycja daje więcej punktów). Zasady wyboru zobaczysz pod przyciskiem <b>Jak wybieram?</b>. Ranking odświeża się razem z notowaniami i zależy od wybranego horyzontu. Listę możesz też posortować „wg potencjału wzrostowego”.</p>
+  <h3>Spółki z krótką historią</h3>
+  <p>Debiutanci i spółki, które mają mało notowań, nie mają danych na pełny horyzont średni czy długi (potrzeba ok. 240 sesji). Zamiast pomijać takie spółki, aplikacja liczy dla nich analizę na krótszym horyzoncie (średnie 10/30/100), a przy bardzo krótkiej historii (od 50 sesji) w wersji skróconej (5/15/30). Takie spółki mają na liście dopisek „krótka historia”, a w szczegółach wyjaśnienie. Sygnały są wtedy mniej pewne.</p>
   <h3>NewConnect</h3>
   <p>Oprócz rynku głównego GPW aplikacja obejmuje spółki z <b>NewConnect</b> – alternatywnego rynku dla mniejszych firm (oznaczone znaczkiem <span class="nctag">NC</span>). Wybierzesz je filtrem „NewConnect”. To zwykle małe spółki z niewielkimi obrotami – sygnały są tu mniej pewne, a ceny bardziej skaczą.</p>
   <h3>Złote strzały</h3>

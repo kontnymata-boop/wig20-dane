@@ -79,7 +79,7 @@ for (const u of uni.items) {
       const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
       if (!A.ok) { it.s[p] = { st: 'BRAK', msg: A.msg }; continue; }
       const lv = {}; for (const k of Object.keys(A.levels)) lv[k] = sig(A.levels[k]);
-      const P = E.PROFILES[p];
+      const P = A.P || E.PROFILES[p];   // przy krótkiej historii – profil zastępczy
       // poziomy do oceny potencjału: pozycja otwarta/nowy sygnał – cel i stop systemu liczone od obecnego kursu;
       // bez pozycji – wejście dopiero po wybiciu (max(kurs, poziom wybicia)), cel i stop liczone od tego wejścia
       const ent = A.levels.target != null ? A.close : Math.max(A.close, A.levels.breakout || A.close);
@@ -88,7 +88,7 @@ for (const u of uni.items) {
       const st = A.stats || {};
       if (it.atr == null) it.atr = r(A.atr / A.close, 4);
       it.s[p] = { st: A.status, sc: A.score, rsi: r(A.rsi, 1), tr: A.trend, bear: A.close < A.I.smaT[A.L], lv,
-        k: A.info.kind, sd: A.info.sigIdx != null ? Bs.d[A.info.sigIdx] : null,
+        k: A.info.kind, sd: A.info.sigIdx != null ? Bs.d[A.info.sigIdx] : null, fb: A.fb ? A.fb.to : undefined,
         en: r(ent / A.close - 1, 4), up: r(tgt / ent - 1, 4), dn: r(1 - stp / ent, 4),
         bt: { n: st.n || 0, wr: r(st.winRate, 2), avg: r(st.avgRet, 4) } };
     }
