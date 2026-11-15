@@ -1,40 +1,37 @@
-"""Jednorazowa sonda 3: historia indeksów GPW – bankier (zakresy dat), Yahoo (interwały), biznesradar, stooq (kwotowania)."""
-import re, json, datetime as D
-from curl_cffi import requests as R
-S = R.Session(impersonate="chrome")
-f = lambda t: D.datetime.fromtimestamp(t / 1000, D.UTC).strftime("%Y-%m-%d")
+"""Jednorazowa sonda 4: Yahoo – godzinowe indeksów (2 lata), lista indeksów WSE; bankier – indeksy sektorowe."""
+import re, json, sys, datetime as D
+sys.path.insert(0, "scripts")
+import update as U
+S = U.session()
+f = lambda t: D.datetime.fromtimestamp(t, D.UTC).strftime("%Y-%m-%d")
 def get(url):
     try:
-        r = S.get(url, timeout=25); return r.status_code, r.text
+        r = S.get(url, timeout=30); return r.status_code, r.text
     except Exception as e:
         return 0, str(e)
-def bank(qs):
-    c, b = get("https://www.bankier.pl/new-charts/get-data?" + qs)
+for s, rng in [("WIG20.WA", "730d"), ("WIG20.WA", "2y"), ("MWIG40.WA", "730d"), ("WIG-BANKI.WA", "730d"), ("NCINDEX.WA", "730d"), ("WIG.WA", "730d")]:
+    c, b = get(f"https://query1.finance.yahoo.com/v8/finance/chart/{s}?range={rng}&interval=60m")
     try:
-        j = json.loads(b); m = sorted(j.get("main") or [], key=lambda x: x[0]); v = j.get("volume") or []
-        print(f"bankier {qs}: {c} main={len(m)} {f(m[0][0]) if m else '-'}..{f(m[-1][0]) if m else '-'} last={m[-3:]} width={len(m[-1]) if m else 0} vol={v[-2:]} pd={str(j.get('profileData'))[:200]}")
+        res = json.loads(b)["chart"]["result"][0]; ts = res.get("timestamp") or []; q = res["indicators"]["quote"][0]
+        days = sorted({f(t + 3600) for t in ts})
+        print(f"yahoo60 {s} {rng}: n={len(ts)} dni={len(days)} {days[0] if days else '-'}..{days[-1] if days else '-'} close={q['close'][-2:]} vol={q['volume'][-2:]}")
     except Exception as e:
-        print("bankier", qs, c, b[:200])
-bank("symbol=WIG20&intraday=false&type=candle&max_period=true")
-bank("symbol=WIG20&intraday=false&type=candle&max_period=false&date_from=2026-09-01&date_to=2026-11-15")
-bank("symbol=WIG20&intraday=false&type=ohlc&max_period=false&date_from=1704067200000&date_to=1763200000000")
-bank("symbol=WIG20&intraday=false&type=area&max_period=false&date_from=1756684800000")
-bank("symbol=WIG-BANKI&intraday=false&type=candle&max_period=false&date_from=1756684800000")
-bank("symbol=PKOBP&intraday=false&type=candle&max_period=false&date_from=1756684800000")
-bank("symbol=WIG20&intraday=true&type=candle&max_period=false&date_from=1762905600000")
-for s, rng, itv in [("WIG20.WA", "max", "1d"), ("WIG20.WA", "1mo", "1d"), ("WIG20.WA", "5y", "1wk"), ("WIG20.WA", "1y", "1mo"), ("WIG20.WA", "5d", "60m")]:
-    c, b = get(f"https://query1.finance.yahoo.com/v8/finance/chart/{s}?range={rng}&interval={itv}")
+        print("yahoo60", s, rng, c, b[:150])
+try:
+    crumb = U.yahoo_crumb()
+    out = []
+    for off in (0, 250):
+        body = {"size": 250, "offset": off, "sortField": "ticker", "sortType": "ASC", "quoteType": "INDEX",
+                "query": {"operator": "eq", "operands": ["exchange", "WSE"]}, "userId": "", "userIdType": "guid"}
+        r = S.post(f"https://query1.finance.yahoo.com/v1/finance/screener?crumb={crumb}&lang=en-US&region=PL", json=body, timeout=30)
+        q = r.json()["finance"]["result"][0]["quotes"]; out += q
+        if len(q) < 250: break
+    print("SCREENER INDEX WSE:", len(out), [(x["symbol"], x.get("shortName")) for x in out])
+except Exception as e:
+    print("screener ERR", repr(e)[:300])
+for sym in ["WIG-BUDOW", "WIG-ENERG", "WIG-GORNIC", "WIG-GRY", "WIG-INFO", "WIG-NRCHOM", "WIG-SPOZYW", "NCINDEX", "WIG140", "WIG-UKRAIN", "WIGDIV"]:
+    c, b = get(f"https://www.bankier.pl/new-charts/get-data?symbol={sym}&intraday=false&type=ohlc&max_period=true")
     try:
-        res = json.loads(b)["chart"]["result"][0]; ts = res.get("timestamp") or []; cl = res["indicators"]["quote"][0]["close"]
-        print(f"yahoo {s} {rng}/{itv}: n={len(ts)} {f(ts[0]*1000) if ts else '-'}..{f(ts[-1]*1000) if ts else '-'} last={cl[-3:]}")
-    except Exception as e:
-        print("yahoo", s, rng, itv, c, b[:150])
-c, b = get("https://www.biznesradar.pl/notowania-historyczne/WIG20")
-rows = re.findall(r'<tr[^>]*>\s*<td[^>]*>(\d{2}\.\d{2}\.\d{4})</td>((?:\s*<td[^>]*>[^<]*</td>)+)', b)
-print("\nbiznesradar hist WIG20:", c, len(b), "wierszy:", len(rows), [(d, re.findall(r'>([^<]*)<', t)) for d, t in rows[:3]])
-print("paginacja:", sorted(set(re.findall(r'notowania-historyczne/WIG20,(\d+)', b)))[-5:])
-c, b = get("https://stooq.pl/q/l/?s=wig20+mwig40+wig_banki&f=sd2t2ohlcv&h&e=csv"); print("\nstooq quote:", c, b[:200])
-c, b = get("https://www.money.pl/gielda/indeksy_gpw/"); print("money.pl:", c, len(b))
-c, b = get("https://www.biznesradar.pl/gielda/indeksy"); 
-links = sorted(set(re.findall(r'href="/notowania/([A-Za-z0-9\-]+)"[^>]*>\s*([^<]{2,40})<', b)))
-print("biznesradar indeksy – linki notowań:", links[:90])
+        m = json.loads(b)["main"]; print(f"bankier {sym}: n={len(m)} {f(m[0][0]/1000)}..{f(m[-1][0]/1000)}")
+    except Exception:
+        print("bankier", sym, c, b[:100])
