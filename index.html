@@ -1126,7 +1126,7 @@ function dvTag(t){
   const dv=dvOf(t); if(!dv) return '';
   const nx=dvNext(dv), last=dv.h&&dv.h[0];
   if(nx) return ` <span class="dvtag soon" title="Zapowiedziana dywidenda – dzień odcięcia ${dPL(nx.d)}${nx.a?`, ${fmt(nx.a)} zł na akcję`:''}">dyw. ${dShort(nx.d)}</span>`;
-  if(dv.y>=0.0005) return ` <span class="dvtag" title="Dywidendy z ostatnich 12 miesięcy: ${fmt(dv.a)} zł na akcję, czyli ${pctU(dv.y)} obecnego kursu${last?` · ostatnia: ${fmt(last[1])} zł, dzień odcięcia ${dPL(last[0])}`:''}">dyw. ${pctU(dv.y)}</span>`;
+  if(dv.y>=0.0005) return ` <span class="dvtag" title="Dywidendy z ostatnich 12 miesięcy: ${fmt(dv.a)} zł na akcję, czyli ${pctU(dv.y)} obecnego kursu${last?` · ostatnia: ${fmt(last[1])} zł, dzień odcięcia ${dPL(last[0])}`:''}${dv.y>0.15?' · bardzo wysoka stopa – zwykle jednorazowa wypłata albo błąd w danych':''}">dyw. ${pctU(dv.y)}</span>`;
   return '';
 }
 function dvCardHTML(t){
@@ -1145,6 +1145,7 @@ function dvCardHTML(t){
       <div><div class="k">Stopa dywidendy</div><div class="v">${dv.y?pctU(dv.y):'–'}</div><div class="k">suma z 12 mies. / kurs</div></div>
       ${held&&last?`<div><div class="k">Twoje akcje × ostatnia</div><div class="v">${zl(last[1]*held.q)}</div><div class="k">brutto, ${fmt(held.q,0)} akcji</div></div>`:''}
     </div>
+    ${dv.y>0.15?`<p class="note" style="margin:0 0 8px">⚠ Stopa powyżej 15% zdarza się rzadko – zwykle to jednorazowa (nadzwyczajna) wypłata albo błąd w danych Yahoo. Nie zakładaj, że w kolejnym roku będzie podobnie.</p>`:''}
     ${ys.length?`<details><summary>Dywidendy w poszczególnych latach</summary><div class="tbl-scroll"><table class="t"><tr><th>Rok</th><th>Na akcję</th><th>Liczba wypłat</th></tr>${ys.map(y=>`<tr><td>${y}</td><td>${fmt(years[y].s)} zł</td><td>${years[y].n}</td></tr>`).join('')}</table></div></details>`:''}
     <p class="note">W dniu odcięcia kurs zwykle spada mniej więcej o kwotę dywidendy – to nie strata, bo dywidendę dostajesz osobno (na zwykłym rachunku pomniejszoną o 19% podatku). Na wykresie dziennym dni odcięcia oznacza kółko „D”. Dane: Yahoo Finance.</p>
   </section>`;
