@@ -411,10 +411,12 @@ def main():
         c, v = x["c"][-20:], x["v"][-20:]
         return sum(a * b for a, b in zip(c, v)) / max(1, len(c))
 
+    idx_h = [i for i in ok if i.get("idx")]          # WIG20 zawsze – wykres Ichimoku 1 godz. dla indeksu
     cand = [i for i in ok if not i.get("idx")]
     if not full:
         cand.sort(key=lambda i: (not i.get("w20"), -turnover(i["t"])))
         cand = cand[:60]
+    cand = idx_h + cand
 
     def work_h(i):
         path = os.path.join(store, "h", f"{i['t']}.json")

@@ -148,6 +148,7 @@
 .potline{font-size:13.5px}
 @media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
 .lowliq{color:var(--text-2);font-weight:600}
+.idx-hit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;margin:0 0 8px;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;background:var(--surface-2);font-size:14px}
 .frz{color:var(--neg-text);font-weight:650}
 .frz-card{border-left:4px solid var(--watch);background:var(--surface-2)}
 .frz-card p{margin:0;line-height:1.5}
@@ -507,7 +508,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.3 (15.11.2026)';
+const APP_VERSION = '3.4 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -2079,7 +2080,10 @@ function renderList(){ saveView();
     if(state.sort==='pot') return ((potential(b)||{total:-1}).total-(potential(a)||{total:-1}).total) || sc(b)-sc(a);
     return ((STATUS[itP(a).st]||STATUS.BRAK).prio-(STATUS[itP(b).st]||STATUS.BRAK).prio) || sc(b)-sc(a) || (b.obr||0)-(a.obr||0);
   });
-  const head=`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
+  const q=state.search.trim().toLowerCase();
+  const ix=q?Object.values(state.sum).find(it=>it.idx&&(it.t+' '+it.n+' indeks').toLowerCase().includes(q)):null;
+  const ixNote=ix?`<div class="idx-hit"><b>${esc(ix.t)}</b> to indeks, a nie spółka, więc nie ma go na liście. <button class="btn sm" data-open-idx="${esc(ix.t)}">Pokaż wykres i sygnał ${esc(ix.t)}</button> <button class="btn sm" data-w20>Pokaż 20 spółek z ${esc(ix.t)}</button></div>`:'';
+  const head=ixNote+`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
   if(!rows.length){
     const any=baseItems().length;
     $('#list').innerHTML = any ? head+`<div class="empty">${state.filter==='watch'&&!state.search?'Nie masz jeszcze obserwowanych spółek – kliknij ☆ przy spółce, aby ją dodać.':'Brak spółek dla wybranego filtra.'}</div>`
@@ -2378,7 +2382,9 @@ function renderChartTools(){
   const bb=$('#bbToggle',el); if(bb) bb.onchange=()=>{ state.settings.showBB=bb.checked; saveSettings(); drawDetailChart(); };
 }
 function resetHover(){ state.hover=null; const tp=$('#tip'); if(tp) tp.hidden=true; }
-function chartMsg(txt){ const m=$('#chartMsg'); if(!m) return; if(!txt){ m.hidden=true; return; } m.textContent=txt; m.hidden=false; }
+function chartMsg(txt,toDaily){ const m=$('#chartMsg'); if(!m) return; if(!txt){ m.hidden=true; return; } m.textContent=txt;
+  if(toDaily){ const b=document.createElement('button'); b.className='btn sm'; b.style.marginLeft='8px'; b.textContent='Pokaż wykres dzienny'; b.onclick=()=>selectTf('D'); m.appendChild(b); }
+  m.hidden=false; }
 async function selectTf(k){
   state.tf=k; state.settings.tf=k; saveSettings(); resetHover(); renderChartTools();
   if(k==='H'){ drawDetailChart(); await ensureIntraday(state.detail); }
@@ -2450,7 +2456,7 @@ async function ensureIntraday(t){
     const b=compactToBars(j,true);
     state.intra[t]={bars:b, at:Date.now(), ichi:ichiFor(b)};
     if(state.detail===t){ chartMsg(null); const card=$('#ichiCard'); if(card) card.outerHTML=ichiCardHTML(t); }
-  }catch(e){ if(state.detail===t) chartMsg(/404/.test(e.message)?'Brak notowań godzinowych dla tej spółki – pojawią się po najbliższej sesji.':'Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,140)); }
+  }catch(e){ if(state.detail===t) chartMsg(/404/.test(e.message)?'Brak notowań godzinowych dla tej spółki – robot pobiera je dla WIG20 i najpłynniejszych spółek, a dla pozostałych raz dziennie po sesji.':'Nie udało się wczytać notowań godzinowych: '+String(e.message).slice(0,140), true); }
 }
 function renderLegend(v){
   const el=$('#chartLegend'); if(!el) return;
@@ -2796,6 +2802,8 @@ function bindGlobal(){
     const s=e.target.closest('[data-star]');
     if(s){ e.stopPropagation(); const t=s.dataset.star; toggleWatch(t); renderFilters();
       if(state.filter==='watch'){ renderTiles(); renderList(); } else { const on=state.watch.has(t); s.classList.toggle('on',on); s.textContent=on?'★':'☆'; } return; }
+    const ix=e.target.closest('[data-open-idx]'); if(ix){ showCompany(ix.dataset.openIdx); return; }
+    if(e.target.closest('[data-w20]')){ state.filter='w20'; state.search=''; $('#search').value=''; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); return; }
     const r=e.target.closest('.row[data-t]'); if(r) showCompany(r.dataset.t);
   };
   $('#more').onclick=()=>{ state.shown+=PAGE; renderList(); };
