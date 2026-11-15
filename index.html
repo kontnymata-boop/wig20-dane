@@ -146,8 +146,27 @@
 .top-how ul{margin:6px 0 0;padding-left:20px}
 .top-disc{margin-top:10px}
 .potline{font-size:13.5px}
-@media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
+@media (max-width:900px){ .top-grid{grid-template-columns:minmax(0,1fr)} }
+.tcard{min-width:0}
 .lowliq{color:var(--text-2);font-weight:600}
+/* horyzont inwestycji */
+.hz-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin:0 0 12px}
+.hz-bar .hz-l{font-weight:750;font-size:14.5px}
+.hz-seg{display:flex;border:1px solid var(--border);border-radius:11px;overflow:hidden;flex:0 1 auto}
+.hz-seg button{border:0;background:var(--surface);color:var(--text);padding:7px 14px;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center;line-height:1.2;min-width:92px}
+.hz-seg button+button{border-left:1px solid var(--border)}
+.hz-seg button b{font-size:14.5px} .hz-seg button span{font-size:11.5px;color:var(--text-2)}
+.hz-seg button.on{background:var(--accent);color:#fff} .hz-seg button.on span{color:rgba(255,255,255,.85)}
+.hz-bar .hz-note{flex:1 1 220px;color:var(--text-2);font-size:12.5px;line-height:1.4}
+@media (max-width:600px){ .hz-seg{width:100%} .hz-seg button{flex:1;min-width:0;padding:7px 4px} .hz-bar .hz-note{flex-basis:100%} }
+.hz3{display:inline-flex;gap:3px;vertical-align:middle;margin-top:4px}
+.hz3 i{font-style:normal;display:inline-grid;place-items:center;min-width:19px;height:18px;padding:0 3px;border-radius:5px;font-size:10.5px;font-weight:800;line-height:1}
+.hz3 i.buy{background:var(--buy);color:var(--on-buy)} .hz3 i.sell{background:var(--sell);color:var(--on-sell)} .hz3 i.hold{background:var(--hold);color:var(--on-hold)}
+.hz3 i.watch{background:var(--watch);color:var(--on-watch)} .hz3 i.wait{background:var(--wait);color:var(--on-wait)}
+.hz3 i.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--text)}
+.hz-other{margin:10px 0 0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13.5px}
+.hz-other button{border:1px solid var(--border);background:var(--page);border-radius:999px;padding:3px 10px;cursor:pointer;font:inherit;font-size:13px;color:var(--text)}
+.hz-other button:hover{background:var(--surface-2)}
 /* indeksy */
 .ix-top{display:flex;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;align-items:flex-start}
 .ix-tbl td,.ix-tbl th{white-space:nowrap}
@@ -163,6 +182,7 @@
 .ixchip{border:1px solid var(--border);background:var(--page);border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;color:var(--text);font-family:inherit}
 .ixchip:hover{background:var(--surface-2)}
 .chip-sel{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:7px 12px;font:inherit;font-size:13.5px;max-width:260px;cursor:pointer}
+.chip-sel#hzSel,.chip-sel#zsHz{max-width:360px}
 .chip-sel.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:650}
 .idx-hit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;margin:0 0 8px;border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;background:var(--surface-2);font-size:14px}
 .frz{color:var(--neg-text);font-weight:650}
@@ -471,6 +491,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <div id="viewIx" hidden></div>
   <div id="viewSig">
   <section class="card notice" id="notice" hidden></section>
+  <div id="hzSig"></div>
   <section class="card market" id="market" hidden></section>
   <section class="card top3" id="top3" hidden></section>
   <nav class="filters" id="filters" aria-label="Filtry spółek"></nav>
@@ -526,7 +547,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.6 (15.11.2026)';
+const APP_VERSION = '3.7 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -1077,7 +1098,7 @@ const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?'
 const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
 const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
-function renderAll(){ renderProfileLbl(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); if(state.tab==='ix') renderIx(); renderBell(); }
+function renderAll(){ renderProfileLbl(); renderHz(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); if(state.tab==='ix') renderIx(); renderBell(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const all=Object.values(state.sum).filter(i=>!i.idx), n=all.length, nNc=all.filter(i=>i.nc).length; $('#profileLbl').textContent=`${n?(nNc?(n-nNc)+' spółek z rynku głównego GPW i '+nNc+' z NewConnect · ':n+' spółek z rynku głównego GPW · '):''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
 function showW20List(){
   if(state.detail) closeDetail();
@@ -1158,7 +1179,7 @@ function topCard(x,i){
     : S.st==='TRZYMAJ' ? `System jest w pozycji od ${dPL(S.sd)} (wejście ${fmt(lv.entry)} zł), do celu zostało jeszcze ${pct(p.up,1)}.`
     : `Sygnał kupna z ${dPL(S.sd)}.`;
   return `<div class="tcard" data-t="${esc(it.t)}" role="button" tabindex="0" aria-label="${esc(it.t)} – otwórz szczegóły">
-    <div class="tc-top"><span class="tc-rank">${i+1}</span><div class="tc-name"><div class="tk">${esc(it.t)}${ncTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
+    <div class="tc-top"><span class="tc-rank">${i+1}</span><div class="tc-name"><div class="tk">${esc(it.t)}${ncTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div><span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px"><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${hzTriple(it)}</span></div>
     <div class="tc-price"><b class="num">${fmt(itPrice(it))} zł</b> <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span> <span class="small">· obr. ${fmtVol(it.obr)} zł</span></div>
     <div class="meter" title="Potencjał wzrostowy według rankingu (0–100)"><span class="small">Potencjał</span><div class="track"><div class="fill" style="width:${p.total}%"></div></div><b>${p.total}/100</b></div>
     <div class="tc-lv">
@@ -1206,6 +1227,44 @@ function potLine(t){
   const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
+/* ================= HORYZONT INWESTYCJI ================= */
+const HZ=[['krotki','Krótki','dni – tygodnie','K'],['sredni','Średni','tygodnie – miesiące','Ś'],['dlugi','Długi','miesiące – lata','D']];
+const hzSt=(it,k)=>((it&&it.s&&it.s[k])||{st:'BRAK'}).st;
+function horizonBarHTML(what){
+  const cur=state.settings.profile, P=PROFILES[cur];
+  return `<div class="hz-bar"><span class="hz-l">Horyzont:</span><div class="hz-seg" role="group" aria-label="Horyzont inwestycji">${HZ.map(([k,l,d])=>`<button data-hz="${k}" class="${cur===k?'on':''}" aria-pressed="${cur===k}" title="${esc(PROFILES[k].name)}"><b>${l}</b><span>${d}</span></button>`).join('')}</div>
+    <span class="hz-note">${what||'Sygnały, Top 3 i złote strzały'} liczę dla horyzontu <b>${esc(P.short)}ego</b> (średnie ${P.fast}/${P.slow}/${P.trend} sesji). Literki <b>K Ś D</b> przy spółce pokazują sygnał w każdym z trzech horyzontów.</span></div>`;
+}
+function hzTriple(it){
+  if(!it||!it.s) return '';
+  const cur=state.settings.profile, parts=HZ.map(([k,l,,a])=>{ const st=STATUS[hzSt(it,k)]||STATUS.BRAK; return {k,l,a,st}; });
+  return `<span class="hz3" title="${esc('Sygnał w horyzontach: '+parts.map(p=>p.l.toLowerCase()+' – '+p.st.label).join(', '))}">${parts.map(p=>`<i class="${p.st.cls}${p.k===cur?' cur':''}">${p.a}</i>`).join('')}</span>`;
+}
+const HZF=[['','Zgodność horyzontów: bez filtra'],['buyany','KUP w którymkolwiek horyzoncie'],['buy2','KUP w co najmniej 2 horyzontach'],['upall','Wzrost we wszystkich 3 (KUP lub TRZYMAJ)'],['sellany','SPRZEDAJ w którymkolwiek horyzoncie']];
+function hzMatch(it,f){
+  if(!f) return true;
+  const st=HZ.map(([k])=>hzSt(it,k));
+  if(f==='buyany') return st.includes('KUP');
+  if(f==='buy2') return st.filter(x=>x==='KUP').length>=2;
+  if(f==='upall') return st.every(x=>x==='KUP'||x==='TRZYMAJ');
+  if(f==='sellany') return st.includes('SPRZEDAJ');
+  return true;
+}
+function hzSelectHTML(list,id){
+  return `<select class="chip-sel ${state.hzf?'on':''}" id="${id}" aria-label="Zgodność sygnałów w horyzontach">${HZF.map(([k,l])=>`<option value="${k}" ${state.hzf===k?'selected':''}>${l}${k?' ('+list.filter(it=>hzMatch(it,k)).length+')':''}</option>`).join('')}</select>`;
+}
+function hzOtherHTML(t){
+  const it=state.sum[t]; if(!it||!it.s) return '';
+  const cur=state.settings.profile, oth=HZ.filter(([k])=>k!==cur);
+  return `<p class="hz-other"><span class="small">W innych horyzontach:</span>${oth.map(([k,l])=>{ const st=STATUS[hzSt(it,k)]||STATUS.BRAK; return `<button data-hz="${k}" title="Przełącz na horyzont ${l.toLowerCase()}">${l}: <span class="badge ${st.cls}" style="font-size:11px;padding:1px 6px">${st.icon} ${st.label}</span></button>`; }).join('')}</p>`;
+}
+function setHorizon(k){
+  if(!PROFILES[k]||state.settings.profile===k) return;
+  state.settings.profile=k; saveSettings(); analyzeAll(); renderAll(); renderHz();
+  try{ pfWatchCheck({quiet:true}); }catch(e){}
+  if(state.detail) openDetail(state.detail,true);
+}
+function renderHz(){ const el=$('#hzSig'); if(el) el.innerHTML=Object.keys(state.sum).length?horizonBarHTML():''; }
 /* ================= INDEKSY ================= */
 const IX_GRP=[['main','Główne indeksy'],['sector','Indeksy sektorowe'],['macro','Makrosektory'],['other','Pozostałe indeksy']];
 const IX_ORDER=['WIG20','WIG','WIG30','MWIG40','SWIG80','WIG140','WIG-POLAND','NCINDEX'];
@@ -1226,7 +1285,7 @@ function renderIx(){
   const srt=state.ixSort, val=(it,k)=>k==='ch'?itChange(it):k==='sc'?itP(it).sc:it[k];
   const sorted=list=>srt==='ord'?list:list.slice().sort((a,b)=>nv(val(b,srt))-nv(val(a,srt)));
   const row=it=>{ const S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it), n=IX_ALL[it.t]?0:ixMembers(it.t).length;
-    return `<tr data-ix="${esc(it.t)}"><td style="text-align:left"><span class="nm">${esc(it.n)}</span>${n?` <span class="cnt">${n} ${plN(n,'spółka','spółki','spółek')}</span>`:''}<span class="mv">${fmt(itPrice(it),2)} pkt</span></td><td class="hm2">${fmt(itPrice(it),2)}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td class="hm ${cls(it.m1)}">${pct(it.m1,1)}</td><td class="${cls(it.m3)}">${pct(it.m3,1)}</td><td class="hm ${cls(it.y1)}">${pct(it.y1,1)}</td><td style="text-align:left"><span class="badge ${st.cls}">${st.icon} ${st.label}</span></td><td class="hm2">${S.sc!=null?S.sc:'–'}</td><td class="hm"><canvas class="spark" data-t="${esc(it.t)}"></canvas></td></tr>`; };
+    return `<tr data-ix="${esc(it.t)}"><td style="text-align:left"><span class="nm">${esc(it.n)}</span>${n?` <span class="cnt">${n} ${plN(n,'spółka','spółki','spółek')}</span>`:''}<span class="mv">${fmt(itPrice(it),2)} pkt</span></td><td class="hm2">${fmt(itPrice(it),2)}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td class="hm ${cls(it.m1)}">${pct(it.m1,1)}</td><td class="${cls(it.m3)}">${pct(it.m3,1)}</td><td class="hm ${cls(it.y1)}">${pct(it.y1,1)}</td><td style="text-align:left"><span class="badge ${st.cls}">${st.icon} ${st.label}</span><span class="hm"> ${hzTriple(it)}</span></td><td class="hm2">${S.sc!=null?S.sc:'–'}</td><td class="hm"><canvas class="spark" data-t="${esc(it.t)}"></canvas></td></tr>`; };
   const head=`<tr><th style="text-align:left">Indeks</th><th class="hm2">Wartość (pkt)</th><th>Dziś</th><th class="hm">1 mies.</th><th>3 mies.</th><th class="hm">12 mies.</th><th style="text-align:left">Sygnał</th><th class="hm2">Siła</th><th class="hm">60 sesji</th></tr>`;
   const table=(g,lbl)=>{ const rows=sorted(L.filter(i=>(i.grp||'main')===g)); return rows.length?`<section class="card"><h3 class="sec">${lbl}</h3><div class="tbl-scroll"><table class="t ix-tbl">${head}${rows.map(row).join('')}</table></div></section>`:''; };
   const sec=L.filter(i=>i.grp==='sector'&&i.m3!=null).sort((a,b)=>b.m3-a.m3);
@@ -1234,7 +1293,7 @@ function renderIx(){
   const bars=sec.length?`<section class="card"><h3 class="sec">Sektory – zmiana w ostatnich 3 miesiącach</h3><div class="pb-list">${sec.map(i=>{ const w=Math.abs(i.m3)/span*100;
       return `<div class="pb-row ix-bar" data-ix="${esc(i.t)}" style="cursor:pointer;grid-template-columns:150px 1fr auto" title="${esc(i.n)}: ${pct(i.m3,1)} w 3 miesiące, ${pct(itChange(i),2)} dziś"><span class="tk">${esc(String(i.n).replace(/^WIG-/,''))}</span><span class="pb-track"><span class="z" style="left:${z.toFixed(2)}%"></span><i class="${i.m3<0?'dn':'up'}" style="${i.m3<0?`right:${(100-z).toFixed(2)}%`:`left:${z.toFixed(2)}%`};width:${w.toFixed(2)}%"></i></span><span class="v ${cls(i.m3)}"><b>${pct(i.m3,1)}</b></span></div>`; }).join('')}</div>
       <p class="small" style="margin:8px 0 0">Kliknij sektor, żeby zobaczyć wykres indeksu i spółki z tego sektora.</p></section>`:'';
-  el.innerHTML=`<section class="card"><div class="ix-top"><div><h2 style="margin:0 0 4px;font-size:20px">Indeksy GPW</h2><p class="small" style="margin:0;max-width:760px">Wartości w punktach. Sygnały liczę tak samo jak dla spółek (horyzont: ${esc(PROFILES[state.settings.profile].short)}). Indeksu nie kupisz bezpośrednio – sygnał pokazuje kierunek rynku albo sektora. Kliknij indeks, żeby zobaczyć wykres i spółki, które do niego należą.</p></div>
+  el.innerHTML=`${horizonBarHTML('Sygnały indeksów')}<section class="card"><div class="ix-top"><div><h2 style="margin:0 0 4px;font-size:20px">Indeksy GPW</h2><p class="small" style="margin:0;max-width:760px">Wartości w punktach. Sygnały liczę tak samo jak dla spółek (horyzont: ${esc(PROFILES[state.settings.profile].short)}). Indeksu nie kupisz bezpośrednio – sygnał pokazuje kierunek rynku albo sektora. Kliknij indeks, żeby zobaczyć wykres i spółki, które do niego należą.</p></div>
       <label class="small">Sortuj: <select id="ixSort" class="pf-select">${[['ord','kolejność'],['ch','zmiana dziś'],['m1','1 miesiąc'],['m3','3 miesiące'],['y1','12 miesięcy'],['sc','siła techniczna']].map(([k,l])=>`<option value="${k}" ${srt===k?'selected':''}>${l}</option>`).join('')}</select></label></div></section>
     ${table('main','Główne indeksy')}${bars}${table('sector','Indeksy sektorowe')}${table('macro','Makrosektory')}${table('other','Pozostałe indeksy')}
     <p class="note" style="margin:0">Notowania indeksów: Yahoo Finance (świece godzinowe złożone w dzienne) i bankier.pl (starsza historia); skład indeksów: biznesradar.pl, aktualizowany raz dziennie.</p>`;
@@ -1809,7 +1868,7 @@ function renderPf(){
       </div>
       <ul class="pf-alerts">${alerts.join('')}</ul>
       ${pfSavedLine()}
-      <p class="note">Wskazówki liczę dla horyzontu: <b>${P.short}</b> (zmienisz w Ustawieniach). Stop i cel zależą od Twojej ceny zakupu, daty zakupu i zmienności kursu.${tot.missing?` ${tot.missing} ${tot.missing===1?'pozycja nie ma':'pozycje nie mają'} aktualnego kursu – liczę ją po cenie zakupu.`:''}</p>
+      <p class="note">Wskazówki liczę dla horyzontu: <b>${P.short}</b> (zmienisz przełącznikiem nad podsumowaniem). Stop i cel zależą od Twojej ceny zakupu, daty zakupu i zmienności kursu.${tot.missing?` ${tot.missing} ${tot.missing===1?'pozycja nie ma':'pozycje nie mają'} aktualnego kursu – liczę ją po cenie zakupu.`:''}</p>
     </section>` : `
     <section class="card pf-empty"><h2>Mój portfel</h2><p>Dodaj spółki, które masz – wpisz liczbę akcji i kwotę zakupu. Aplikacja policzy wartość portfela, zysk lub stratę i podpowie, czy trzymać, czy sprzedać.</p><p class="small">Portfel zapisuje się automatycznie po każdej zmianie – w tej przeglądarce, na tym urządzeniu. Nikt poza Tobą go nie widzi. Na dole jest przycisk do zapisania kopii w pliku.</p>${state.storageOK?'':pfSavedLine()}</section>`;
   const opts=pfCompanies().map(it=>`<option value="${esc(it.t)} – ${esc(it.n)}"></option>`).join('');
@@ -1838,7 +1897,7 @@ function renderPf(){
       <div class="pf-actions"><button class="btn" id="pfExport">⬇ Zapisz kopię do pliku</button><label class="btn" for="pfImport">⬆ Wczytaj kopię z pliku</label><input type="file" id="pfImport" accept=".json,application/json" hidden></div>
       ${pfSnapUI()}
     </section>`;
-  el.innerHTML = sum + (rows.length?pfHistCardHTML():'') + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + pfStructHTML(rows,tot) + form + hist + backup +
+  el.innerHTML = (rows.length?horizonBarHTML('Wskazówki trzymaj / sprzedaj, stopy i cele'):'') + sum + (rows.length?pfHistCardHTML():'') + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + pfStructHTML(rows,tot) + form + hist + backup +
     `<p class="note pf-disc">Wskazówki są mechaniczne – wynikają z zasad analizy technicznej (stop, cel, trend, sygnały) i kondycji spółki. Nie są rekomendacją inwestycyjną; decyzję podejmujesz sam.</p>`;
   pfBind(); pfStructBind();
   if(rows.length){ if($('#phWrap')) pfHistBind(); pfHistRefresh(); }
@@ -2083,7 +2142,7 @@ function zsEval(it){
   return out;
 }
 function zsRows(grp){
-  return baseItems().map(it=>({it, z:zsEval(it)})).filter(x=>x.z&&(!grp||grp==='all'||x.z.grp===grp||(grp==='nc'&&x.it.nc)))
+  return baseItems().map(it=>({it, z:zsEval(it)})).filter(x=>x.z&&(!grp||grp==='all'||x.z.grp===grp||(grp==='nc'&&x.it.nc))&&hzMatch(x.it,state.hzf))
     .sort((a,b)=>(b.z.ok-a.z.ok)||(b.z.total-a.z.total)||((b.it.obr||0)-(a.it.obr||0)));
 }
 function renderZs(){
@@ -2096,7 +2155,7 @@ function renderZs(){
   const g=state.zsGrp||'grosz', rows=zsRows(g);
   const card=(x,i)=>{ const it=x.it, z=x.z, S=itP(it), st=STATUS[S.st]||STATUS.BRAK, ch=itChange(it);
     return `<article class="card zs-card" data-t="${esc(it.t)}">
-      <div class="zs-top"><span class="tc-rank">${i+1}</span><button class="pf-name" data-open="${esc(it.t)}"><span class="tk">${esc(it.t)}${ncTag(it.t)}</span><span class="nm">${esc(it.n)}</span></button><span class="badge ${st.cls}">${st.icon} ${st.label}</span></div>
+      <div class="zs-top"><span class="tc-rank">${i+1}</span><button class="pf-name" data-open="${esc(it.t)}"><span class="tk">${esc(it.t)}${ncTag(it.t)}</span><span class="nm">${esc(it.n)}</span></button><span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px"><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${hzTriple(it)}</span></div>
       <div class="tc-price"><b class="num">${fmt(itPrice(it),it.c<1?4:2)} zł</b> <span class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</span> <span class="small">· obr. ${fmtVol(it.obr)} zł${it.mc?' · kapitalizacja '+fmtMoney(it.mc,'PLN'):''}</span></div>
       <div class="meter" title="Potencjał wybicia (0–100)"><span class="small">Potencjał</span><div class="track"><div class="fill" style="width:${z.total}%"></div></div><b>${z.total}/100</b></div>
       ${z.plus.length?`<div class="zs-chips">${z.plus.map(p=>`<span class="zs-chip">✓ ${esc(p)}</span>`).join('')}</div>`:''}
@@ -2104,10 +2163,11 @@ function renderZs(){
       <div class="pf-actions"><button class="btn sm" data-open="${esc(it.t)}">Wykres i analiza</button><button class="btn sm" data-zsadd="${esc(it.t)}">＋ Do portfela</button><button class="star ${state.watch.has(it.t)?'on':''}" data-zsstar="${esc(it.t)}" title="Obserwuj">${state.watch.has(it.t)?'★':'☆'}</button></div>
     </article>`; };
   const G=[['grosz','Groszowe (poniżej 1 zł)'],['tanie','Tanie (1–5 zł)'],['male','Małe spółki (kapitalizacja do 300 mln zł)'],['nc','NewConnect'],['all','Wszystkie']].filter(([k])=>k!=='nc'||cnt.nc);
-  const tbl=rows.length?`<div class="tbl-scroll"><table class="t zs-t"><tr><th style="text-align:left">Spółka</th><th>Kurs</th><th>Zmiana</th><th>Obrót dzienny</th><th>Potencjał</th><th style="text-align:left">Ocena</th></tr>
-    ${rows.map(x=>{ const it=x.it,z=x.z,ch=itChange(it); return `<tr data-open="${esc(it.t)}" class="${z.ok?'':'zs-off'}"><td style="text-align:left"><b>${esc(it.t)}</b>${ncTag(it.t)} <span class="small">${esc(it.n)}</span></td><td>${fmt(itPrice(it),it.c<1?4:2)}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td>${fmtVol(it.obr)} zł</td><td>${z.ok?'<b>'+z.total+'</b>':'<span class="small">'+z.total+'</span>'}</td><td style="text-align:left" class="small">${z.ok?(z.plus.slice(0,3).map(esc).join(' · ')||'spełnia warunki'):'✗ '+esc(z.why)}</td></tr>`; }).join('')}
+  const tbl=rows.length?`<div class="tbl-scroll"><table class="t zs-t"><tr><th style="text-align:left">Spółka</th><th>Kurs</th><th>Zmiana</th><th>Obrót dzienny</th><th>Potencjał</th><th style="text-align:left" title="Sygnał w horyzoncie krótkim, średnim i długim">K Ś D</th><th style="text-align:left">Ocena</th></tr>
+    ${rows.map(x=>{ const it=x.it,z=x.z,ch=itChange(it); return `<tr data-open="${esc(it.t)}" class="${z.ok?'':'zs-off'}"><td style="text-align:left"><b>${esc(it.t)}</b>${ncTag(it.t)} <span class="small">${esc(it.n)}</span></td><td>${fmt(itPrice(it),it.c<1?4:2)}</td><td class="${cls(ch)}">${pct(ch,2)}</td><td>${fmtVol(it.obr)} zł</td><td>${z.ok?'<b>'+z.total+'</b>':'<span class="small">'+z.total+'</span>'}</td><td style="text-align:left">${hzTriple(it)}</td><td style="text-align:left" class="small">${z.ok?(z.plus.slice(0,3).map(esc).join(' · ')||'spełnia warunki'):'✗ '+esc(z.why)}</td></tr>`; }).join('')}
     </table></div>`:'<p class="small">Brak spółek w tej grupie.</p>';
   el.innerHTML=`
+    ${horizonBarHTML('Złote strzały i sygnały')}
     <section class="card zs-head">
       <h2>Złote strzały – tanie spółki z rodzącym się wzrostem</h2>
       <p>Szukam wśród ${cnt.all} tanich i małych spółek z rynku głównego${cnt.nc?' i NewConnect':''} (${cnt.grosz} groszowych poniżej 1 zł, ${cnt.tanie} po 1–5 zł, ${cnt.male} małych o kapitalizacji do 300 mln zł${cnt.nc?'; w tym '+cnt.nc+' z NewConnect':''}) takich, w których coś zaczyna się dziać: rośnie obrót, kurs wybija się z dołka, pojawia się sygnał kupna, a trend dzienny nie jest spadkowy. Dziś warunki spełnia <b>${okCnt}</b> z nich.</p>
@@ -2120,13 +2180,14 @@ function renderZs(){
     ${picks.length?`<div class="zs-cards">${picks.map(card).join('')}</div>`:`<section class="card"><p>Dziś żadna tania spółka nie spełnia warunków z wynikiem co najmniej ${ZS.cardMin} punktów. Na słabym rynku lepiej poczekać – lista sama się zaktualizuje.</p></section>`}
     <section class="card">
       <h3 class="sec">Przegląd spółek</h3>
-      <nav class="filters" id="zsGrp">${G.map(([k,l])=>`<button class="chip ${g===k?'active':''}" data-zg="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('')}</nav>
+      <nav class="filters" id="zsGrp">${G.map(([k,l])=>`<button class="chip ${g===k?'active':''}" data-zg="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('')}${hzSelectHTML(baseItems().filter(it=>zsEval(it)),'zsHz')}</nav>
       <p class="small">Najpierw spółki spełniające warunki (od najwyższego potencjału), potem pozostałe z powodem, dla którego odpadły. Kliknij spółkę, aby zobaczyć wykres i kondycję.</p>
       ${tbl}
     </section>
     <p class="note pf-disc">Ranking jest mechaniczny – opiera się na wykresie, obrotach i prostych danych finansowych. Nie zna wiadomości ze spółek. To nie jest rekomendacja inwestycyjna.</p>`;
   $$('#viewZs [data-open]').forEach(b=>b.onclick=e=>{ if(e.target.closest('[data-zsadd],[data-zsstar]')) return; showCompany(b.dataset.open); });
   $$('#viewZs [data-zsadd]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); pfAddFromDetail(b.dataset.zsadd); });
+  const zh=$('#zsHz'); if(zh) zh.onchange=()=>{ state.hzf=zh.value; saveView(); renderZs(); renderFilters(); renderTiles(); renderList(); };
   $$('#viewZs [data-zsstar]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const t=b.dataset.zsstar; toggleWatch(t); const on=state.watch.has(t); b.classList.toggle('on',on); b.textContent=on?'★':'☆'; renderFilters(); });
   $$('#zsGrp [data-zg]').forEach(b=>b.onclick=()=>{ state.zsGrp=b.dataset.zg; try{ localStorage.setItem('radmat_gpw_zsgrp',state.zsGrp); }catch(e){} renderZs(); });
 }
@@ -2143,6 +2204,7 @@ function filteredItems(){
   else if(state.filter==='gpw') rows=rows.filter(it=>!it.nc);
   else if(state.filter==='nc') rows=rows.filter(it=>it.nc);
   if(state.ixf) rows=rows.filter(it=>(it.ix||[]).includes(state.ixf));
+  if(state.hzf) rows=rows.filter(it=>hzMatch(it,state.hzf));
   if(q) rows=rows.filter(it=>(it.t+' '+it.n).toLowerCase().includes(q));
   return rows;
 }
@@ -2152,8 +2214,9 @@ function renderFilters(){
   const ixs=ixList().filter(i=>!IX_ALL[i.t]&&ixMembers(i.t).length);
   if(state.ixf&&!ixs.some(i=>i.t===state.ixf)) state.ixf='';
   const sel=ixs.length?`<select class="chip-sel ${state.ixf?'on':''}" id="ixSel" aria-label="Pokaż spółki z wybranego indeksu lub sektora"><option value="">Indeks / sektor: wszystkie</option>${IX_GRP.map(([g,l])=>{ const o=ixs.filter(i=>(i.grp||'main')===g); return o.length?`<optgroup label="${l}">${o.map(i=>`<option value="${esc(i.t)}" ${state.ixf===i.t?'selected':''}>${esc(i.n)} (${ixMembers(i.t).length})</option>`).join('')}</optgroup>`:''; }).join('')}</select>`:'';
-  $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k&&!(state.ixf&&k==='all')?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('')+sel;
+  $('#filters').innerHTML=F.map(([k,l])=>`<button class="chip ${state.filter===k&&!(state.ixf&&k==='all')?'active':''}" data-fl="${k}">${l} <span class="cnt">${cnt[k]}</span></button>`).join('')+sel+hzSelectHTML(all,'hzSel');
   $$('#filters .chip').forEach(b=>b.onclick=()=>{ state.filter=b.dataset.fl; if(b.dataset.fl==='w20'||b.dataset.fl==='all') state.ixf=''; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); });
+  const hs=$('#hzSel'); if(hs) hs.onchange=()=>{ state.hzf=hs.value; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); };
   const se=$('#ixSel'); if(se) se.onchange=()=>{ state.ixf=se.value; if(state.ixf&&state.filter==='w20') state.filter='all'; state.sig='all'; state.shown=PAGE; renderFilters(); renderTiles(); renderList(); };
 }
 function renderTiles(){
@@ -2169,8 +2232,8 @@ function ichiChipsSum(it){
     if(!s) return `<span class="ichip nt" title="Ichimoku ${names[k]}: za mało danych">${short[k]} ?</span>`;
     return `<span class="ichip ${s.sc>0?'up':s.sc<0?'dn':'nt'}" title="Ichimoku ${names[k]}: ${esc(s.lb)}">${short[k]} ${s.ic}</span>`; }).join('')+'</span>';
 }
-function saveView(){ store.set(LS_VIEW,{filter:state.filter, sig:state.sig, sort:state.sort, ixf:state.ixf||''}); }
-function loadView(){ const v=store.get(LS_VIEW,null); if(!v) return; if(v.filter) state.filter=v.filter; if(v.sig) state.sig=v.sig; state.ixf=v.ixf||''; if(v.sort){ state.sort=v.sort; const sel=$('#sort'); if(sel) sel.value=v.sort; } }
+function saveView(){ store.set(LS_VIEW,{filter:state.filter, sig:state.sig, sort:state.sort, ixf:state.ixf||'', hzf:state.hzf||''}); }
+function loadView(){ const v=store.get(LS_VIEW,null); if(!v) return; if(v.filter) state.filter=v.filter; if(v.sig) state.sig=v.sig; state.ixf=v.ixf||''; state.hzf=v.hzf||''; if(v.sort){ state.sort=v.sort; const sel=$('#sort'); if(sel) sel.value=v.sort; } }
 function renderList(){ saveView();
   let rows=filteredItems();
   if(state.sig!=='all') rows=rows.filter(it=>itP(it).st===state.sig);
@@ -2188,7 +2251,8 @@ function renderList(){ saveView();
   const one=ixs.length===1?ixs[0]:null, oneN=one&&!IX_ALL[one.t]?ixMembers(one.t).length:0;
   const ixNote=ixs.length?`<div class="idx-hit">${one?`<b>${esc(one.n)}</b> to indeks, a nie spółka, więc nie ma go na liście.`:'Pasujące indeksy (nie ma ich na liście spółek):'} ${ixs.map(x=>`<button class="btn sm" data-open-idx="${esc(x.t)}">${one?'Pokaż wykres i sygnał '+esc(x.n):esc(x.n)}</button>`).join(' ')}${oneN?` <button class="btn sm" data-ixf="${esc(one.t)}">Pokaż ${oneN} ${plN(oneN,'spółkę','spółki','spółek')} z ${esc(one.n)}</button>`:''}</div>`:'';
   const FL0={all:'wszystkie spółki',watch:'obserwowane',w20:'WIG20',gpw:'rynek główny',nc:'NewConnect',liq:'płynne',small:'mniej płynne'};
-  const FL=new Proxy(FL0,{get:(o,k)=>state.ixf?(k==='all'?ixName(state.ixf):(o[k]||k)+' · '+ixName(state.ixf)):o[k]});
+  const hzl=state.hzf?(HZF.find(x=>x[0]===state.hzf)||['',''])[1]:'';
+  const FL=new Proxy(FL0,{get:(o,k)=>{ let v=state.ixf?(k==='all'?ixName(state.ixf):(o[k]||k)+' · '+ixName(state.ixf)):o[k]; return hzl?(v||k)+' · '+hzl:v; }});
   const sigNote=state.sig!=='all'?`<div class="idx-hit">Pokazuję tylko spółki z sygnałem <span class="badge ${(STATUS[state.sig]||STATUS.BRAK).cls}">${(STATUS[state.sig]||STATUS.BRAK).icon} ${(STATUS[state.sig]||STATUS.BRAK).label}</span> (${esc(FL[state.filter]||state.filter)}). <button class="btn sm" data-sigall>✕ Pokaż wszystkie sygnały</button></div>`:'';
   const head=ixNote+sigNote+`<div class="row head"><div>Spółka</div><div>Kurs</div><div>Zmiana</div><div>Sygnał</div><div>Siła techniczna</div><div title="Ichimoku: D – dzień, T – tydzień, M – miesiąc">Ichimoku D·T·M</div><div>Poziomy</div><div>60 sesji</div></div>`;
   if(!rows.length){
@@ -2210,7 +2274,7 @@ function renderList(){ saveView();
       <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}${ncTag(it.t)}${dvTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
       <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div>${frozenIt(it)?`<div class="small frz" title="${esc(frozenTxt(frozenIt(it))+' Kurs i sygnał mogą być nieaktualne – sprawdź kurs u swojego maklera.')}">⚠ kurs stoi od ${frozenIt(it).n} sesji</div>`:`<div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div>`}</div>
       <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>${it.obr!=null && it.obr<5e4 ? `<div class="small lowliq" title="Średni dzienny obrót z 20 sesji poniżej 50 tys. zł – sygnały mniej wiarygodne, trudno kupić/sprzedać po podanej cenie">⚠ obr. ${fmtVol(it.obr)} zł</div>` : `<div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div>`}</div>
-      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${S.fb?`<div class="small" title="Krótka historia notowań – analiza na krótszym horyzoncie">krótka historia</div>`:''}</div>
+      <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${S.fb?`<div class="small" title="Krótka historia notowań – analiza na krótszym horyzoncie">krótka historia</div>`:''}<div>${hzTriple(it)}</div></div>
       <div class="meter"><div class="track"><div class="fill" style="width:${S.sc||0}%"></div></div><b>${S.sc!=null?S.sc+'/100':'–'}</b></div>
       <div>${ichiChipsSum(it)}</div>
       <div>${levels}</div>
@@ -2365,7 +2429,7 @@ function openDetail(t, keepScroll){
       <p class="sig-text">${esc(S.text)}</p>
       ${reasons.length?`<ul class="sig-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
       ${levelsHTML(A)}
-      ${ichiSignalLine(A)}${potLine(state.detail)}${ixLineHTML(t)}
+      ${ichiSignalLine(A)}${potLine(state.detail)}${hzOtherHTML(t)}${ixLineHTML(t)}
       ${A.fb?`<p class="note">ℹ Spółka ma krótką historię notowań (${A.fb.n} sesji). Wybrany horyzont ${esc(PROFILES[A.fb.from].short)} wymaga co najmniej ${A.fb.need} sesji, dlatego analizę liczę ${A.P.young?'w wersji skróconej (średnie 5/15/30 sesji)':'na horyzoncie krótkim (średnie 10/30/100 sesji)'}. Sygnały są mniej pewne niż przy długiej historii.</p>`:''}
       ${!co.isIndex&&marketBear()&&A.status==='KUP'?'<p class="note">⚠ Uwaga: cały rynek (WIG20) jest w trendzie spadkowym – sygnał kupna ma większe ryzyko.</p>':''}
     </section>
@@ -2842,6 +2906,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Horyzont: krótki, średni, długi</h3>
+  <p>Na górze zakładek Sygnały, Indeksy, Złote strzały i Mój portfel jest przełącznik <b>Horyzont</b>. Jednym kliknięciem przeliczasz wszystko na wybrany termin: <b>krótki</b> (dni – tygodnie, średnie 10/30/100 sesji), <b>średni</b> (tygodnie – miesiące, 20/50/200) albo <b>długi</b> (miesiące – lata, 50/100/200). Przy każdej spółce trzy literki <b>K Ś D</b> pokazują jej sygnał w każdym horyzoncie (kolor jak przy sygnale, obwódka – horyzont wybrany teraz). Rozwijana lista <b>Zgodność horyzontów</b> zawęża spółki, np. do tych z sygnałem KUP w którymkolwiek horyzoncie albo w trendzie wzrostowym we wszystkich trzech – działa na liście sygnałów i w złotych strzałach. W szczegółach spółki widać sygnał w pozostałych horyzontach; kliknięcie przełącza horyzont.</p>
   <h3>Indeksy i sektory</h3>
   <p>Zakładka <b>Indeksy</b> pokazuje wszystkie indeksy GPW: główne (WIG20, WIG, WIG30, mWIG40, sWIG80, WIG140, WIG-Poland, NCIndex), sektorowe (banki, budownictwo, chemia, energia, górnictwo, gry, informatyka, leki, media, motoryzacja, nieruchomości, odzież, paliwa, spożywczy), makrosektory i pozostałe (m.in. WIGdiv, WIGtech, WIGmed, WIG-CEE, WIG-Ukraine). Przy każdym widać wartość w punktach, zmianę z dnia, miesiąca, 3 i 12 miesięcy, sygnał i siłę techniczną, a wykres słupkowy porównuje sektory. Kliknięcie indeksu otwiera jego wykres (także Ichimoku 1 godz.) i tabelę spółek, które do niego należą. Na liście spółek w zakładce Sygnały możesz wybrać indeks lub sektor z rozwijanej listy „Indeks / sektor”, a w szczegółach spółki widać, do których indeksów należy.</p>
   <h3>Wykresy portfela</h3>
@@ -2904,6 +2970,7 @@ function renderHelp(){
 function bindGlobal(){
   $('#btnRefresh').onclick=()=>refreshAll();
   $('#btnBell').onclick=openNotes;
+  document.addEventListener('click',e=>{ const b=e.target.closest('[data-hz]'); if(b){ e.preventDefault(); e.stopPropagation(); setHorizon(b.dataset.hz); } },true);
   $('#ntClear').onclick=()=>{ state.nt=[]; ntSave(); renderNotes(); renderBell(); if(state.tab==='pf') renderPfSafe(); };
   $$('#tabs [data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
   $('#viewPf').addEventListener('focusout',()=>setTimeout(()=>{ if(state.pfPending&&state.tab==='pf') renderPfSafe(); },300));
