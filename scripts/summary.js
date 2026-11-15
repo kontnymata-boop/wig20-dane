@@ -64,6 +64,13 @@ for (const u of uni.items) {
       }
       it.nz = Bs.v.slice(-20).filter(v => !v).length;                            // sesje bez obrotu w ostatnich 20
     }
+    // „zamrożone” notowania: kolejne ostatnie sesje z tym samym kursem i zerowym obrotem
+    // (zawieszony obrót, brak transakcji albo Yahoo przestało aktualizować dane)
+    if (!u.idx) {
+      let fz = 0;
+      for (let i = L; i > 0 && Bs.c[i] === Bs.c[i - 1] && !Bs.v[i]; i--) fz++;
+      if (fz >= 3) { it.fz = fz; it.fzd = Bs.d[L - fz + 1]; }
+    }
     // dywidendy: suma z 12 miesięcy, stopa, ostatnie wypłaty i zapowiedziany dzień odcięcia
     const dvAll = Array.isArray(x.dv) ? x.dv.filter(a => Array.isArray(a) && a[1] > 0) : [];
     let nx = null;

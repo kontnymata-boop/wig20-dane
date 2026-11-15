@@ -146,6 +146,9 @@
 .potline{font-size:13.5px}
 @media (max-width:900px){ .top-grid{grid-template-columns:1fr} }
 .lowliq{color:var(--text-2);font-weight:600}
+.frz{color:var(--neg-text);font-weight:650}
+.frz-card{border-left:4px solid var(--watch);background:var(--surface-2)}
+.frz-card p{margin:0;line-height:1.5}
 html,body{margin:0;background:var(--page);color:var(--text)}
 body{font-size:15px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -454,7 +457,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.1 (15.11.2026)';
+const APP_VERSION = '3.2 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -1034,6 +1037,7 @@ const FK_PTS=[0,0,8,15,20];           // kondycja: bardzo słaba, słaba (wykluc
 const FK_NONE=6;                      // brak oceny kondycji
 function potentialEval(it){
   const S=itP(it), no=why=>({ok:false, why});
+  if(frozenIt(it)) return no(`notowania stoją w miejscu od ${dPL(it.fzd)} – dane mogą być nieaktualne`);
   if(S.sc==null || !['KUP','OBSERWUJ','TRZYMAJ'].includes(S.st)) return no(`brak sygnału kupna (obecnie: ${(STATUS[S.st]||STATUS.BRAK).label})`);
   if(!(it.obr>=POT.minObr)) return no(`za mała płynność (średni obrót ${fmtVol(it.obr)} zł dziennie, potrzeba co najmniej 1 mln zł)`);
   if(it.atr!=null && it.atr>POT.maxAtr) return no(`zbyt duża zmienność kursu (średni dzienny ruch ${pct(it.atr,1).replace('+','')})`);
@@ -1116,6 +1120,11 @@ function potLine(t){
   const rank=potRanking(), pos=rank.findIndex(x=>x.it.t===t)+1;
   return `<p class="note potline">Potencjał wzrostowy: <b>${p.total}/100</b> – miejsce <b>${pos}</b> z ${rank.length} spółek spełniających warunki${pos<=3?' (Top 3)':''}.</p>`;
 }
+/* ================= NIEAKTUALNE NOTOWANIA ================= */
+const FZ_MIN=5;   // tyle kolejnych sesji z tym samym kursem i zerowym obrotem uznaję za „zamrożone” notowania
+function frozenIt(it){ return it&&!it.idx&&(it.fz||0)>=FZ_MIN ? {n:it.fz, d:it.fzd} : null; }
+const frozenOf=t=>frozenIt(state.sum[t]);
+const frozenTxt=(fr,price)=>`Od ${dPL(fr.d)} (${fr.n} ${plN(fr.n,'sesja','sesje','sesji')}) kurs${price!=null?' '+fmt(price)+' zł':''} się nie zmienia, a obrót wynosi 0. Obrót akcjami mógł zostać zawieszony, nikt nimi nie handluje albo Yahoo Finance przestało aktualizować dane tej spółki.`;
 /* ================= DYWIDENDY ================= */
 const plN=(n,a,b,c)=>{ n=Math.abs(n); return n===1?a:(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?b:c; };
 const dvOf=t=>{ const it=state.sum[t]; return it&&!it.idx&&it.dv?it.dv:null; };
@@ -1182,8 +1191,14 @@ function pfWatchCheck(opt={}){
   for(const p of state.pf.pos){
     const r=pfCalc(p), it=r.it, h=r.h;
     if(!it||it.idx||r.price==null) continue;
-    const S=itP(it); if(S.st==='BRAK'||h.lv==='na') continue;
-    const atr=it.atr!=null&&it.c?it.atr*it.c:null, old=items[p.t];
+    const S=itP(it), old=items[p.t];
+    if(h.lv==='stale'){     // notowania stoją – zwykłych zmian nie zgłaszam, tylko jedno ostrzeżenie
+      if(old&&!quiet&&!old.fr) fresh.push({id:pfId(), t:p.t, at:Date.now(), k:'near', title:`${p.t} – notowania stoją w miejscu`, lines:[`Kurs ${fmt(r.price)} zł nie zmienia się od ${dPL(it.fzd)}, a obrót wynosi 0.`], more:['Obrót mógł zostać zawieszony albo Yahoo Finance nie aktualizuje danych – sprawdź kurs u swojego maklera.'], read:false});
+      items[p.t]=Object.assign({},old||{st:S.st,lv:'stale',tg:0,nx:null},{fr:true});
+      continue;
+    }
+    if(S.st==='BRAK'||h.lv==='na') continue;
+    const atr=it.atr!=null&&it.c?it.atr*it.c:null;
     let tg=0;
     if(h.target!=null&&atr){ tg=r.price>=h.target?2:r.price>=h.target-0.5*atr?1:0; if(old&&(old.tg||0)>tg&&r.price>=h.target-atr) tg=old.tg; }
     const nx=r.dv&&r.dv.nx?r.dv.nx.d:null, cur={st:S.st, lv:h.lv, tg, nx};
@@ -1258,7 +1273,7 @@ function ntBeep(){
 function openNotes(){ renderNotes(); $('#dlgNotes').showModal(); if(state.nt.some(n=>!n.read)){ state.nt.forEach(n=>{ n.read=true; }); ntSave(); renderBell(); } }
 function renderNotes(){
   const s=state.settings, list=state.nt.slice().reverse();
-  $('#ntBody').innerHTML=`<p class="small" style="margin:0 0 10px">Powiadomienia dotyczą spółek z zakładki <b>Mój portfel</b>. Pojawiają się, gdy kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, gdy sygnał systemu zmienia się na KUP lub SPRZEDAJ, gdy wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) i gdy spółka zapowie dywidendę. Sprawdzam to przy każdej aktualizacji notowań${s.autoRefresh?' – aktualizacja automatyczna jest włączona.':'. Włącz aktualizację automatyczną w Ustawieniach, żeby nie przegapić zmian.'}</p>
+  $('#ntBody').innerHTML=`<p class="small" style="margin:0 0 10px">Powiadomienia dotyczą spółek z zakładki <b>Mój portfel</b>. Pojawiają się, gdy kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, gdy sygnał systemu zmienia się na KUP lub SPRZEDAJ, gdy wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ), gdy spółka zapowie dywidendę i gdy notowania spółki zaczną stać w miejscu. Sprawdzam to przy każdej aktualizacji notowań${s.autoRefresh?' – aktualizacja automatyczna jest włączona.':'. Włącz aktualizację automatyczną w Ustawieniach, żeby nie przegapić zmian.'}</p>
     <div class="inline" style="margin:0 0 12px"><label class="small"><input type="checkbox" id="ntPopup" ${s.ntPopup!==false?'checked':''}> wyskakujące okienka</label><label class="small"><input type="checkbox" id="ntSound" ${s.ntSound?'checked':''}> sygnał dźwiękowy</label></div>
     ${list.length?`<ul class="nt-list">${list.map(n=>`<li class="${esc(n.k||'')}${n.read?'':' new'}"><b>${esc(n.title)}</b><div class="nt-txt">${n.lines.map(esc).join('<br>')}</div>${(n.more||[]).length?`<div class="nt-txt small" style="margin-top:4px;color:var(--text-2)">${n.more.map(esc).join(' ')}</div>`:''}<div class="nt-meta"><span>${new Date(n.at).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${n.read?'':' · nowe'}</span><button class="btn sm" data-go="${esc(n.t)}">Pokaż spółkę</button></div></li>`).join('')}</ul>`
       : `<div class="empty"><h3>Brak powiadomień</h3>${state.pf.pos.length?'Gdy w spółkach z Twojego portfela coś się zmieni, zobaczysz to tutaj.':'Najpierw dodaj spółki w zakładce Mój portfel.'}</div>`}`;
@@ -1350,6 +1365,7 @@ const HINT={
   take:{lbl:'REALIZUJ ZYSK', cls:'watch', icon:'◎', prio:2},
   watch:{lbl:'TRZYMAJ, OBSERWUJ', cls:'wait', icon:'●', prio:3},
   hold:{lbl:'TRZYMAJ', cls:'buy', icon:'▲', prio:4},
+  stale:{lbl:'SPRAWDŹ KURS', cls:'watch', icon:'⚠', prio:1},
   na:{lbl:'BRAK DANYCH', cls:'wait', icon:'?', prio:5}
 };
 function pfLoad(){
@@ -1386,6 +1402,8 @@ function bdaysBetween(a,b){ if(!a||!b||a>=b) return 0; let d=new Date(a+'T12:00:
 function pfHint(p,it,price,avg){
   if(!it||price==null) return {lv:'na', why:['Brak aktualnych notowań tej spółki – mogła zniknąć z giełdy albo zmienić skrót.'], stop:null, target:null};
   if(it.idx) return {lv:'na', why:['To indeks – nie da się go kupić bezpośrednio.'], stop:null, target:null};
+  const fr=frozenIt(it);
+  if(fr) return {lv:'stale', why:[frozenTxt(fr,price), 'Wartość pozycji liczę z tego kursu, ale nie podpowiadam, czy trzymać, czy sprzedać – dane mogą być nieaktualne. Sprawdź aktualny kurs u swojego maklera.'], stop:null, target:null};
   const S=itP(it), P=(S.fb&&profByKey(S.fb))||PROFILES[state.settings.profile];
   const atr=it.atr!=null&&it.c?it.atr*it.c:null, sp=it.sp||[];
   let win=Math.min(sp.length,22);
@@ -1469,6 +1487,7 @@ function renderPf(){
   const alerts=[];
   if(cnt.sell) alerts.push(`<li><span class="badge sell">▼ SPRZEDAJ</span> ${cnt.sell.map(t=>`<b>${esc(t)}</b>`).join(', ')} – według zasad systemu czas wyjść z tych pozycji.</li>`);
   if(cnt.warn) alerts.push(`<li><span class="badge watch">◐ ROZWAŻ SPRZEDAŻ</span> ${cnt.warn.map(t=>`<b>${esc(t)}</b>`).join(', ')} – słaby trend.</li>`);
+  if(cnt.stale) alerts.push(`<li><span class="badge watch">⚠ SPRAWDŹ KURS</span> ${cnt.stale.map(t=>`<b>${esc(t)}</b>`).join(', ')} – notowania z Yahoo stoją w miejscu, kurs i wartość mogą być nieaktualne.</li>`);
   if(cnt.take) alerts.push(`<li><span class="badge watch">◎ REALIZUJ ZYSK</span> ${cnt.take.map(t=>`<b>${esc(t)}</b>`).join(', ')} – kurs osiągnął cel.</li>`);
   const big=rows.filter(r=>r.share>0.35&&rows.length>1);
   if(big.length) alerts.push(`<li>⚠ <b>${esc(big[0].p.t)}</b> to ${pct(big[0].share,0).replace('+','')} wartości portfela – duża część pieniędzy w jednej spółce zwiększa ryzyko.</li>`);
@@ -1732,7 +1751,9 @@ function zsEval(it){
   if(!fk) out.risk.push('brak oceny kondycji finansowej');
   if((S.rsi||0)>=80) out.risk.push('mocno wykupiona (RSI ≥ 80)');
   // warunki wejścia do rankingu
-  if(S.sc==null) out.why='za krótka historia notowań';
+  if(frozenIt(it)) out.risk.unshift(`kurs stoi w miejscu od ${dPL(it.fzd)} przy zerowym obrocie – dane mogą być nieaktualne`);
+  if(frozenIt(it)) out.why='notowania stoją w miejscu – dane mogą być nieaktualne';
+  else if(S.sc==null) out.why='za krótka historia notowań';
   else if(it.obr<ZS.minObr) out.why=`za mała płynność (${fmtVol(it.obr)} zł dziennie – trudno kupić i sprzedać)`;
   else if((it.nz||0)>ZS.maxNz) out.why='zbyt wiele sesji bez transakcji';
   else if(D==null||D<0) out.why='trend spadkowy na wykresie dziennym (Ichimoku)';
@@ -1874,7 +1895,7 @@ function renderList(){ saveView();
     const star=state.watch.has(it.t);
     return `<div class="row${state.flash.has(it.t)?' flash':''}" data-t="${esc(it.t)}">
       <div class="namecell"><button class="star ${star?'on':''}" data-star="${esc(it.t)}" title="${star?'Usuń z obserwowanych':'Dodaj do obserwowanych'}" aria-label="obserwuj">${star?'★':'☆'}</button><div><div class="tk">${esc(it.t)}${ncTag(it.t)}${dvTag(it.t)}</div><div class="nm">${esc(it.n)}</div></div></div>
-      <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div><div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div></div>
+      <div><div class="num"><b>${fmt(itPrice(it))}</b> zł</div>${frozenIt(it)?`<div class="small frz" title="${esc(frozenTxt(frozenIt(it))+' Kurs i sygnał mogą być nieaktualne – sprawdź kurs u swojego maklera.')}">⚠ kurs stoi od ${frozenIt(it).n} sesji</div>`:`<div class="small">${it.live?'<span class="live"><b>●</b> sesja trwa</span>':(stale?'<span class="warn-ico">⚠</span> ':'')+dPL(it.d)}</div>`}</div>
       <div><div class="num ${cls(ch)}">${arrow(ch)} ${pct(ch,2)}</div>${it.obr!=null && it.obr<5e4 ? `<div class="small lowliq" title="Średni dzienny obrót z 20 sesji poniżej 50 tys. zł – sygnały mniej wiarygodne, trudno kupić/sprzedać po podanej cenie">⚠ obr. ${fmtVol(it.obr)} zł</div>` : `<div class="small" title="średni dzienny obrót z 20 sesji">obr. ${fmtVol(it.obr)} zł</div>`}</div>
       <div><span class="badge ${st.cls}">${st.icon} ${st.label}</span>${S.fb?`<div class="small" title="Krótka historia notowań – analiza na krótszym horyzoncie">krótka historia</div>`:''}</div>
       <div class="meter"><div class="track"><div class="fill" style="width:${S.sc||0}%"></div></div><b>${S.sc!=null?S.sc+'/100':'–'}</b></div>
@@ -2025,6 +2046,7 @@ function openDetail(t, keepScroll){
     <span class="badge big ${st.cls}">${st.icon} ${st.label}</span>
   </div></div>
   <div class="wrap det-body">
+    ${frozenOf(t)?`<section class="card frz-card"><p><b>⚠ Notowania mogą być nieaktualne.</b> ${esc(frozenTxt(frozenOf(t),A.close))} Sygnał, poziomy i wskazówki poniżej są liczone z tych danych, więc mogą być błędne – sprawdź aktualny kurs u swojego maklera (np. w aplikacji mBanku).</p></section>`:''}
     <section class="card">
       <p class="sig-head">${esc(S.head)}</p>
       <p class="sig-text">${esc(S.text)}</p>
@@ -2501,6 +2523,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Nieaktualne notowania</h3>
+  <p>Jeśli kurs spółki nie zmienia się przez co najmniej ${FZ_MIN} kolejnych sesji, a obrót wynosi 0, aplikacja ostrzega: na liście zamiast daty widać <span class="frz">⚠ kurs stoi od … sesji</span>, w szczegółach jest żółta ramka, w portfelu wskazówka <b>SPRAWDŹ KURS</b> (bez podpowiedzi trzymaj/sprzedaj), a spółka nie trafia do Top 3 ani do złotych strzałów. Powód może być różny: zawieszony obrót, brak transakcji albo Yahoo Finance przestało aktualizować dane spółki. W każdym przypadku sprawdź kurs u swojego maklera.</p>
   <h3>Powiadomienia</h3>
   <p>Dzwonek w górnym pasku zbiera powiadomienia o spółkach z <b>Mojego portfela</b>. Nowe powiadomienie wyskakuje też w rogu ekranu, gdy: kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, sygnał systemu zmienia się na KUP lub SPRZEDAJ, wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) oraz gdy spółka zapowie dywidendę. Aplikacja sprawdza to przy każdej aktualizacji notowań – najwygodniej z włączoną aktualizacją automatyczną. Okienka i dźwięk wyłączysz w Ustawieniach albo w oknie powiadomień.</p>
   <h3>Dywidendy</h3>
