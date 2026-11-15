@@ -12,6 +12,7 @@
   --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10); --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.05);
   --up:#0ca30c; --down:#d03b3b; --pos-text:#006300; --neg-text:#c03131;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --band:rgba(42,120,214,.08);
+  --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
   --buy:#0b7f0b; --sell:#d03b3b; --hold:#2a78d6; --watch:#fab219; --wait:#e1e0d9;
   --on-buy:#fff; --on-sell:#fff; --on-hold:#fff; --on-watch:#0b0b0b; --on-wait:#0b0b0b;
   --accent:#2a78d6; --r:14px;
@@ -22,6 +23,7 @@
   --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10); --shadow:none;
   --pos-text:#2fbf2f; --neg-text:#ff7b7b;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --band:rgba(57,135,229,.13);
+  --s4:#c98500; --s5:#d55181; --s6:#0ca30c; --s7:#9085e9; --s8:#e66767;
   --buy:#0ca30c; --hold:#3987e5; --wait:#383835; --on-wait:#f0efec; --accent:#3987e5;
   color-scheme:dark;
 }
@@ -376,6 +378,54 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 #viewIke{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
 #viewIke[hidden]{display:none}
 #viewIke .card{margin:0}
+
+/* portfel – wykresy */
+.ph-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;margin-bottom:6px}
+.ph-head h3{margin:0}
+.ph-head .ph-now{font-size:22px;font-weight:750;font-variant-numeric:tabular-nums;margin-top:2px}
+.ph-head .ph-now .small{font-weight:600}
+.ph-wrap{position:relative;outline:none;border-radius:10px;touch-action:pan-y}
+.ph-wrap:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.ph-wrap svg{display:block;width:100%;overflow:visible}
+.ph-grid{stroke:var(--grid);stroke-width:1}
+.ph-zero{stroke:var(--axis);stroke-width:1.2}
+.ph-lbl{fill:var(--text-2);font-size:11.5px;font-variant-numeric:tabular-nums}
+.ph-ar-up{fill:var(--up);opacity:.13} .ph-ar-dn{fill:var(--down);opacity:.13}
+.ph-ln-up{fill:none;stroke:var(--up);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ph-ln-dn{fill:none;stroke:var(--down);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ph-cross{stroke:var(--text-2);stroke-width:1;stroke-dasharray:3 3}
+.ph-dot{stroke:var(--surface);stroke-width:2}
+.ph-tip{position:absolute;top:0;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.14);padding:7px 10px;font-size:12.5px;line-height:1.45;min-width:170px;z-index:2}
+.ph-tip .v{font-size:16px;font-weight:750;font-variant-numeric:tabular-nums}
+.ph-tip .r{display:flex;justify-content:space-between;gap:12px;color:var(--text-2)} .ph-tip .r b{color:var(--text);font-variant-numeric:tabular-nums}
+.ph-days{max-height:330px;overflow:auto;margin-top:6px}
+.ph-days table.t th{position:sticky;top:0;background:var(--surface)}
+.pst-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(280px,1.2fr);gap:18px}
+@media (max-width:820px){ .pst-grid{grid-template-columns:1fr} }
+.pst-grid h4{margin:0 0 8px;font-size:15px}
+.pd-box{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.pd-box svg{flex:0 0 auto;width:190px;height:190px}
+.pd-box path{stroke:var(--surface);stroke-width:2;cursor:pointer;transition:opacity .15s}
+.pd-box[data-hl] path:not(.hl){opacity:.28}
+.pd-c{fill:var(--text);font-weight:750;font-variant-numeric:tabular-nums}
+.pd-c2{fill:var(--text-2);font-size:11.5px}
+.pd-leg{list-style:none;margin:0;padding:0;flex:1;min-width:190px;display:flex;flex-direction:column;gap:3px}
+.pd-leg li{display:grid;grid-template-columns:12px auto 1fr auto;gap:8px;align-items:center;font-size:13.5px;padding:3px 6px;border-radius:7px;cursor:default}
+.pd-leg li.hl{background:var(--surface-2)}
+.pd-leg .sw{width:12px;height:12px;border-radius:3px}
+.pd-leg .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2)}
+.pd-leg .v b{color:var(--text)}
+.c1{fill:var(--s1);background:var(--s1)} .c2{fill:var(--s2);background:var(--s2)} .c3{fill:var(--s3);background:var(--s3)} .c4{fill:var(--s4);background:var(--s4)}
+.c5{fill:var(--s5);background:var(--s5)} .c6{fill:var(--s6);background:var(--s6)} .c7{fill:var(--s7);background:var(--s7)} .c8{fill:var(--s8);background:var(--s8)} .c0{fill:var(--muted);background:var(--muted)}
+.pb-list{display:flex;flex-direction:column;gap:7px}
+.pb-row{display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:center;font-size:13.5px;padding:2px 4px;border-radius:7px}
+.pb-row:hover{background:var(--surface-2)}
+.pb-row .tk{font-weight:750}
+.pb-track{position:relative;height:16px}
+.pb-track .z{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--axis)}
+.pb-track i{position:absolute;top:0;bottom:0;display:block;min-width:2px}
+.pb-track i.up{background:var(--up);border-radius:0 4px 4px 0} .pb-track i.dn{background:var(--down);border-radius:4px 0 0 4px}
+.pb-row .v{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -457,7 +507,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.2 (15.11.2026)';
+const APP_VERSION = '3.3 (15.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -1462,6 +1512,155 @@ function pfAll(){
   return {rows,tot};
 }
 
+
+/* ================= PORTFEL: HISTORIA I WYKRESY ================= */
+const LS_PF_RANGE='radmat_gpw_portfel_zakres';
+const PH_RANGES=[['1M',22],['3M',66],['6M',130],['1R',260],['Całość',0]];
+const fmtAx=v=>{ const a=Math.abs(v), sg=v>0?'+':v<0?'−':''; return sg+(a>=1e6?fmt(a/1e6,1)+' mln':a>=1e4?fmt(a/1e3,0)+' tys.':fmt(a,0)); };
+function niceStep(span,n){ const raw=span/Math.max(1,n), p=Math.pow(10,Math.floor(Math.log10(raw||1))), m=raw/p; return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p; }
+function pfHistKey(){
+  return JSON.stringify([state.pf.pos.map(p=>[p.t,p.q,p.cost,p.d]), state.pf.hist.map(h=>[h.t,h.q,h.d,h.pnl]), state.sumMeta&&state.sumMeta.updated,
+    state.pf.pos.map(p=>{ const it=state.sum[p.t]; return it?itPrice(it):null; })]);
+}
+/* Wynik portfela na koniec każdej sesji od pierwszego zakupu (obecne pozycje od dat zakupu + zysk zrealizowany ze sprzedaży). */
+async function pfHistCompute(){
+  const key=pfHistKey();
+  if(state.pfHist&&state.pfHist.key===key) return state.pfHist;
+  const today=warsawNow().date;
+  const pos=state.pf.pos.filter(p=>state.sum[p.t]&&!state.sum[p.t].idx);
+  const bars={}, miss=[];
+  await Promise.all(pos.map(async p=>{ try{ let x=await ensureDaily(p.t); const it=state.sum[p.t]; if(x.bars.d[x.bars.d.length-1]<it.d) x=await ensureDaily(p.t,true); bars[p.t]=x.bars; }catch(e){ miss.push(p.t); } }));
+  const use=pos.filter(p=>bars[p.t]);
+  const res={key, rows:[], miss};
+  if(!use.length){ state.pfHist=res; return res; }
+  const start=use.reduce((m,p)=>{ const d=p.d||today; return !m||d<m?d:m; },null);
+  // ceny: notowania dzienne + ostatni kurs z podsumowania (w trakcie sesji – bieżący)
+  const ser={}, ds=new Set();
+  for(const p of use){
+    if(ser[p.t]) continue;
+    const b=bars[p.t], it=state.sum[p.t], d=[], c=[]; let pd=null, pc=null;
+    for(let i=0;i<b.d.length;i++){ if(b.d[i]>=start){ d.push(b.d[i]); c.push(b.c[i]); } else { pd=b.d[i]; pc=b.c[i]; } }
+    if(pd){ d.unshift(pd); c.unshift(pc); }   // ostatnie zamknięcie przed pierwszym zakupem – gdy w dniu zakupu nie było sesji
+    const ld=it.live?today:it.d, lp=itPrice(it);
+    if(d.length&&d[d.length-1]===ld) c[c.length-1]=lp; else if(!d.length||d[d.length-1]<ld){ d.push(ld); c.push(lp); }
+    ser[p.t]={d,c,i:0};
+    d.forEach(x=>{ if(x>=start) ds.add(x); });
+  }
+  const closeAt=(t,D)=>{ const S=ser[t]; if(!S) return null; while(S.i+1<S.d.length&&S.d[S.i+1]<=D) S.i++; return S.d[S.i]<=D?S.c[S.i]:null; };
+  const heldFrom={}; use.forEach(p=>{ heldFrom[p.t]=p.d||today; });
+  for(const D of [...ds].sort()){
+    let val=0, cost=0, real=0, n=0;
+    for(const p of use){ if((p.d||today)>D) continue; const c=closeAt(p.t,D); if(c==null) continue; val+=p.q*c; cost+=p.cost; n++; }
+    for(const h of state.pf.hist){
+      if(h.d<=D){ real+=h.pnl||0; continue; }
+      if(heldFrom[h.t]&&heldFrom[h.t]<=D){ const c=closeAt(h.t,D); if(c!=null){ val+=h.q*c; cost+=h.q*h.buy; n++; } }   // akcje sprzedane później – do dnia sprzedaży jeszcze w portfelu
+    }
+    if(!n&&!real) continue;
+    res.rows.push({d:D, val, cost, unr:val-cost, real, pnl:val-cost+real});
+  }
+  res.rows.forEach((r,i)=>{ r.ch=i?r.pnl-res.rows[i-1].pnl:null; });
+  res.hasReal=state.pf.hist.length>0;
+  state.pfHist=res; return res;
+}
+function pfHistCardHTML(){
+  const H=state.pfHist&&state.pfHist.rows?state.pfHist:null;   // starszy wynik pokazuję, dopóki nie policzę nowego
+  const rng=state.pfRange!=null?state.pfRange:(()=>{ const v=Number(store.get(LS_PF_RANGE,0)); return isFinite(v)?v:0; })();
+  state.pfRange=rng;
+  const seg=`<div class="seg" id="phRange" role="group" aria-label="Zakres wykresu">${PH_RANGES.map(([l,n])=>`<button data-n="${n}" class="${rng===n?'on':''}">${l}</button>`).join('')}</div>`;
+  if(!H) return `<section class="card pf-hist" id="pfHistCard"><div class="ph-head"><div><h3 class="sec">Zysk / strata dzień po dniu</h3><p class="small" style="margin:2px 0 0">Liczę historię portfela z notowań dziennych…</p></div></div></section>`;
+  const R=H.rows, last=R[R.length-1];
+  if(R.length<2) return `<section class="card pf-hist" id="pfHistCard"><div class="ph-head"><div><h3 class="sec">Zysk / strata dzień po dniu</h3><p class="small" style="margin:2px 0 0">Wykres pojawi się po pierwszej sesji od zakupu – na razie portfel ma tylko ${R.length?'jeden dzień':'pozycje bez historii'}.</p></div></div></section>`;
+  const days=R.slice().reverse().slice(0,260);
+  return `<section class="card pf-hist" id="pfHistCard">
+    <div class="ph-head"><div><h3 class="sec">Zysk / strata dzień po dniu</h3><div class="ph-now ${cls(last.pnl)}">${zlS(last.pnl)} <span class="small ${cls(last.ch)}">${last.ch!=null?'dziś '+zlS(last.ch):''}</span></div></div>${seg}</div>
+    <div class="ph-wrap" id="phWrap" tabindex="0" role="img" aria-label="Wykres zysku lub straty całego portfela na koniec każdej sesji. Strzałkami w lewo i w prawo przechodzisz między dniami."><div class="ph-tip" id="phTip" hidden></div></div>
+    <details><summary>Tabela: wynik portfela każdego dnia (${R.length} ${plN(R.length,'sesja','sesje','sesji')})</summary>
+      <div class="ph-days"><table class="t"><tr><th style="text-align:left">Data</th><th>Wartość akcji</th><th>Zysk / strata razem</th><th>Zmiana w ciągu dnia</th></tr>
+      ${days.map(r=>`<tr><td style="text-align:left">${dPL(r.d)}</td><td>${zl(r.val)}</td><td class="${cls(r.pnl)}"><b>${zlS(r.pnl)}</b>${r.cost?` <span class="small">(${pct(r.unr/r.cost,1)})</span>`:''}</td><td class="${cls(r.ch)}">${r.ch!=null?zlS(r.ch):'–'}</td></tr>`).join('')}
+      </table></div></details>
+    <p class="note" style="margin:8px 0 0">Wynik na koniec każdej sesji od pierwszego zakupu: obecne pozycje liczone od dat zakupu${H.hasReal?' plus zysk zrealizowany ze sprzedaży (od dnia sprzedaży)':''}. Przy dokupieniach i częściowych sprzedażach to przybliżenie. Bez dywidend.${H.miss.length?` Brak notowań dla: ${H.miss.map(esc).join(', ')} – te spółki pominąłem.`:''}</p>
+  </section>`;
+}
+function pfHistDraw(){
+  const wrap=$('#phWrap'), H=state.pfHist; if(!wrap||!H||H.rows.length<2) return;
+  let R=H.rows; const n=state.pfRange||0; if(n&&R.length>n) R=R.slice(-n);
+  const W=Math.max(280,wrap.clientWidth), Hh=W<520?200:240, mL=W<520?50:62, mR=10, mT=10, mB=24, pw=W-mL-mR, ph=Hh-mT-mB;
+  let lo=Math.min(0,...R.map(r=>r.pnl)), hi=Math.max(0,...R.map(r=>r.pnl)); if(hi===lo){ hi+=1; lo-=1; }
+  const st=niceStep(hi-lo,4); lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
+  const X=i=>mL+(R.length===1?pw/2:i*pw/(R.length-1)), Y=v=>mT+(hi-v)/(hi-lo)*ph, y0=Y(0);
+  const pts=R.map((r,i)=>`${X(i).toFixed(1)},${Y(r.pnl).toFixed(1)}`), line='M'+pts.join('L'), area=line+`L${X(R.length-1).toFixed(1)},${y0.toFixed(1)}L${X(0).toFixed(1)},${y0.toFixed(1)}Z`;
+  let grid=''; for(let v=lo; v<=hi+st/2; v+=st){ const y=Y(v); grid+=`<line class="${Math.abs(v)<st/2?'ph-zero':'ph-grid'}" x1="${mL}" x2="${W-mR}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}"/><text class="ph-lbl" x="${mL-6}" y="${(y+4).toFixed(1)}" text-anchor="end">${fmtAx(Math.abs(v)<st/2?0:v)}</text>`; }
+  const long=(Date.parse(R[R.length-1].d)-Date.parse(R[0].d))/864e5>300, nx=Math.min(R.length, W<520?4:6);
+  let xl=''; for(let k=0;k<nx;k++){ const i=nx===1?0:Math.round(k*(R.length-1)/(nx-1)), [y,m,d]=R[i].d.split('-'); xl+=`<text class="ph-lbl" x="${X(i).toFixed(1)}" y="${Hh-6}" text-anchor="${k===0?'start':k===nx-1?'end':'middle'}">${long?`${m}.${y.slice(2)}`:`${d}.${m}`}</text>`; }
+  const uid='ph'+Date.now();
+  const svg=`<svg viewBox="0 0 ${W} ${Hh}" height="${Hh}" aria-hidden="true"><defs><clipPath id="${uid}u"><rect x="0" y="0" width="${W}" height="${y0.toFixed(1)}"/></clipPath><clipPath id="${uid}d"><rect x="0" y="${y0.toFixed(1)}" width="${W}" height="${(Hh-y0).toFixed(1)}"/></clipPath></defs>
+    ${grid}${xl}<path class="ph-ar-up" d="${area}" clip-path="url(#${uid}u)"/><path class="ph-ar-dn" d="${area}" clip-path="url(#${uid}d)"/>
+    <path class="ph-ln-up" d="${line}" clip-path="url(#${uid}u)"/><path class="ph-ln-dn" d="${line}" clip-path="url(#${uid}d)"/>
+    <line class="ph-cross" id="phCross" y1="${mT}" y2="${mT+ph}" x1="0" x2="0" visibility="hidden"/><circle class="ph-dot" id="phDot" r="4.5" cx="${X(R.length-1)}" cy="${Y(R[R.length-1].pnl)}" style="fill:var(${R[R.length-1].pnl<0?'--down':'--up'})"/>
+    <rect id="phHit" x="${mL}" y="0" width="${pw}" height="${Hh}" fill="transparent"/></svg>`;
+  const tip=$('#phTip'); wrap.querySelectorAll('svg').forEach(e=>e.remove()); wrap.insertAdjacentHTML('beforeend',svg);
+  const show=i=>{
+    i=Math.max(0,Math.min(R.length-1,i)); wrap.dataset.i=i; const r=R[i], x=X(i), y=Y(r.pnl);
+    const cr=$('#phCross'), dt=$('#phDot'); cr.setAttribute('x1',x); cr.setAttribute('x2',x); cr.setAttribute('visibility','visible'); dt.setAttribute('cx',x); dt.setAttribute('cy',y); dt.style.fill=`var(${r.pnl<0?'--down':'--up'})`;
+    tip.innerHTML=`<div class="small">${dPL(r.d)}</div><div class="v ${cls(r.pnl)}">${zlS(r.pnl)}</div>
+      <div class="r"><span>Zmiana w ciągu dnia</span><b class="${cls(r.ch)}">${r.ch!=null?zlS(r.ch):'–'}</b></div>
+      <div class="r"><span>Wartość akcji</span><b>${zl(r.val)}</b></div>
+      ${r.real?`<div class="r"><span>w tym zrealizowany</span><b class="${cls(r.real)}">${zlS(r.real)}</b></div>`:''}`;
+    tip.hidden=false; const tw=tip.offsetWidth; tip.style.left=Math.max(0,Math.min(W-tw, x>W/2?x-tw-12:x+12))+'px'; tip.style.top='4px';
+  };
+  const hide=()=>{ tip.hidden=true; const cr=$('#phCross'); if(cr) cr.setAttribute('visibility','hidden'); const dt=$('#phDot'); if(dt){ dt.setAttribute('cx',X(R.length-1)); dt.setAttribute('cy',Y(R[R.length-1].pnl)); dt.style.fill=`var(${R[R.length-1].pnl<0?'--down':'--up'})`; } delete wrap.dataset.i; };
+  const idxAt=e=>{ const b=wrap.getBoundingClientRect(); return Math.round((e.clientX-b.left-mL)/(pw/Math.max(1,R.length-1))); };
+  const hit=$('#phHit');
+  hit.onpointermove=e=>show(idxAt(e)); hit.onpointerdown=e=>show(idxAt(e)); hit.onpointerleave=e=>{ if(e.pointerType==='mouse') hide(); };
+  wrap.onkeydown=e=>{ const cur=wrap.dataset.i!=null?Number(wrap.dataset.i):R.length-1; const k={ArrowLeft:cur-1,ArrowRight:cur+1,Home:0,End:R.length-1}[e.key]; if(k!=null){ e.preventDefault(); show(k); } else if(e.key==='Escape') hide(); };
+  wrap.onfocus=()=>{ if(wrap.dataset.i==null) show(R.length-1); }; wrap.onblur=hide;
+}
+function pfHistBind(){
+  $$('#phRange button').forEach(b=>b.onclick=()=>{ state.pfRange=Number(b.dataset.n); store.set(LS_PF_RANGE,state.pfRange); $$('#phRange button').forEach(x=>x.classList.toggle('on',x===b)); pfHistDraw(); });
+  pfHistDraw();
+}
+async function pfHistRefresh(){
+  if(!state.pf.pos.length||(state.pfHist&&state.pfHist.key===pfHistKey())) return;
+  if(state.pfHistBusy) return; state.pfHistBusy=true;
+  try{ await pfHistCompute(); }catch(e){ console.warn('historia portfela',e); }
+  state.pfHistBusy=false;
+  const card=$('#pfHistCard'); if(card&&state.tab==='pf'){ const op=!!(card.querySelector('details')||{}).open; card.outerHTML=pfHistCardHTML(); if(op&&$('#pfHistCard details')) $('#pfHistCard details').open=true; pfHistBind(); }
+}
+/* struktura portfela: udział spółek (wykres kołowy) + zysk/strata według spółek (słupki) */
+function pfStructHTML(rows,tot){
+  if(!rows.length) return '';
+  // kolejność i kolory według kolejności w portfelu – kolor zostaje przy spółce
+  const order=state.pf.pos.map(p=>p.t), byT={}; rows.forEach(r=>{ byT[r.p.t]=r; });
+  let parts=order.map(t=>byT[t]).filter(Boolean).map(r=>({t:r.p.t, n:r.it?r.it.n:(r.p.n||r.p.t), v:r.val!=null?r.val:r.p.cost}));
+  if(parts.length>8){ const keep=new Set(parts.slice().sort((a,b)=>b.v-a.v).slice(0,7).map(x=>x.t)); const rest=parts.filter(x=>!keep.has(x.t)); parts=parts.filter(x=>keep.has(x.t)); parts.push({t:'Pozostałe', n:rest.map(x=>x.t).join(', '), v:rest.reduce((a,x)=>a+x.v,0), other:true}); }
+  parts.forEach((x,i)=>{ x.c=x.other?'c0':'c'+(i+1); x.sh=tot.val?x.v/tot.val:0; });
+  let donut='';
+  if(parts.length>=2){
+    const cx=95, cy=95, R1=90, R0=58; let a=-Math.PI/2; const P=(r,ang)=>`${(cx+r*Math.cos(ang)).toFixed(2)},${(cy+r*Math.sin(ang)).toFixed(2)}`;
+    const paths=parts.map((x,i)=>{ const da=Math.max(0.0001,x.sh*2*Math.PI), b=a+da, lg=da>Math.PI?1:0;
+      const d=da>=2*Math.PI-1e-4?`M${P(R1,a)}A${R1},${R1} 0 1 1 ${P(R1,a+Math.PI)}A${R1},${R1} 0 1 1 ${P(R1,a)}M${P(R0,a)}A${R0},${R0} 0 1 0 ${P(R0,a+Math.PI)}A${R0},${R0} 0 1 0 ${P(R0,a)}Z`
+        :`M${P(R1,a)}A${R1},${R1} 0 ${lg} 1 ${P(R1,b)}L${P(R0,b)}A${R0},${R0} 0 ${lg} 0 ${P(R0,a)}Z`; a=b;
+      return `<path class="${x.c}" d="${d}" data-i="${i}"><title>${esc(x.t)}: ${zl(x.v)} (${pctU(x.sh)})</title></path>`; }).join('');
+    donut=`<div><h4>Udział spółek w wartości portfela</h4><div class="pd-box" id="pdBox">
+      <svg viewBox="0 0 190 190" role="img" aria-label="Wykres kołowy: udział spółek w wartości portfela">${paths}<text class="pd-c" id="pdC1" x="95" y="94" text-anchor="middle" font-size="17">${esc(tot.val<1e6?fmt(tot.val,0):fmtAx(tot.val).replace('+',''))} zł</text><text class="pd-c2" id="pdC2" x="95" y="113" text-anchor="middle">wartość portfela</text></svg>
+      <ul class="pd-leg">${parts.map((x,i)=>`<li data-i="${i}" title="${esc(x.n)}"><span class="sw ${x.c}"></span><b>${esc(x.t)}</b><span class="v">${zl(x.v,0)}</span><span class="v"><b>${pctU(x.sh)}</b></span></li>`).join('')}</ul>
+    </div></div>`;
+  } else donut=`<div><h4>Udział spółek w wartości portfela</h4><p class="small">Cały portfel to jedna spółka (${esc(parts[0].t)}) – dodaj kolejne, żeby zobaczyć podział. Rozłożenie pieniędzy na kilka spółek zmniejsza ryzyko.</p></div>`;
+  const pr=rows.filter(r=>r.pnl!=null).slice().sort((a,b)=>b.pnl-a.pnl);
+  const maxP=Math.max(0,...pr.map(r=>r.pnl)), maxN=Math.max(0,...pr.map(r=>-r.pnl)), span=(maxP+maxN)||1, z=maxN/span*100;
+  const bars=`<div><h4>Zysk / strata według spółek</h4><div class="pb-list">${pr.map(r=>{ const w=Math.abs(r.pnl)/span*100;
+      return `<div class="pb-row" title="${esc(r.p.t)}: ${zlS(r.pnl)} (${pct(r.pnlPct,1)}) – zainwestowano ${zl(r.p.cost)}, wartość ${zl(r.val)}"><span class="tk">${esc(r.p.t)}</span><span class="pb-track"><span class="z" style="left:${z.toFixed(2)}%"></span><i class="${r.pnl<0?'dn':'up'}" style="${r.pnl<0?`right:${(100-z).toFixed(2)}%`:`left:${z.toFixed(2)}%`};width:${w.toFixed(2)}%"></i></span><span class="v ${cls(r.pnl)}"><b>${zlS(r.pnl,0)}</b> <span class="small">${pct(r.pnlPct,1)}</span></span></div>`; }).join('')}</div>
+      <p class="small" style="margin:8px 0 0">Razem: <b class="${cls(tot.pnl)}">${zlS(tot.pnl)}</b> (${pct(tot.pnlPct,2)}).</p></div>`;
+  return `<section class="card pf-struct"><h3 class="sec">Struktura portfela</h3><div class="pst-grid">${donut}${bars}</div></section>`;
+}
+function pfStructBind(){
+  const box=$('#pdBox'); if(!box) return;
+  const parts=[...box.querySelectorAll('.pd-leg li')], c1=$('#pdC1'), c2=$('#pdC2'), t1=c1.textContent, t2=c2.textContent;
+  const hl=i=>{ if(i==null){ delete box.dataset.hl; box.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl')); c1.textContent=t1; c2.textContent=t2; return; }
+    box.dataset.hl='1'; box.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl')); box.querySelectorAll(`[data-i="${i}"]`).forEach(e=>e.classList.add('hl'));
+    const li=parts[i]; c1.textContent=li.querySelector('.v b').textContent; c2.textContent=li.querySelector('b').textContent+' · '+li.querySelector('.v').textContent; };
+  box.querySelectorAll('[data-i]').forEach(e=>{ e.onpointerenter=()=>hl(e.dataset.i); e.onpointerleave=()=>hl(null); });
+}
 /* ---------- widok ---------- */
 function renderTabs(){
   $$('#tabs [data-tab]').forEach(b=>{ const on=b.dataset.tab===state.tab; b.setAttribute('aria-selected',on); b.classList.toggle('on',on); });
@@ -1540,9 +1739,10 @@ function renderPf(){
       <div class="pf-actions"><button class="btn" id="pfExport">⬇ Zapisz kopię do pliku</button><label class="btn" for="pfImport">⬆ Wczytaj kopię z pliku</label><input type="file" id="pfImport" accept=".json,application/json" hidden></div>
       ${pfSnapUI()}
     </section>`;
-  el.innerHTML = sum + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + form + hist + backup +
+  el.innerHTML = sum + (rows.length?pfHistCardHTML():'') + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + pfStructHTML(rows,tot) + form + hist + backup +
     `<p class="note pf-disc">Wskazówki są mechaniczne – wynikają z zasad analizy technicznej (stop, cel, trend, sygnały) i kondycji spółki. Nie są rekomendacją inwestycyjną; decyzję podejmujesz sam.</p>`;
-  pfBind();
+  pfBind(); pfStructBind();
+  if(rows.length){ if($('#phWrap')) pfHistBind(); pfHistRefresh(); }
 }
 function pfSnapUI(){
   const snaps=store.get(LS_PF_SNAP,[]), cur=JSON.stringify(state.pf);
@@ -2523,6 +2723,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Wykresy portfela</h3>
+  <p>W zakładce <b>Mój portfel</b> pod podsumowaniem jest wykres <b>Zysk / strata dzień po dniu</b> – wynik całego portfela na koniec każdej sesji od pierwszego zakupu (zielony nad zerem, czerwony pod zerem). Najedź na wykres albo dotknij go, żeby zobaczyć wynik z danego dnia; zakres zmienisz przyciskami 1M–Całość. Pod wykresem jest tabela z wynikiem każdego dnia. Niżej, pod listą spółek, karta <b>Struktura portfela</b>: wykres kołowy z udziałem spółek w wartości portfela i słupki zysku lub straty każdej spółki.</p>
   <h3>Nieaktualne notowania</h3>
   <p>Jeśli kurs spółki nie zmienia się przez co najmniej ${FZ_MIN} kolejnych sesji, a obrót wynosi 0, aplikacja ostrzega: na liście zamiast daty widać <span class="frz">⚠ kurs stoi od … sesji</span>, w szczegółach jest żółta ramka, w portfelu wskazówka <b>SPRAWDŹ KURS</b> (bez podpowiedzi trzymaj/sprzedaj), a spółka nie trafia do Top 3 ani do złotych strzałów. Powód może być różny: zawieszony obrót, brak transakcji albo Yahoo Finance przestało aktualizować dane spółki. W każdym przypadku sprawdź kurs u swojego maklera.</p>
   <h3>Powiadomienia</h3>
@@ -2600,7 +2802,7 @@ function bindGlobal(){
   $('#market').onclick=()=>showCompany(INDEX_DEF.t); $('#market').style.cursor='pointer';
   document.addEventListener('keydown',e=>{ if(e.key==='Escape' && state.detail && !document.querySelector('dialog[open]')) closeDetail(); });
   document.addEventListener('backbutton',e=>{ if(state.detail){ e.preventDefault(); closeDetail(); } else if(navigator.app&&navigator.app.exitApp) navigator.app.exitApp(); },false);
-  let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); }); },150); });
+  let rt=null; window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(state.detail) drawDetailChart(); if(state.tab==='pf') pfHistDraw(); $$('#list canvas.spark').forEach(cv=>{ const it=state.sum[cv.dataset.t]; if(it) drawSpark(cv,it.sp); }); },150); });
   if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(state.settings.theme==='auto'){ applyTheme(); renderList(); if(state.detail) drawDetailChart(); } });
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) autoTick(); });
   setInterval(autoTick,60e3);
