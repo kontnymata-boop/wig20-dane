@@ -355,6 +355,8 @@ def main():
         queue = [t.strip().upper() for t in a.only.split(",") if t.strip()]
     else:
         big = {c["t"] for c in cos if c.get("w20") or set(c.get("ix") or []) & {"WIG20", "MWIG40", "SWIG80", "WIG30"}}
+        if sum(1 for t in ok_t if last.get(t)) < 0.9 * len(ok_t):
+            a.budget = max(a.budget, 160)      # pierwsze przebiegi: szybciej zbieram komunikaty wszystkich spółek
         rest = sorted((t for t in ok_t if t not in prio), key=lambda t: (last.get(t, 0), 0 if t in big else 1, t))
         queue = prio[: a.budget] + rest[: max(15, a.budget - len(prio))]
     done = errs = 0
