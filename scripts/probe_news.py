@@ -1,5 +1,5 @@
-"""Jednorazowa sonda: struktura listy komunikatów ESPI/EBI i mapowanie spółek."""
-import re, json, sys
+"""Jednorazowa sonda 2: struktura komunikatów (biznesradar, bankier)."""
+import re, sys
 sys.path.insert(0, "scripts")
 import update as U
 S = U.session()
@@ -8,17 +8,24 @@ def get(url):
         r = S.get(url, timeout=30); return r.status_code, r.text
     except Exception as e:
         return 0, str(e)
+sq = lambda x: re.sub(r"\s+", " ", x)
 c, b = get("https://www.biznesradar.pl/news/2")
-print("BR news/2:", c, len(b))
-i = b.find("EBI/ESPI"); print("FRAGMENT:", re.sub(r"\s+", " ", b[max(0, i-3000):i+800]))
-print("linki notowania:", re.findall(r'href="(/notowania/[^"]+)"', b)[:30])
-print("linki news:", re.findall(r'href="(/news/[^"]+)"', b)[:10], re.findall(r'href="(https?://[^"]*(?:espi|ebi|raport)[^"]*)"', b, re.I)[:10])
-print("paginacja:", sorted(set(re.findall(r'/news/2,(\d+)', b)))[:10])
-for u in ["https://www.biznesradar.pl/gielda/akcje_gpw", "https://www.biznesradar.pl/gielda/newconnect"]:
-    c, b2 = get(u); lab = re.findall(r'<a href="/notowania/([^"#?]+)"[^>]*>\s*(?:<[^>]+>\s*)*([^<]{2,60})<', b2)
-    print(u, c, len(b2), len(lab), lab[:12])
-c, b3 = get("https://www.biznesradar.pl/raporty-espi-ebi/PKOBP"); print("BR raporty PKOBP:", c, len(b3), re.sub(r"\s+", " ", b3[b3.find("ESPI"):b3.find("ESPI")+600]) if c == 200 else "")
-c, b4 = get("https://www.bankier.pl/gielda/notowania/akcje/PKOBP/komunikaty"); print("bankier PKOBP komunikaty:", c, len(b4))
-j = b4.find("komunikat"); print(re.sub(r"\s+", " ", b4[j:j+400]) if j > 0 else "")
-c, b5 = get("https://www.bankier.pl/inwestowanie/depeszerynkowe.html"); print("bankier depesze:", c, len(b5))
-k = b5.find("Pokaż więcej"); print(re.sub(r"\s+", " ", b5[max(0, k-2500):k]) if k > 0 else b5[:300])
+occ = [m.start() for m in re.finditer("EBI/ESPI", b)]
+print("BR occurrences:", len(occ))
+if len(occ) > 3: print("BRITEM:", sq(b[occ[2]-1500:occ[3]+200]))
+print("BR hrefs sample:", list(dict.fromkeys(re.findall(r'href="([^"]+)"', b)))[60:130])
+for u in ["https://www.biznesradar.pl/raporty-espi-ebi/PKO", "https://www.biznesradar.pl/wiadomosci/PKO", "https://www.biznesradar.pl/news-espi/PKO", "https://www.biznesradar.pl/komunikaty/PKO"]:
+    c2, b2 = get(u); print("BRco", u, c2, len(b2))
+c, b = get("https://www.bankier.pl/inwestowanie/depeszerynkowe.html")
+k = b.find("Kategorie nadawane"); 
+items = re.findall(r'<a[^>]+href="([^"]*wiadomosc[^"]*)"[^>]*>([^<]{5,200})</a>', b)
+print("BKDEP items:", len(items), items[:8])
+j = b.find(items[0][0]) if items else -1
+print("BKDEPITEM:", sq(b[max(0, j-1500):j+600]) if j > 0 else sq(b[k-3000:k]))
+c, b = get("https://www.bankier.pl/gielda/notowania/akcje/PKOBP/komunikaty")
+items = re.findall(r'<a[^>]+href="([^"]*wiadomosc[^"]*)"[^>]*>([^<]{5,200})</a>', b)
+print("BKCO items:", len(items), items[:8])
+j = b.find(items[0][0]) if items else -1
+print("BKCOITEM:", sq(b[max(0, j-1200):j+500]) if j > 0 else "")
+c, b = get("https://www.bankier.pl/inwestowanie/depeszerynkowe.html?page=2")
+print("BKDEP page2:", c, len(re.findall(r'href="[^"]*wiadomosc[^"]*"', b)))
