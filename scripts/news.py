@@ -340,6 +340,7 @@ def main():
                 if not ts:
                     if f["id"] not in seen:
                         unk.append(f["who"])
+                    seen.add(f["id"])
                     continue
                 for t in ts:
                     it = {"id": f["id"], "ty": "espi", "nr": f["nr"], "ti": f["ti"], "d": f["d"], "u": BASE + f["href"]}
