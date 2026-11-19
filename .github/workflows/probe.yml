@@ -2,14 +2,16 @@ name: Sonda komunikatów (jednorazowa)
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/probe.yml', 'scripts/probe_news.py']
+    paths: ['.github/workflows/probe.yml', 'scripts/news.py']
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install "curl_cffi>=0.7"
-      - run: python scripts/probe_news.py
+      - run: git clone --depth 1 --branch data "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" store
+      - run: python scripts/news.py --store store --dry --only PKO,KGH,CDR,ALE,ZRX,PZU,XTB
+      - run: python scripts/news.py --store store --dry --budget 12
