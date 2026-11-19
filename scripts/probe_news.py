@@ -1,4 +1,4 @@
-"""Jednorazowa sonda 2: struktura komunikatów (biznesradar, bankier)."""
+"""Jednorazowa sonda 3: element listy komunikatów i strona wiadomości spółki."""
 import re, sys
 sys.path.insert(0, "scripts")
 import update as U
@@ -10,22 +10,15 @@ def get(url):
         return 0, str(e)
 sq = lambda x: re.sub(r"\s+", " ", x)
 c, b = get("https://www.biznesradar.pl/news/2")
-occ = [m.start() for m in re.finditer("EBI/ESPI", b)]
-print("BR occurrences:", len(occ))
-if len(occ) > 3: print("BRITEM:", sq(b[occ[2]-1500:occ[3]+200]))
-print("BR hrefs sample:", list(dict.fromkeys(re.findall(r'href="([^"]+)"', b)))[60:130])
-for u in ["https://www.biznesradar.pl/raporty-espi-ebi/PKO", "https://www.biznesradar.pl/wiadomosci/PKO", "https://www.biznesradar.pl/news-espi/PKO", "https://www.biznesradar.pl/komunikaty/PKO"]:
-    c2, b2 = get(u); print("BRco", u, c2, len(b2))
-c, b = get("https://www.bankier.pl/inwestowanie/depeszerynkowe.html")
-k = b.find("Kategorie nadawane"); 
-items = re.findall(r'<a[^>]+href="([^"]*wiadomosc[^"]*)"[^>]*>([^<]{5,200})</a>', b)
-print("BKDEP items:", len(items), items[:8])
-j = b.find(items[0][0]) if items else -1
-print("BKDEPITEM:", sq(b[max(0, j-1500):j+600]) if j > 0 else sq(b[k-3000:k]))
-c, b = get("https://www.bankier.pl/gielda/notowania/akcje/PKOBP/komunikaty")
-items = re.findall(r'<a[^>]+href="([^"]*wiadomosc[^"]*)"[^>]*>([^<]{5,200})</a>', b)
-print("BKCO items:", len(items), items[:8])
-j = b.find(items[0][0]) if items else -1
-print("BKCOITEM:", sq(b[max(0, j-1200):j+500]) if j > 0 else "")
-c, b = get("https://www.bankier.pl/inwestowanie/depeszerynkowe.html?page=2")
-print("BKDEP page2:", c, len(re.findall(r'href="[^"]*wiadomosc[^"]*"', b)))
+a = [m.start() for m in re.finditer(r'href="/a/\d+', b)]
+print("BRA count", len(a))
+if len(a) > 6: print("BRITEM:", sq(b[a[4]-900:a[6]+300]))
+print("BR page links:", sorted(set(re.findall(r'href="(/news/2[^"]*)"', b)))[:10], sorted(set(re.findall(r'href="(/news/[^"]{1,20})"', b)))[:20])
+c, b = get("https://www.biznesradar.pl/gielda/akcje_gpw")
+print("PKO slug:", re.findall(r'href="/notowania/([^"]+)"[^>]*>\s*(?:<[^>]+>\s*)*PKO \(', b)[:3], re.findall(r'href="/notowania/([^"]+)"[^>]*>\s*(?:<[^>]+>\s*)*KGH \(', b)[:3])
+c, b = get("https://www.biznesradar.pl/wiadomosci/PKO")
+a = [m.start() for m in re.finditer(r'href="/a/\d+', b)]
+print("BRCO PKO", c, len(b), "art", len(a))
+if len(a) > 3: print("BRCOITEM:", sq(b[a[1]-900:a[3]+300]))
+c, b = get("https://www.biznesradar.pl/wiadomosci/KGHM"); print("BRCO KGHM", c, len(b), len(re.findall(r'href="/a/\d+', b)))
+c, b = get("https://www.biznesradar.pl/news/2,2"); print("BR page 2", c, len(re.findall(r'href="/a/\d+', b)))
