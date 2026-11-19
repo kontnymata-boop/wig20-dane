@@ -94,7 +94,7 @@ def classify(title, body, kind):
     elif cat in ("klopoty", "emisja"):
         d = -1
     elif cat == "prawo":
-        d = 1 if (u and not dn and re.search(r"wygra|oddal|umorz|korzystn", tt)) else -1
+        d = 1 if re.search(r"wygra|oddal|umorz|korzystn|ugod", tt) else -1
     elif cat in ("wza", "obligacje", "fundusz", "terminy", "wladze"):
         d = 0                               # formalności – bez kierunku
     return cat, imp, d
@@ -417,6 +417,8 @@ def main():
         F["at"] = now.strftime("%Y-%m-%d %H:%M")
         F["src"] = "biznesradar.pl"
         F["items"] = [x for x in F["items"] if x.get("d", "") >= keep_from]
+        for x in F["items"]:                # klasyfikacja zawsze według bieżących reguł
+            x["c"], x["imp"], x["dir"] = classify(x.get("ti", ""), x.get("b", ""), x.get("ty", "news"))
         if not a.dry:
             U.dump(os.path.join(ndir, t + ".json"), F)
         wrote += 1
