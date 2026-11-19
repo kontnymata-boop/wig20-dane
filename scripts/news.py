@@ -30,6 +30,7 @@ LISTINGS = ["/gielda/akcje_gpw", "/gielda/newconnect"]
 FEED = "/news/2"
 FEED_PAGES = 6
 NVER = 1
+CVER = 2          # wersja reguł klasyfikacji – zmiana przelicza kategorie we wszystkich zapisanych plikach
 
 # ---------------------------------------------------------------- kategorie
 # (klucz, waga 0–3, wzorce) – kolejność ma znaczenie: pierwszy pasujący wygrywa
@@ -409,7 +410,13 @@ def main():
             print("Limit czasu – resztę spółek sprawdzę w następnym przebiegu.")
             break
 
-    # 4) zapis
+    # 4) zapis (po zmianie reguł klasyfikacji – także wszystkie dotąd zapisane pliki)
+    if st.get("cv") != CVER and os.path.isdir(ndir):
+        for fn in os.listdir(ndir):
+            if fn.endswith(".json") and not fn.startswith("_"):
+                F = load_file(fn[:-5])
+                F["chg"] = True
+        st["cv"] = CVER
     wrote = 0
     for t, F in files.items():
         if not F.pop("chg", False):
