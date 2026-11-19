@@ -44,8 +44,8 @@ CATS = [
     ("dywidenda", 2, r"dywidend|podzial\w* zysku|podziale zysku|wyplat\w* zysku|zaliczk\w* na poczet"),
     ("prognoza", 2, r"prognoz|strategi|guidance|cel\w* finansow|plan\w* inwestycyjn|capex"),
     ("wyniki", 2, r"raport\w* (kwartaln|polroczn|roczn|okresow)|skonsolidowan\w* raport|\b(qsr|psr|sa-q|sa-p|sa-r|rs|srs)\b|wynik\w* finansow"
-                  r"|szacunkow\w* (wynik|dane)|wstepn\w* (wynik|dane)|wybran\w* dane finansow|zysk\w* netto|przychod\w* ze sprzedazy|\bwynik"),
-    ("prawo", 2, r"\bpozw|postepowani\w* (sadow|administracyjn|przed|wyjasn|karn|egzekuc)|\bkar[aey]\b|kary pieniezn|uokik|\bknf\b.*(nalozyl|kar)"
+                  r"|szacunkow\w* (wynik|dane)|wstepn\w* (wynik|dane)|wybran\w* dane finansow|zysk\w* netto|przychod\w* ze sprzedazy|\bwynik|ebitda|konsensus"),
+    ("prawo", 2, r"\bpozew|\bpozw|postepowani\w* (sadow|administracyjn|przed|wyjasn|karn|egzekuc)|\bkar[aey]\b|kary pieniezn|uokik|\bknf\b.*(nalozyl|kar)"
                  r"|prokurat|akt\w* oskarzeni|zajeci\w* (rachun|majat)|egzekuc|arbitraz"),
     ("umowa", 1, r"umow|kontrakt|zamowieni|przetarg|list\w* intencyjn|porozumieni|zlecen|aneks|oferty najkorzystniejszej|wybor\w* oferty"),
     ("insider", 1, r"art\.? ?19|\bmar\b|transakcj\w* (na akcjach|osob|czlon)|osob\w* pelniac\w* obowiazki zarzadcze|blisko zwiazan"),
@@ -59,10 +59,13 @@ CATS = [
     ("terminy", 0, r"terminy przekazywania|harmonogram|kalendarz|terminow publikacji"),
 ]
 CATS_RE = [(k, w, re.compile(p)) for k, w, p in CATS]
-UP = re.compile(r"nabyci|zakup|kupn|zwiekszeni|przekroczeni\w* progu|podwyzsz\w* prognoz|wzrost|rekord|lepsz|podniosl|\bkupuj|\bakumuluj"
-                r"|pozyskal|wygral|zawarci|podpisani|wybor\w* oferty|najkorzystniejsz")
+UP = re.compile(r"nabyci|zakup|kupn|zwiekszeni|przekroczeni\w* progu|podwyzsz\w* prognoz|wzrost|wzros|rekord|lepsz|podniosl|\bkupuj|\bakumuluj"
+                r"|pozyskal|wygral|zawarci|podpisani|wybor\w* oferty|najkorzystniejsz|wystrzel|w gore|popraw|mocn\w* (wynik|wzrost|kwartal)"
+                r"|wyzsz|powyzej (konsensus|oczekiwan|prognoz)|zysk\w* wzr|odbi|zyskuj|drozej|hossa|szczyt")
 DOWN = re.compile(r"zbyci|sprzedaz\w* akcji|sprzedal|zmniejszeni|zejsci|ponizej progu|obnizeni\w* prognoz|obniz\w* prognoz|spadek|spadl|strat[aey]\b"
-                  r"|gorsz|obnizyl|\bsprzedaj|\bredukuj|rozwiazani\w* umow|wypowiedzeni|odstapieni|odwolani\w* prognoz|kar[aey]\b")
+                  r"|gorsz|obnizyl|\bsprzedaj|\bredukuj|rozwiazani\w* umow|wypowiedzeni|odstapieni|odwolani\w* prognoz|kar[aey]\b|ukaran"
+                  r"|spadk|ponizej (konsensus|oczekiwan|prognoz)|nizsz|slab|pogorsz|rozczarow|tapni|runel|run[aey]|w dol|traci|tani|przecen"
+                  r"|nie wyplac|brak dywidend|bez dywidend|zawiesz|ostrzez|problem|obniz")
 
 PL = str.maketrans("ąćęłńóśźżĄĆĘŁŃÓŚŹŻ", "acelnoszzACELNOSZZ")
 
@@ -84,14 +87,16 @@ def classify(title, body, kind):
     if cat == "umowa" and re.search(r"znaczac|istotn", t):
         imp = 2
     tt = fold(title)
-    d = 0
-    if cat in ("insider", "akcjonariat", "rekomendacja", "prognoza", "umowa", "wyniki"):
-        u, dn = bool(UP.search(tt)), bool(DOWN.search(tt))
-        d = 1 if u and not dn else -1 if dn and not u else 0
-    elif cat == "skup":
+    u, dn = bool(UP.search(tt)), bool(DOWN.search(tt))
+    d = 1 if u and not dn else -1 if dn and not u else 0
+    if cat == "skup":
         d = 1
     elif cat in ("klopoty", "emisja"):
         d = -1
+    elif cat == "prawo":
+        d = 1 if (u and not dn and re.search(r"wygra|oddal|umorz|korzystn", tt)) else -1
+    elif cat in ("wza", "obligacje", "fundusz", "terminy", "wladze"):
+        d = 0                               # formalności – bez kierunku
     return cat, imp, d
 
 
@@ -193,8 +198,13 @@ def parse_company(src):
         body = text(body.group(1)) if body else ""
         au = re.search(r'class="record-author"[^>]*>(.*?)</a>', blk, re.S)
         d = dt.group(1).strip()[:16]
-        if typ == "POST" and split_espi(title)[1]:
+        per = re.search(r"\bRaport (okresowy|kwartalny|p[óo][łl]roczny|roczny)\b.*", title, re.I) if typ == "POST" else None
+        if typ == "POST" and (split_espi(title)[1] or per):
             _, nr, ti = split_espi(title)
+            if not nr and per:
+                ti = per.group(0).strip()
+                mm = re.search(r"\b(\d{1,2}/\d{4})\b", ti)
+                nr = mm.group(1) if mm else ""
             it = {"id": mid, "ty": "espi", "nr": nr, "ti": ti, "d": d, "u": BASE + href if href.startswith("/") else href}
             if body and not re.match(r"^Raport bie[żz][ąa]cy", body):
                 it["b"] = body[:200]
