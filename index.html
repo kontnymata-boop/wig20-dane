@@ -378,6 +378,28 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 .dv-head{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
 .dv-head h3{margin:0}
 .dv-soon{background:var(--surface-2);border:1px solid var(--border);border-left:4px solid var(--watch);border-radius:10px;padding:9px 12px;font-size:14.5px;line-height:1.5;margin:0 0 10px}
+.chg-h{font-size:14px;margin:0 0 6px;line-height:1.4}
+.chg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.chg-i{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;font-size:13.5px;line-height:1.45;align-items:baseline}
+.chg-list.hrs .chg-i{grid-template-columns:78px minmax(0,1fr)}
+.chg-d{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap}
+.chg-m{min-width:0;overflow-wrap:anywhere}
+.chg-c{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;border:1px solid var(--border);border-radius:5px;padding:0 5px;white-space:nowrap;background:var(--page);color:var(--text-2);line-height:17px;vertical-align:1px}
+.chg-c b{font-size:9px} .chg-c.cu b{color:var(--pos-text)} .chg-c.cd b{color:var(--neg-text)} .chg-c.cn b{color:var(--muted)}
+.chg-i.crit .chg-c{background:var(--watch);color:#0b0b0b;border-color:transparent} .chg-i.crit .chg-c b{color:#0b0b0b}
+.chg-t a{color:inherit;text-decoration:underline;text-decoration-color:var(--axis);text-underline-offset:2px}
+.chg-t a:hover{text-decoration-color:currentColor}
+.chg-src{color:var(--muted);font-size:12px}
+.chg-why{color:var(--text-2);font-size:12.5px;margin-top:2px;line-height:1.4}
+.chg-new{display:inline-block;font-size:10.5px;font-weight:700;background:var(--accent);color:#fff;border-radius:5px;padding:0 5px;line-height:16px;vertical-align:1px}
+.chg-tk{cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.chg-more summary{cursor:pointer;font-size:13px;color:var(--text-2);margin-top:8px}
+.chg-more .chg-list{margin-top:8px}
+.chg-none{margin:0}
+.chg-alert{margin:0 0 10px;border-left:4px solid var(--sell);background:var(--surface-2);border-radius:8px;padding:7px 10px;font-size:14px;line-height:1.45}
+.pf-card .chg{border-top:1px solid var(--border);padding-top:9px}
+.pf-chg .chg-list{gap:9px}
+@media (max-width:600px){ .chg-i{grid-template-columns:38px minmax(0,1fr);gap:6px;font-size:13.5px} .chg-list.hrs .chg-i{grid-template-columns:38px minmax(0,1fr)} .chg-list.hrs .chg-d .hh{display:none} }
 .pf-div{font-size:13.5px;line-height:1.5;background:var(--page);border:1px solid var(--border);border-radius:10px;padding:7px 10px}
 /* powiadomienia */
 .bell{position:relative;padding:8px 12px}
@@ -385,7 +407,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 .bell-cnt{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;border-radius:999px;background:var(--sell);color:#fff;font-size:11.5px;font-weight:800;display:grid;place-items:center;padding:0 5px;border:2px solid var(--page)}
 .nt-stack{position:fixed;right:14px;top:74px;z-index:70;display:flex;flex-direction:column;gap:8px;width:min(390px,calc(100vw - 24px));pointer-events:none}
 .nt{pointer-events:auto;background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:5px solid var(--hold);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:10px 12px;display:flex;flex-direction:column;gap:6px;animation:ntIn .25s ease-out}
-.nt.sell,.nt-list li.sell{border-left-color:var(--sell)} .nt.target,.nt.up,.nt-list li.target,.nt-list li.up{border-left-color:var(--buy)} .nt.near,.nt-list li.near{border-left-color:var(--watch)} .nt.div,.nt-list li.div{border-left-color:var(--s3)}
+.nt.sell,.nt-list li.sell{border-left-color:var(--sell)} .nt.target,.nt.up,.nt-list li.target,.nt-list li.up{border-left-color:var(--buy)} .nt.near,.nt-list li.near{border-left-color:var(--watch)} .nt.div,.nt-list li.div{border-left-color:var(--s3)} .nt.news,.nt-list li.news{border-left-color:var(--s7)}
 .nt-top{display:flex;align-items:flex-start;gap:8px}
 .nt-top b{flex:1;font-size:15px;line-height:1.3;padding-top:3px}
 .nt-x{border:0;background:none;cursor:pointer;font-size:15px;color:var(--text-2);padding:2px 4px;min-width:30px;min-height:30px;border-radius:8px}
@@ -547,7 +569,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.7 (15.11.2026)';
+const APP_VERSION = '3.8 (19.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -951,7 +973,7 @@ const state={
   settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
   filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE, topHow:false,
   busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
-  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, pfForm:{}, pfSell:null, pfDel:null, nt:[], ike:{}, tab:'sig', legendKey:null, autoBackoffUntil:0
+  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, news:{}, chgSeen0:null, pfForm:{}, pfSell:null, pfDel:null, nt:[], ike:{}, tab:'sig', legendKey:null, autoBackoffUntil:0
 };
 function loadSettings(){
   const s=Object.assign({}, DEFAULT_SETTINGS, store.get(LS_SET,{}));
@@ -1409,7 +1431,7 @@ function pfWatchCheck(opt={}){
     const atr=it.atr!=null&&it.c?it.atr*it.c:null;
     let tg=0;
     if(h.target!=null&&atr){ tg=r.price>=h.target?2:r.price>=h.target-0.5*atr?1:0; if(old&&(old.tg||0)>tg&&r.price>=h.target-atr) tg=old.tg; }
-    const nx=r.dv&&r.dv.nx?r.dv.nx.d:null, cur={st:S.st, lv:h.lv, tg, nx};
+    const nx=r.dv&&r.dv.nx?r.dv.nx.d:null, nk=it.nw&&it.nw.k?it.nw.k:null, cur={st:S.st, lv:h.lv, tg, nx, nw:nk?nk.id:null};
     if(old&&!quiet){
       const L=[], M=[]; let k=null, title=null;
       if(tg>(old.tg||0) && cur.lv!=='sell'){       // przy wskazówce SPRZEDAJ (kurs pod stopem) informacja o celu nie ma sensu
@@ -1430,6 +1452,12 @@ function pfWatchCheck(opt={}){
       if(nx&&nx!==old.nx){
         k=k||'div'; title=title||`${p.t} – zapowiedziana dywidenda`;
         L.push(`Dywidenda: dzień odcięcia ${dPL(nx)}${r.dv.nxVal?`, za Twoje akcje ok. ${zl(r.dv.nxVal)} brutto`:''}.`); M.push('Żeby dostać dywidendę, trzeba mieć akcje na koniec sesji przed dniem odcięcia.');
+      }
+      // nowy ważny komunikat (wyniki, dywidenda, emisja, wezwanie, kłopoty…) – tylko świeży, z ostatnich 3 dni
+      if(nk&&('nw' in old)&&nk.id!==old.nw&&nk.d>=isoBack(3)){
+        const C=nwCat(nk.c);
+        k=k||((nk.imp>=3&&nk.dir<0)?'sell':'news'); title=title||`${p.t} – ${nk.ty==='espi'?'komunikat':'wiadomość'}: ${C.l.toLowerCase()}`;
+        L.push(`${dShort(nk.d.slice(0,10))} ${nk.d.slice(11,16)} · ${nk.ti}`); if(C.why) M.push(C.why);
       }
       if(L.length) fresh.push({id:pfId(), t:p.t, at:Date.now(), k, title, lines:L, more:M.filter(Boolean), read:false});
     }
@@ -1481,7 +1509,7 @@ function ntBeep(){
 function openNotes(){ renderNotes(); $('#dlgNotes').showModal(); if(state.nt.some(n=>!n.read)){ state.nt.forEach(n=>{ n.read=true; }); ntSave(); renderBell(); } }
 function renderNotes(){
   const s=state.settings, list=state.nt.slice().reverse();
-  $('#ntBody').innerHTML=`<p class="small" style="margin:0 0 10px">Powiadomienia dotyczą spółek z zakładki <b>Mój portfel</b>. Pojawiają się, gdy kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, gdy sygnał systemu zmienia się na KUP lub SPRZEDAJ, gdy wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ), gdy spółka zapowie dywidendę i gdy notowania spółki zaczną stać w miejscu. Sprawdzam to przy każdej aktualizacji notowań${s.autoRefresh?' – aktualizacja automatyczna jest włączona.':'. Włącz aktualizację automatyczną w Ustawieniach, żeby nie przegapić zmian.'}</p>
+  $('#ntBody').innerHTML=`<p class="small" style="margin:0 0 10px">Powiadomienia dotyczą spółek z zakładki <b>Mój portfel</b>. Pojawiają się, gdy kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, gdy sygnał systemu zmienia się na KUP lub SPRZEDAJ, gdy wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ), gdy spółka zapowie dywidendę, gdy opublikuje ważny komunikat (wyniki, dywidenda, emisja akcji, wezwanie, prognoza, kłopoty) i gdy notowania spółki zaczną stać w miejscu. Sprawdzam to przy każdej aktualizacji notowań${s.autoRefresh?' – aktualizacja automatyczna jest włączona.':'. Włącz aktualizację automatyczną w Ustawieniach, żeby nie przegapić zmian.'}</p>
     <div class="inline" style="margin:0 0 12px"><label class="small"><input type="checkbox" id="ntPopup" ${s.ntPopup!==false?'checked':''}> wyskakujące okienka</label><label class="small"><input type="checkbox" id="ntSound" ${s.ntSound?'checked':''}> sygnał dźwiękowy</label></div>
     ${list.length?`<ul class="nt-list">${list.map(n=>`<li class="${esc(n.k||'')}${n.read?'':' new'}"><b>${esc(n.title)}</b><div class="nt-txt">${n.lines.map(esc).join('<br>')}</div>${(n.more||[]).length?`<div class="nt-txt small" style="margin-top:4px;color:var(--text-2)">${n.more.map(esc).join(' ')}</div>`:''}<div class="nt-meta"><span>${new Date(n.at).toLocaleString('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${n.read?'':' · nowe'}</span><button class="btn sm" data-go="${esc(n.t)}">Pokaż spółkę</button></div></li>`).join('')}</ul>`
       : `<div class="empty"><h3>Brak powiadomień</h3>${state.pf.pos.length?'Gdy w spółkach z Twojego portfela coś się zmieni, zobaczysz to tutaj.':'Najpierw dodaj spółki w zakładce Mój portfel.'}</div>`}`;
@@ -1490,6 +1518,249 @@ function renderNotes(){
   $$('#ntBody [data-go]').forEach(b=>b.onclick=()=>{ $('#dlgNotes').close(); showCompany(b.dataset.go); });
   $('#ntClear').hidden=!list.length;
 }
+/* ================= CO SIĘ ZMIENIŁO – komunikaty spółki, wiadomości, zdarzenia na wykresie, wyniki ================= */
+const LS_CHG_SEEN='radmat_gpw_zmiany_widziane_v1';
+const CHG_DAYS=14;          // komunikaty i wiadomości z ostatnich 14 dni
+const CHG_SES=10;           // zdarzenia na wykresie z ostatnich 10 sesji
+const NW_CAT={
+  klopoty:     {l:'Kłopoty spółki',     why:'Upadłość, restrukturyzacja, zawieszenie obrotu albo problemy z finansowaniem – bardzo wysokie ryzyko spadków.'},
+  wezwanie:    {l:'Wezwanie / przejęcie', why:'Ktoś chce kupić akcje lub przejąć spółkę – kurs zwykle zbliża się do ceny z wezwania.'},
+  emisja:      {l:'Nowe akcje',          why:'Emisja nowych akcji rozwadnia udziały – zwykle presja na kurs, chyba że pieniądze pójdą na szybki rozwój.'},
+  skup:        {l:'Skup akcji',          why:'Spółka odkupuje własne akcje – to zwykle wspiera kurs.'},
+  dywidenda:   {l:'Dywidenda',           why:'Decyzja lub propozycja dywidendy – przed dniem odcięcia kurs bywa wspierany, w dniu odcięcia spada o jej wartość.'},
+  wyniki:      {l:'Wyniki',              why:'Nowe wyniki finansowe często mocno ruszają kursem – w górę, gdy są lepsze od oczekiwań, w dół, gdy gorsze.'},
+  prognoza:    {l:'Prognoza / strategia', why:'Zmienia oczekiwania inwestorów co do przyszłych zysków – podniesienie prognozy zwykle pomaga, obniżenie szkodzi.'},
+  prawo:       {l:'Kara / spór',         why:'Kara, pozew lub postępowanie – możliwe koszty i gorsze nastawienie inwestorów.'},
+  umowa:       {l:'Umowa',               why:'Umowa lub kontrakt mogą zwiększyć przyszłe przychody – ważne, gdy są duże w stosunku do wielkości firmy.'},
+  insider:     {l:'Transakcje zarządu',  why:'Zakup akcji przez członka zarządu lub rady to często dobry znak, sprzedaż – sygnał ostrożności.'},
+  akcjonariat: {l:'Duży akcjonariusz',   why:'Zmiana udziału dużego inwestora – dokupowanie wspiera kurs, sprzedaż pakietu bywa presją.'},
+  wladze:      {l:'Zarząd / rada',       why:'Zmiany we władzach spółki mogą oznaczać nową strategię.'},
+  rekomendacja:{l:'Rekomendacja',        why:'Rekomendacja domu maklerskiego potrafi na kilka dni poruszyć kursem.'},
+  wza:         {l:'Walne zgromadzenie',  why:'Zwykle formalność – sprawdź, czy w uchwałach nie ma dywidendy albo emisji akcji.'},
+  obligacje:   {l:'Obligacje',           why:'Sprawy obligacji – zwykle niewielki wpływ na kurs akcji.'},
+  fundusz:     {l:'Wycena funduszu',     why:''},
+  terminy:     {l:'Terminy raportów',    why:'Kalendarz publikacji – dobrze wiedzieć, kiedy pojawią się wyniki.'},
+  inne:        {l:'Inne',                why:''},
+};
+const NW_SRC={espi:'komunikat spółki', news:'media', art:'artykuł'};
+const nwCat=c=>NW_CAT[c]||NW_CAT.inne;
+const nwKind=(t,ty)=>ty==='espi'?((state.sum[t]&&state.sum[t].nc)?'EBI':'ESPI'):ty==='art'?'artykuł':'media';
+const isoBack=k=>{ const d=new Date(); d.setDate(d.getDate()-k); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const nowStamp=()=>{ const d=new Date(); return todayISO()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+state.chgSeen0=store.get(LS_CHG_SEEN,'')||'';
+
+async function ensureNews(t, force){
+  const co=companyByT(t); if(!co||co.isIndex) return null;
+  const x=state.news[t];
+  if(x && !force && (x.busy || Date.now()-x.at<10*60e3)) return x.busy||x;
+  const job=(async()=>{
+    try{
+      const j=JSON.parse(await fetchText(feedBase()+'n/'+encodeURIComponent(t)+'.json?'+minuteTag(),30000));
+      state.news[t]={at:Date.now(), j};
+    }catch(e){ state.news[t]={at:Date.now(), err:/404/.test(e.message)?'nf':String(e.message).slice(0,140), j:x&&x.j}; }
+    return state.news[t];
+  })();
+  state.news[t]=Object.assign({},x||{at:0},{busy:job});
+  return job;
+}
+
+// zdarzenia na wykresie dziennym z ostatnich sesji (dla wybranego horyzontu)
+function chgTech(t){
+  const x=state.data[t]; if(!x||!x.bars) return null;
+  const B=x.bars, N=B.c.length; if(N<30) return [];
+  const P=PROFILES[state.settings.profile]||PROFILES.sredni;
+  const I=computeIndicators(B,P), K=N>=80?ichimoku(B):null;
+  const ev=[], from=Math.max(1,N-CHG_SES);
+  const add=(i,key,txt,imp,dir,why)=>ev.push({d:B.d[i], i, key, k:'tech', txt, imp, dir, why});
+  for(let i=from;i<N;i++){
+    const c=B.c[i], c0=B.c[i-1]; if(!fin(c)||!fin(c0)||!c0) continue;
+    const T=I.smaT, F=I.smaF, S=I.smaS;
+    if(fin(T[i])&&fin(T[i-1])){
+      if(c0<=T[i-1]&&c>T[i]) add(i,'trend',`Kurs wybił się nad średnią ${P.trend}-sesyjną`,2,1,'Wyjście nad długą średnią często zaczyna trend wzrostowy.');
+      else if(c0>=T[i-1]&&c<T[i]) add(i,'trend',`Kurs spadł pod średnią ${P.trend}-sesyjną`,2,-1,'Zejście pod długą średnią to sygnał, że trend słabnie.');
+    }
+    if(fin(F[i])&&fin(S[i])&&fin(F[i-1])&&fin(S[i-1])){
+      const a=F[i-1]-S[i-1], b=F[i]-S[i];
+      if(a<=0&&b>0) add(i,'cross',`Średnia ${P.fast}-sesyjna przecięła ${P.slow}-sesyjną w górę`,2,1,'Krótsza średnia nad dłuższą – wzrosty przyspieszają.');
+      else if(a>=0&&b<0) add(i,'cross',`Średnia ${P.fast}-sesyjna przecięła ${P.slow}-sesyjną w dół`,2,-1,'Krótsza średnia pod dłuższą – przewagę mają spadki.');
+    }
+    if(K&&fin(K.senA[i])&&fin(K.senB[i])&&fin(K.senA[i-1])&&fin(K.senB[i-1])){
+      const top=j=>Math.max(K.senA[j],K.senB[j]), bot=j=>Math.min(K.senA[j],K.senB[j]);
+      if(c0<=top(i-1)&&c>top(i)) add(i,'cloud','Kurs wyszedł nad chmurę Ichimoku',2,1,'Wyjście nad chmurę to sygnał przejścia w trend wzrostowy.');
+      else if(c0>=bot(i-1)&&c<bot(i)) add(i,'cloud','Kurs spadł pod chmurę Ichimoku',2,-1,'Zejście pod chmurę to sygnał przejścia w trend spadkowy.');
+      const d0=K.ten[i-1]-K.kij[i-1], d1=K.ten[i]-K.kij[i];
+      if(fin(d0)&&fin(d1)){ if(d0<=0&&d1>0) add(i,'tk','Tenkan przeciął Kijun w górę (Ichimoku)',1,1,''); else if(d0>=0&&d1<0) add(i,'tk','Tenkan przeciął Kijun w dół (Ichimoku)',1,-1,''); }
+    }
+    if(N>=260&&fin(I.hi250[i-1])){
+      if(B.h[i]>I.hi250[i-1]) add(i,'y52','Najwyższy kurs od roku',2,1,'Kurs na szczycie 52 tygodni – trend wzrostowy jest silny.');
+      else if(B.l[i]<I.lo250[i-1]) add(i,'y52','Najniższy kurs od roku',2,-1,'Kurs na dnie 52 tygodni – trend spadkowy trwa.');
+    }
+    const ret=c/c0-1, atr=I.atr[i-1], thr=Math.max(0.04, fin(atr)?2.5*atr/c0:0.04);
+    const big=Math.abs(ret)>=thr;
+    if(big) add(i,'move',`${ret>0?'Mocny wzrost':'Mocny spadek'} o ${pctU(Math.abs(ret))} w jednej sesji`,2,ret>0?1:-1,'Tak duży ruch zwykle ma powód – sprawdź komunikaty i wiadomości z tego dnia.');
+    const vA=I.volAvg[i-1];
+    if(fin(vA)&&vA>0&&B.v[i]>=2.5*vA) add(i,'vol',`Obrót ${fmt(B.v[i]/vA,1)}× większy niż zwykle`,1,ret>=0?1:-1,'Duży obrót oznacza większe zainteresowanie – ruch kursu przy dużym obrocie jest bardziej wiarygodny.');
+    const gap=fin(B.o[i])?B.o[i]/c0-1:0;
+    if(!big&&Math.abs(gap)>=0.03) add(i,'gap',`Luka ${gap>0?'wzrostowa':'spadkowa'} na otwarciu (${pct(gap,1)})`,1,gap>0?1:-1,'Kurs otworzył się daleko od poprzedniego zamknięcia – reakcja na informacje spoza sesji.');
+    if(fin(I.rsi[i])&&fin(I.rsi[i-1])){
+      if(I.rsi[i-1]<70&&I.rsi[i]>=70) add(i,'rsi','RSI powyżej 70 – kurs mocno wykupiony',1,0,'Po szybkich wzrostach często przychodzi odpoczynek lub korekta.');
+      else if(I.rsi[i-1]>30&&I.rsi[i]<=30) add(i,'rsi','RSI poniżej 30 – kurs mocno wyprzedany',1,0,'Po szybkich spadkach często przychodzi odbicie.');
+    }
+  }
+  for(const a of (x.dv||[])){ const k=B.d.indexOf(a[0]); if(k>=from) add(k,'dvx',`Odcięcie dywidendy ${fmt(a[1])} zł na akcję`,1,0,'W dniu odcięcia kurs spada mniej więcej o wartość dywidendy – to nie jest sygnał słabości.'); }
+  const by={}; for(const e of ev) by[e.key]=e;          // z każdego rodzaju tylko najnowsze
+  return Object.values(by);
+}
+// zmiana sygnału systemu (z podsumowania – bez pobierania notowań)
+function chgSig(t){
+  const it=state.sum[t]; if(!it||!it.s) return null;
+  const S=itP(it), st=STATUS[S.st]; if(!S.sd||!st||!NT_SIG.has(S.st)) return null;
+  if(S.sd<isoBack(CHG_DAYS)) return null;
+  const P=PROFILES[state.settings.profile];
+  return {d:S.sd, k:'sig', key:'sig', txt:`Nowy sygnał systemu: ${st.label} (horyzont ${P.short})`, imp:3, dir:S.st==='KUP'?1:-1,
+    why:S.st==='KUP'?'Reguły systemu widzą początek ruchu w górę – szczegóły w analizie spółki.':'Reguły systemu każą wyjść z pozycji – trend się odwrócił albo kurs spadł pod stop.'};
+}
+// ostatni kwartał w porównaniu z tym samym kwartałem rok wcześniej
+function chgFund(t){
+  const x=state.fund[t], q=x&&x.f&&x.f.quarters; if(!Array.isArray(q)||!q.length) return null;
+  const L=q[q.length-1], m=/^(I|II|III|IV) kw\. (\d{4})$/.exec(L.p||''); if(!m) return null;
+  const qn={I:1,II:2,III:3,IV:4}[m[1]], end=new Date(+m[2], qn*3, 0);
+  if(Date.now()-end.getTime()>200*864e5) return null;              // dane sprzed ponad pół roku – pomijam
+  const prev=q.find(z=>z.p===`${m[1]} kw. ${+m[2]-1}`);
+  const parts=[]; let dir=0;
+  if(prev&&fin(L.rev)&&fin(prev.rev)&&prev.rev>0){ const g=L.rev/prev.rev-1; parts.push(`przychody ${pct(g,0)}`); }
+  if(fin(L.ni)){
+    if(prev&&fin(prev.ni)&&prev.ni!==0){
+      if(prev.ni>0&&L.ni>0){ const g=L.ni/prev.ni-1; parts.push(`zysk netto ${pct(g,0)}`); dir=g>0.05?1:g<-0.05?-1:0; }
+      else if(prev.ni<0&&L.ni>0){ parts.push('zysk netto (rok wcześniej strata)'); dir=1; }
+      else if(prev.ni>0&&L.ni<0){ parts.push('strata netto (rok wcześniej zysk)'); dir=-1; }
+      else { const better=Math.abs(L.ni)<Math.abs(prev.ni); parts.push(`strata netto ${better?'mniejsza':'większa'} niż rok wcześniej`); dir=better?1:-1; }
+    } else parts.push(L.ni>=0?'zysk netto':'strata netto');
+  }
+  if(!parts.length) return null;
+  return {k:'fund', key:'fund', d:null, dl:m[1]+' kw.', txt:`Ostatni kwartał (${L.p}) wobec ${prev?'tego samego kwartału rok wcześniej':'poprzednich danych'}: ${parts.join(', ')}`, imp:1, dir,
+    why:'Wyniki z danych Yahoo Finance – szczegóły w karcie „Kondycja spółki”.'};
+}
+function chgNewsItems(t){
+  const x=state.news[t], arr=x&&x.j&&Array.isArray(x.j.items)?x.j.items:[];
+  const from=isoBack(CHG_DAYS);
+  const seen=new Set();
+  return arr.filter(n=>{ if(!n||n.d<from) return false; if(n.ty==='espi') return true; const k=String(n.ti||'').toLowerCase().replace(/[^a-ząćęłńóśźż0-9]+/g,'').slice(0,22); if(seen.has(k)) return false; seen.add(k); return true; }).map(n=>{ const C=nwCat(n.c); return {d:n.d, k:n.ty||'news', key:'n'+n.id, cat:n.c, txt:n.ti, u:n.u, src:n.ty==='news'?(n.s||''):nwKind(t,n.ty), nr:n.nr, imp:n.imp||0, dir:n.dir||0, why:C.why, b:n.b}; });
+}
+function chgAll(t){
+  const out=[], tech=chgTech(t), sg=chgSig(t), fd=chgFund(t);
+  out.push(...chgNewsItems(t));
+  if(tech) out.push(...tech);
+  if(sg) out.push(sg);
+  if(fd) out.push(fd);
+  return out;
+}
+function chgPick(list,n){
+  const sorted=list.slice().sort((a,b)=>(b.imp-a.imp)||String(b.d||'').localeCompare(String(a.d||'')));
+  const top=sorted.slice(0,n);
+  const byDate=a=>a.slice().sort((x,y)=>String(y.d||'0').localeCompare(String(x.d||'0')));
+  return {top:byDate(top), rest:byDate(sorted.slice(n))};
+}
+const chgIsNew=e=>!!(e.d&&state.chgSeen0&&e.k!=='fund'&&(e.d.length>10?e.d>state.chgSeen0:e.d>state.chgSeen0.slice(0,10)));
+function chgRowHTML(e,opt={}){
+  const tone=e.dir>0?'cu':e.dir<0?'cd':'cn', ar=e.dir>0?'▲':e.dir<0?'▼':'●';
+  const lab=e.k==='tech'?'Wykres':e.k==='sig'?'Sygnał':e.k==='fund'?'Wyniki':nwCat(e.cat).l;
+  const d=e.dl||(e.d?dShort(e.d.slice(0,10))+(e.d.length>10&&opt.hours?' <span class="hh">'+e.d.slice(11,16)+'</span>':''):'');
+  const title=e.u?`<a href="${esc(e.u)}" target="_blank" rel="noopener noreferrer">${esc(e.txt)}</a>`:esc(e.txt);
+  const src=e.k==='tech'||e.k==='sig'||e.k==='fund'?'':` <span class="chg-src">· ${esc(e.src||'')}${e.nr?' '+esc(e.nr):''}</span>`;
+  const why=(opt.why&&e.why&&(e.imp>=2||opt.allWhy))?`<div class="chg-why">${esc(e.why)}</div>`:'';
+  return `<li class="chg-i ${tone}${e.imp>=3?' crit':''}"><span class="chg-d">${d||'–'}</span><span class="chg-m"><span class="chg-c ${tone}" title="${e.dir>0?'raczej sprzyja wzrostom':e.dir<0?'raczej sprzyja spadkom':'wpływ niejednoznaczny'}"><b aria-hidden="true">${ar}</b> ${esc(lab)}</span>${opt.tk?` <b class="chg-tk" data-open="${esc(opt.tk)}">${esc(opt.tk)}</b>`:''}${chgIsNew(e)?' <span class="chg-new">nowe</span>':''} <span class="chg-t">${title}${src}</span>${why}</span></li>`;
+}
+function chgState(t){
+  const x=state.news[t], tl=!!(state.data[t]&&state.data[t].bars);
+  return {nLoad:!x||(!!x.busy&&!x.j), nErr:x&&!x.busy&&x.err&&x.err!=='nf'?x.err:null, nNone:x&&x.err==='nf', nAt:x&&x.j?x.j.at:null, tl};
+}
+// blok „Co się zmieniło” – w karcie spółki w portfelu (compact) i w szczegółach spółki
+function chgBlockHTML(t,opt={}){
+  const all=chgAll(t), S=chgState(t), n=opt.max||4;
+  const imp=all.filter(e=>e.imp>=1||e.k==='espi');
+  const {top,rest}=chgPick(imp.length?imp:all, n);
+  const minor=all.filter(e=>!imp.includes(e)).sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+  const restAll=rest.concat(imp.length?minor:[]);
+  const st=[];
+  if(S.nLoad) st.push('wczytuję komunikaty…');
+  else if(S.nErr) st.push('komunikaty chwilowo niedostępne');
+  else if(S.nNone) st.push('robot jeszcze nie pobrał komunikatów tej spółki');
+  if(!S.tl) st.push('wczytuję wykres…');
+  const head=opt.head==='pf'?`<div class="chg-h"><b>Co się zmieniło</b> <span class="small">· ${CHG_DAYS} dni${st.length?' · '+esc(st.join(' · ')):''}</span></div>`
+    :opt.head!==false?`<div class="chg-h"><b>Co się zmieniło w spółce</b> <span class="small">· komunikaty i wiadomości z ${CHG_DAYS} dni, wykres z ${CHG_SES} sesji${st.length?' · '+esc(st.join(' · ')):''}</span></div>`:'';
+  let body;
+  if(!top.length) body=`<p class="small chg-none">${S.nLoad||!S.tl?'Sprawdzam…':'Brak ważnych zmian – spółka nic istotnego nie ogłosiła, a na wykresie nie było wyraźnych sygnałów.'}</p>`;
+  else body=`<ul class="chg-list${opt.hours?' hrs':''}">${top.map(e=>chgRowHTML(e,{why:opt.why!==false,hours:opt.hours})).join('')}</ul>`+
+    (restAll.length?`<details class="chg-more"><summary>Pozostałe (${restAll.length})</summary><ul class="chg-list${opt.hours?' hrs':''}">${restAll.map(e=>chgRowHTML(e,{why:false,hours:opt.hours})).join('')}</ul></details>`:'');
+  return head+body;
+}
+function chgCardHTML(t){
+  const co=companyByT(t); if(!co||co.isIndex) return '';
+  return `<section class="card chg-card" id="chgCard"><div class="chg" data-chg="${esc(t)}" data-mode="full">${chgBlockHTML(t,{max:6,hours:true})}</div>
+    <p class="note">Komunikaty ESPI/EBI i wiadomości z mediów zbiera robot z serwisu biznesradar.pl (kilka razy dziennie w dni sesyjne). Kategorię i kierunek (▲ raczej sprzyja wzrostom, ▼ spadkom, ● niejednoznacznie) aplikacja ustala automatycznie z tytułu – zawsze przeczytaj komunikat, zanim podejmiesz decyzję. Zdarzenia z wykresu liczone są dla horyzontu ${esc(PROFILES[state.settings.profile].short)}.</p></section>`;
+}
+function chgRefresh(t){
+  $$(`[data-chg="${CSS.escape(t)}"]`).forEach(el=>{
+    const op=$$('details',el).map(d=>d.open);
+    el.innerHTML=el.dataset.mode==='full'?chgBlockHTML(t,{max:6,hours:true}):chgBlockHTML(t,{max:3,why:false,head:'pf'});
+    $$('details',el).forEach((d,i)=>{ if(op[i]) d.open=true; });
+  });
+  if(state.tab==='pf'&&$('#pfChgCard')) pfChgRefresh();
+}
+async function chgLoad(t){
+  const co=companyByT(t); if(!co||co.isIndex) return;
+  const jobs=[ensureNews(t).then(()=>chgRefresh(t))];
+  if(!state.data[t]) jobs.push(ensureDaily(t).then(()=>chgRefresh(t)).catch(()=>{}));
+  if(!state.fund[t]) jobs.push(ensureFund(t).then(()=>chgRefresh(t)).catch(()=>{}));
+  await Promise.all(jobs);
+  chgRefresh(t);
+}
+// karta zbiorcza w portfelu: najważniejsze zmiany we wszystkich spółkach
+function pfChgList(){
+  const ts=[...new Set(state.pf.pos.map(p=>p.t))].filter(t=>state.sum[t]&&!state.sum[t].idx);
+  const from7=isoBack(7), out=[];
+  for(const t of ts){
+    for(const e of chgAll(t)){
+      if(e.k==='fund') continue;
+      if(e.imp>=2 && (e.d||'')>=from7) out.push(Object.assign({t},e));
+    }
+  }
+  out.sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))||(b.imp-a.imp));
+  return {ts, out};
+}
+function pfChgCardHTML(){
+  const {ts,out}=pfChgList(); if(!ts.length) return '';
+  const loading=ts.some(t=>{ const S=chgState(t); return S.nLoad||!S.tl; });
+  const nNew=out.filter(chgIsNew).length, show=out.slice(0,8), more=out.slice(8);
+  const crit=out.filter(e=>e.imp>=3&&e.dir<0&&e.k!=='tech'&&e.k!=='sig');
+  return `<section class="card pf-chg" id="pfChgCard">
+    <h3 class="sec">Co się zmieniło w Twoich spółkach<span class="small" style="display:block;font-weight:400;margin-top:3px">Ostatnie 7 dni${nNew?` · <span class="chg-new">${nNew} ${plN(nNew,'nowa zmiana','nowe zmiany','nowych zmian')}</span>`:''}${loading?' · sprawdzam…':''}</span></h3>
+    ${crit.length?`<p class="chg-alert">⚠ Ważne: ${[...new Set(crit.map(e=>e.t))].map(t=>`<b>${esc(t)}</b>`).join(', ')} – ${crit.length===1?esc(nwCat(crit[0].cat).l.toLowerCase()):'poważne komunikaty'}. Przeczytaj szczegóły poniżej, zanim podejmiesz decyzję.</p>`:''}
+    ${show.length?`<ul class="chg-list">${show.map(e=>chgRowHTML(e,{why:true,tk:e.t})).join('')}</ul>`:`<p class="small chg-none">${loading?'Sprawdzam komunikaty i wykresy…':'W ostatnim tygodniu w Twoich spółkach nie było ważnych komunikatów ani wyraźnych sygnałów na wykresach.'}</p>`}
+    ${more.length?`<details class="chg-more"><summary>Pokaż wszystkie (${out.length})</summary><ul class="chg-list">${more.map(e=>chgRowHTML(e,{why:false,tk:e.t})).join('')}</ul></details>`:''}
+    <p class="note">Zbieram tu komunikaty spółek (wyniki, dywidendy, emisje akcji, wezwania, umowy, kłopoty), ważniejsze wiadomości i zdarzenia na wykresie, które mogą zmienić trend: wybicie lub zejście pod średnią, wyjście z chmury Ichimoku, nowy szczyt lub dołek roku, mocny ruch i duży obrót. Więcej przy każdej spółce poniżej.</p>
+  </section>`;
+}
+function pfChgRefresh(){
+  const c=$('#pfChgCard'); if(!c) return;
+  const op=$$('details',c).map(d=>d.open);
+  c.outerHTML=pfChgCardHTML();
+  const n=$('#pfChgCard'); if(!n) return;
+  $$('details',n).forEach((d,i)=>{ if(op[i]) d.open=true; });
+  $$('[data-open]',n).forEach(b=>b.onclick=()=>showCompany(b.dataset.open));
+}
+let pfChgBusy=false;
+async function pfChgLoad(){
+  if(pfChgBusy) return; pfChgBusy=true;
+  try{
+    const ts=[...new Set(state.pf.pos.map(p=>p.t))].filter(t=>state.sum[t]&&!state.sum[t].idx);
+    for(let i=0;i<ts.length;i+=4) await Promise.all(ts.slice(i,i+4).map(t=>chgLoad(t).catch(()=>{})));
+  } finally { pfChgBusy=false; }
+  pfChgRefresh();
+  store.set(LS_CHG_SEEN, nowStamp());       // przy następnym otwarciu „nowe” = to, co pojawiło się od teraz
+}
+
 /* ================= IKE / IKZE ================= */
 // Limity wpłat wg obwieszczeń MRPiPS (na 2026 r. – z 10 i 17.11.2025; na 2027 r. – z 30.10.2026)
 const IKE_LIM={2026:{ike:28260, ikze:11304, ikzeJdg:16956}, 2027:{ike:30099, ikze:12039.60, ikzeJdg:18059.40}};
@@ -1897,10 +2168,10 @@ function renderPf(){
       <div class="pf-actions"><button class="btn" id="pfExport">⬇ Zapisz kopię do pliku</button><label class="btn" for="pfImport">⬆ Wczytaj kopię z pliku</label><input type="file" id="pfImport" accept=".json,application/json" hidden></div>
       ${pfSnapUI()}
     </section>`;
-  el.innerHTML = (rows.length?horizonBarHTML('Wskazówki trzymaj / sprzedaj, stopy i cele'):'') + sum + (rows.length?pfHistCardHTML():'') + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + pfStructHTML(rows,tot) + form + hist + backup +
+  el.innerHTML = (rows.length?horizonBarHTML('Wskazówki trzymaj / sprzedaj, stopy i cele'):'') + sum + (rows.length?pfChgCardHTML():'') + (rows.length?pfHistCardHTML():'') + (rows.length?`<div class="pf-cards">${cards}</div>`:'') + pfStructHTML(rows,tot) + form + hist + backup +
     `<p class="note pf-disc">Wskazówki są mechaniczne – wynikają z zasad analizy technicznej (stop, cel, trend, sygnały) i kondycji spółki. Nie są rekomendacją inwestycyjną; decyzję podejmujesz sam.</p>`;
   pfBind(); pfStructBind();
-  if(rows.length){ if($('#phWrap')) pfHistBind(); pfHistRefresh(); }
+  if(rows.length){ if($('#phWrap')) pfHistBind(); pfHistRefresh(); $$('#pfChgCard [data-open]').forEach(b=>b.onclick=()=>showCompany(b.dataset.open)); pfChgLoad(); }
 }
 function pfSnapUI(){
   const snaps=store.get(LS_PF_SNAP,[]), cur=JSON.stringify(state.pf);
@@ -1927,6 +2198,7 @@ function pfCard(r){
     <ul class="pf-why">${h.why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul>
     ${h.stop!=null||h.target!=null?`<div class="pf-lv"><span>Stop <b>${fmt(h.stop)} zł</b></span><span>${h.target!=null&&r.price>=h.target?`Cel <b>${fmt(h.target)} zł</b> ✓ osiągnięty`:`Cel <b>${fmt(h.target)} zł</b>`}</span>${p.d?`<span class="small">kupione ${dPL(p.d)} · ${pfHeld(p.d)}</span>`:''}</div>`:''}
     ${pfDivHTML(r)}
+    ${it&&!it.idx?`<div class="chg" data-chg="${esc(p.t)}" data-mode="pf">${chgBlockHTML(p.t,{max:3,why:false,head:'pf'})}</div>`:''}
     ${f?`<div class="pf-sell"><b>Sprzedaż ${esc(p.t)}</b>
       <div class="pf-grid"><label class="fld">Ile akcji<input id="psQ" inputmode="numeric" value="${esc(f.q)}"></label><label class="fld">Cena sprzedaży (zł)<input id="psPx" inputmode="decimal" value="${esc(f.px)}"></label><label class="fld">Data<input id="psD" type="date" max="${todayISO()}" value="${esc(f.d)}"></label></div>
       <div class="pf-actions"><button class="btn primary" data-act="sellok">Zapisz sprzedaż</button><button class="btn" data-act="sellcancel">Anuluj</button><span class="pf-err">${esc(f.err||'')}</span></div></div>`:''}
@@ -2435,6 +2707,7 @@ function openDetail(t, keepScroll){
     </section>
     ${co.isIndex?ixMembersCardHTML(t):''}
     ${pfDetailBox(t)}
+    ${chgCardHTML(t)}
     ${dvCardHTML(t)}
     ${fundCardHTML(t)}
     <section class="card">
@@ -2488,7 +2761,8 @@ function openDetail(t, keepScroll){
   el.hidden=false; document.body.style.overflow='hidden';
   bindDetail();
   requestAnimationFrame(()=>{ drawDetailChart(); if(keepScroll) el.scrollTop=sc; else el.scrollTop=0; if(state.tf==='H') ensureIntraday(t).then(()=>{ if(state.detail===t) drawDetailChart(); }); });
-  ensureFund(t);
+  ensureFund(t).then(()=>{ if(state.detail===t) chgRefresh(t); });
+  chgLoad(t);
 }
 function closeDetail(){ if($('#detail').hidden&&!state.detail) return; $('#detail').hidden=true; document.body.style.overflow=''; state.detail=null; }
 function bindDetail(){
@@ -2906,6 +3180,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Co się zmieniło w spółce</h3>
+  <p>Przy każdej spółce w <b>Moim portfelu</b> i w szczegółach każdej spółki jest sekcja <b>Co się zmieniło</b> – zbiera to, co może wpłynąć na trend i kurs: <b>komunikaty spółki</b> (ESPI/EBI – wyniki, dywidendy, emisje akcji, wezwania, skup akcji, umowy, prognozy, transakcje zarządu, zmiany dużych akcjonariuszy, kłopoty), ważniejsze <b>wiadomości z mediów</b> i <b>zdarzenia na wykresie</b> z ostatnich 10 sesji (wybicie nad średnią lub zejście pod nią, przecięcie średnich, wyjście nad chmurę Ichimoku lub pod nią, najwyższy lub najniższy kurs od roku, mocny ruch w jednej sesji, duży obrót, luka, RSI powyżej 70 lub poniżej 30, odcięcie dywidendy), nowy sygnał systemu i porównanie ostatniego kwartału z rokiem wcześniej. Strzałka przy kategorii mówi, czy zdarzenie raczej sprzyja wzrostom (▲), spadkom (▼), czy jego wpływ jest niejednoznaczny (●); przy ważnych pozycjach jest krótkie wyjaśnienie, co to może oznaczać. Na górze portfela karta <b>Co się zmieniło w Twoich spółkach</b> zbiera najważniejsze zmiany z 7 dni, a znaczek <span class="chg-new">nowe</span> oznacza to, co pojawiło się od Twojej poprzedniej wizyty. Komunikaty i wiadomości zbiera robot z serwisu biznesradar.pl kilka razy dziennie w dni sesyjne; kategorię aplikacja ustala automatycznie z tytułu, więc zawsze przeczytaj komunikat (tytuł to link).</p>
   <h3>Horyzont: krótki, średni, długi</h3>
   <p>Na górze zakładek Sygnały, Indeksy, Złote strzały i Mój portfel jest przełącznik <b>Horyzont</b>. Jednym kliknięciem przeliczasz wszystko na wybrany termin: <b>krótki</b> (dni – tygodnie, średnie 10/30/100 sesji), <b>średni</b> (tygodnie – miesiące, 20/50/200) albo <b>długi</b> (miesiące – lata, 50/100/200). Przy każdej spółce trzy literki <b>K Ś D</b> pokazują jej sygnał w każdym horyzoncie (kolor jak przy sygnale, obwódka – horyzont wybrany teraz). Rozwijana lista <b>Zgodność horyzontów</b> zawęża spółki, np. do tych z sygnałem KUP w którymkolwiek horyzoncie albo w trendzie wzrostowym we wszystkich trzech – działa na liście sygnałów i w złotych strzałach. W szczegółach spółki widać sygnał w pozostałych horyzontach; kliknięcie przełącza horyzont.</p>
   <h3>Indeksy i sektory</h3>
@@ -2915,7 +3191,7 @@ function renderHelp(){
   <h3>Nieaktualne notowania</h3>
   <p>Jeśli kurs spółki nie zmienia się przez co najmniej ${FZ_MIN} kolejnych sesji, a obrót wynosi 0, aplikacja ostrzega: na liście zamiast daty widać <span class="frz">⚠ kurs stoi od … sesji</span>, w szczegółach jest żółta ramka, w portfelu wskazówka <b>SPRAWDŹ KURS</b> (bez podpowiedzi trzymaj/sprzedaj), a spółka nie trafia do Top 3 ani do złotych strzałów. Powód może być różny: zawieszony obrót, brak transakcji albo Yahoo Finance przestało aktualizować dane spółki. W każdym przypadku sprawdź kurs u swojego maklera.</p>
   <h3>Powiadomienia</h3>
-  <p>Dzwonek w górnym pasku zbiera powiadomienia o spółkach z <b>Mojego portfela</b>. Nowe powiadomienie wyskakuje też w rogu ekranu, gdy: kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, sygnał systemu zmienia się na KUP lub SPRZEDAJ, wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) oraz gdy spółka zapowie dywidendę. Aplikacja sprawdza to przy każdej aktualizacji notowań – najwygodniej z włączoną aktualizacją automatyczną. Okienka i dźwięk wyłączysz w Ustawieniach albo w oknie powiadomień.</p>
+  <p>Dzwonek w górnym pasku zbiera powiadomienia o spółkach z <b>Mojego portfela</b>. Nowe powiadomienie wyskakuje też w rogu ekranu, gdy: kurs zbliża się do celu (zostaje mniej niż pół średniego dziennego ruchu – ATR) albo go osiąga, sygnał systemu zmienia się na KUP lub SPRZEDAJ, wskazówka dla Twojej pozycji zmienia się na SPRZEDAJ lub ROZWAŻ SPRZEDAŻ (albo wraca do TRZYMAJ) , gdy spółka zapowie dywidendę oraz gdy opublikuje ważny komunikat (wyniki, dywidenda, emisja akcji, wezwanie, prognoza, kłopoty). Aplikacja sprawdza to przy każdej aktualizacji notowań – najwygodniej z włączoną aktualizacją automatyczną. Okienka i dźwięk wyłączysz w Ustawieniach albo w oknie powiadomień.</p>
   <h3>Dywidendy</h3>
   <p>Spółki, które w ostatnich 12 miesiącach wypłaciły dywidendę, mają na liście znaczek <span class="dvtag">dyw. 5,0%</span> ze stopą dywidendy (suma dywidend z 12 miesięcy podzielona przez kurs). Żółty znaczek <span class="dvtag soon">dyw. 20.06</span> oznacza zapowiedzianą dywidendę z datą dnia odcięcia. W szczegółach spółki jest karta „Dywidenda”: ostatnia wypłata, suma z 12 miesięcy i wypłaty w kolejnych latach, a na wykresie dziennym dni odcięcia oznacza kółko „D”. W portfelu aplikacja liczy dywidendy otrzymane od daty zakupu (szacunkowo, dla obecnej liczby akcji). Żeby dostać dywidendę, trzeba mieć akcje na koniec sesji przed dniem odcięcia. Dane o dywidendach pochodzą z Yahoo Finance i mogą być niepełne.</p>
   <h3>IKE/IKZE</h3>
