@@ -99,6 +99,20 @@ for (const u of uni.items) {
         if (fm.pb != null && isFinite(fm.pb)) it.pb = r(fm.pb, 2);
       }
     } catch (e) { /* brak oceny */ }
+    // komunikaty spółki i wiadomości (scripts/news.py → n/<SKRÓT>.json): ostatni wpis, liczba z 7 dni, ostatni ważny
+    try {
+      const fn = path.join(store, 'n', u.t + '.json');
+      if (fs.existsSync(fn)) {
+        const N = JSON.parse(fs.readFileSync(fn, 'utf8')), arr = Array.isArray(N.items) ? N.items : [];
+        if (arr.length) {
+          const back = k => { const d = new Date(Date.UTC(+w.date.slice(0, 4), +w.date.slice(5, 7) - 1, +w.date.slice(8, 10) - k)); return d.toISOString().slice(0, 10); };
+          const d7 = back(7), d14 = back(14);
+          const k = arr.find(x => (x.imp || 0) >= 2 && x.d >= d14);
+          it.nw = { d: arr[0].d, n7: arr.filter(x => x.d >= d7).length };
+          if (k) it.nw.k = { id: k.id, d: k.d, ti: String(k.ti || '').slice(0, 110), c: k.c, imp: k.imp, dir: k.dir || 0, ty: k.ty };
+        }
+      }
+    } catch (e) { /* brak komunikatów */ }
     for (const p of Object.keys(E.PROFILES)) {
       const A = E.analyze(Bs, E.PROFILES[p], { fee: 0.3 });
       if (!A.ok) { it.s[p] = { st: 'BRAK', msg: A.msg }; continue; }

@@ -27,7 +27,8 @@ import update as U  # noqa: E402  (sesja curl_cffi, load/dump, strefa czasowa)
 
 BASE = "https://www.biznesradar.pl"
 LISTINGS = ["/gielda/akcje_gpw", "/gielda/newconnect"]
-FEEDS = ["/news/2", "/news/2,2"]
+FEED = "/news/2"
+FEED_PAGES = 6
 NVER = 1
 
 # ---------------------------------------------------------------- kategorie
@@ -72,13 +73,13 @@ def fold(s):
 
 
 def classify(title, body, kind):
-    t = fold(title + " " + (body or ""))
+    t = fold(title + " " + (body or "")) if kind == "espi" else fold(title)
     cat, imp = "inne", 0
     for k, w, rx in CATS_RE:
         if rx.search(t):
             cat, imp = k, w
             break
-    if kind == "news" and cat not in ("rekomendacja", "klopoty", "wezwanie"):
+    if kind != "espi" and cat not in ("rekomendacja", "klopoty", "wezwanie"):
         imp = max(0, imp - 1)               # wiadomość z mediów waży mniej niż komunikat spółki
     if cat == "umowa" and re.search(r"znaczac|istotn", t):
         imp = 2
@@ -101,6 +102,43 @@ STOP = {"SA", "S.A.", "S.A", "SPOLKA", "AKCYJNA", "ASI", "SE", "S.E.", "NV", "N.
 def norm_name(s):
     toks = [w for w in fold(s).upper().replace(",", " ").split() if w not in STOP]
     return re.sub(r"[^A-Z0-9]", "", "".join(toks))
+
+
+GENERIC = set("""bank banku polska polski polskie polskiej grupa group energia energy studios studio games game square tours systems system
+poland the and of eu sa se holding holdings capital investment investments inwestycje development medical technologies technology tech
+software finance fund fundusz real estate nieruchomosci media global international europe european new nowa nowy handlowy slaski
+mostostal miedz projekt spolka company industries industry trade logistics construction budownictwo solutions services serwis
+energetyka paliwa oil gas bio pharma farm food foods motor auto green eco smart digital network networks partners""".split())
+
+
+def keys_for(t, name, sn):
+    """Wzorce do sprawdzenia, czy wiadomość z mediów naprawdę dotyczy spółki (odmiana: „Agory”, „CD Projektu”)."""
+    rx = []
+    base = re.sub(r"\(.*?\)", " ", name or "")
+    words = [w for w in re.split(r"[^a-z0-9]+", fold(base)) if w]
+    if len(words) >= 2:
+        rx.append(re.compile(r"\b" + r"\W+".join(map(re.escape, words[:3]))))
+    for w in words:
+        if w in GENERIC or w.isdigit() or len(w) < 4:
+            continue
+        rx.append(re.compile(r"\b" + re.escape(w if len(w) <= 4 else w[:max(4, len(w) - 2)])))
+    s = fold(sn or "")
+    s = re.sub(r"[^a-z0-9]", "", s)
+    if len(s) >= 4 and s not in GENERIC:
+        rx.append(re.compile(r"\b" + re.escape(s)))
+    tk = re.compile(r"\b" + re.escape(t) + r"\b")      # skrót – tylko wielkimi literami (TEN ≠ „ten”)
+    return tk, rx
+
+
+def relevant(it, keys):
+    if it.get("ty") == "espi" or not keys:
+        return True
+    raw = (it.get("ti") or "") + " " + (it.get("b") or "")
+    tk, rx = keys
+    if tk.search(raw):
+        return True
+    f = fold(raw)
+    return any(r.search(f) for r in rx)
 
 
 def text(s):
@@ -155,13 +193,15 @@ def parse_company(src):
         body = text(body.group(1)) if body else ""
         au = re.search(r'class="record-author"[^>]*>(.*?)</a>', blk, re.S)
         d = dt.group(1).strip()[:16]
-        if typ == "POST":
+        if typ == "POST" and split_espi(title)[1]:
             _, nr, ti = split_espi(title)
             it = {"id": mid, "ty": "espi", "nr": nr, "ti": ti, "d": d, "u": BASE + href if href.startswith("/") else href}
             if body and not re.match(r"^Raport bie[żz][ąa]cy", body):
                 it["b"] = body[:200]
         else:
-            it = {"id": mid, "ty": "news", "ti": title, "d": d, "u": href, "s": text(au.group(1)) if au else ""}
+            u = BASE + href if href.startswith("/") else href
+            it = {"id": mid, "ty": "news" if typ != "POST" else "art", "ti": title, "d": d, "u": u,
+                  "s": text(au.group(1)) if au else ("biznesradar.pl" if typ == "POST" else "")}
             if body and body != title:
                 it["b"] = body[:220]
         it["c"], it["imp"], it["dir"] = classify(it["ti"], it.get("b", ""), it["ty"])
@@ -273,13 +313,17 @@ def main():
     # 2) bieżące komunikaty ESPI/EBI wszystkich spółek
     prio, nfeed, unk = [], 0, []
     if not a.only:
-        for path in FEEDS:
+        pages = 0
+        for pg in range(1, FEED_PAGES + 1):
+            path = FEED if pg == 1 else f"{FEED},{pg}"
             try:
                 feed = parse_feed(get(BASE + path))
             except Exception as e:  # noqa: BLE001
                 print("Lista komunikatów", path, "–", e)
-                continue
+                break
+            pages += 1
             time.sleep(a.delay)
+            fresh = [f for f in feed if f["id"] not in seen]
             for f in feed:
                 nfeed += 1
                 ts = who_to_t(f["who"])
@@ -297,11 +341,16 @@ def main():
                     if f["id"] not in seen and t not in prio:
                         prio.append(t)
                 seen.add(f["id"])
-        print(f"Lista komunikatów: {nfeed} pozycji, nowe spółki do sprawdzenia: {len(prio)}"
+            # kolejne strony tylko wtedy, gdy cała strona była nowa (np. rano po wieczornym wysypie raportów)
+            if not feed or len(fresh) < len(feed) or (not st.get("seen0") and pg >= 2):
+                break
+        st["seen0"] = 1
+        print(f"Lista komunikatów ({pages} str.): {nfeed} pozycji, nowe spółki do sprawdzenia: {len(prio)}"
               + (f", nierozpoznani emitenci: {len(set(unk))} (np. {', '.join(sorted(set(unk))[:6])})" if unk else ""))
 
     # 3) strony spółek: priorytet + kolejka najdawniej sprawdzanych
     ok_t = [c["t"] for c in cos if c.get("ok")]
+    cmap = {c["t"]: c for c in cos}
     if a.only:
         queue = [t.strip().upper() for t in a.only.split(",") if t.strip()]
     else:
@@ -320,6 +369,10 @@ def main():
             slug = t
         try:
             items = parse_company(get(f"{BASE}/wiadomosci/{slug}"))
+            nall = len(items)
+            co = cmap.get(t) or {}
+            kk = keys_for(t, co.get("n") or "", (mp.get(t) or {}).get("sn", ""))
+            items = [x for x in items if relevant(x, kk)]
             done += 1
             nf.discard(t)
         except Exception as e:  # noqa: BLE001
@@ -335,7 +388,7 @@ def main():
         F["chk"] = now.strftime("%Y-%m-%d %H:%M")
         last[t] = int(time.time())
         if a.dry:
-            print(f"--- {t} ({slug}): {len(items)} wpisów")
+            print(f"--- {t} ({slug}): {len(items)}/{nall} wpisów")
             for x in items[:8]:
                 print(f"   {x['d']} {x['ty']:4} {x['c']:12} w{x['imp']} {x['dir']:+d} {x['ti'][:90]}")
         time.sleep(a.delay)
@@ -356,7 +409,7 @@ def main():
             U.dump(os.path.join(ndir, t + ".json"), F)
         wrote += 1
     st["last"] = {t: v for t, v in last.items() if t in set(ok_t) | set(queue)}
-    st["seen"] = sorted(seen, key=lambda x: int(x) if x.isdigit() else 0)[-600:]
+    st["seen"] = sorted(seen, key=lambda x: int(x) if x.isdigit() else 0)[-1500:]
     st["nf"] = sorted(nf)
     st["at"] = now.strftime("%Y-%m-%d %H:%M")
     if not a.dry:
