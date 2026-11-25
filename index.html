@@ -378,6 +378,32 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 .dv-head{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:8px}
 .dv-head h3{margin:0}
 .dv-soon{background:var(--surface-2);border:1px solid var(--border);border-left:4px solid var(--watch);border-radius:10px;padding:9px 12px;font-size:14.5px;line-height:1.5;margin:0 0 10px}
+.ew-head h2{margin:0 0 6px}
+.ew-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+.ew-tile{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ew-tile span{font-size:12.5px;color:var(--text-2)} .ew-tile b{font-size:22px;font-variant-numeric:tabular-nums;line-height:1.2} .ew-tile small{font-size:12px;color:var(--muted)}
+.ew-yrs{margin:4px 0 10px} .ew-yrs figcaption{margin-bottom:6px}
+.ew-ybars{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;height:110px;margin-top:20px;border-bottom:1px solid var(--axis)}
+.ew-yb{position:relative;height:100%}
+.ew-yb i{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:var(--h);width:min(34px,78%);background:var(--s1);border-radius:4px 4px 0 0}
+.ew-yb b{position:absolute;left:0;right:0;text-align:center;bottom:calc(var(--h) + 2px);font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text-2)}
+.ew-yb span{position:absolute;left:0;right:0;text-align:center;bottom:-19px;font-size:11.5px;color:var(--muted)}
+.ew-y50{position:absolute;left:0;right:0;bottom:50%;border-top:1px dashed var(--muted);opacity:.7;pointer-events:none}
+.ew-yrs{padding-bottom:20px}
+.ew-rules{margin:8px 0;padding-left:20px;line-height:1.5} .ew-rules li{margin-bottom:4px}
+.ew-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.ew-card{margin:0;min-width:0}
+.ew-tier{font-size:12px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap;background:var(--buy);color:#fff}
+.ew-tier.B{background:var(--surface-2);color:var(--pos-text);border:1px solid var(--border)}
+.ew-order{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0}
+.ew-order>div{background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:7px 9px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ew-order span{font-size:12px;color:var(--text-2)} .ew-order b{font-size:16px} .ew-order small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.ew-prob{font-size:13.5px;line-height:1.45;margin:4px 0 8px} .ew-prob>b{font-size:16px;color:var(--pos-text)}
+.ew-now{font-size:14.5px;line-height:1.5;margin:0 0 8px;padding:8px 10px;border-radius:9px;background:var(--surface-2);border-left:4px solid var(--border)}
+.ew-now.go{border-left-color:var(--buy)}
+.ew-t td,.ew-t th{white-space:nowrap} .ew-t td.small{white-space:normal;min-width:180px}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit}
+@media (max-width:600px){ .ew-tiles{grid-template-columns:repeat(2,minmax(0,1fr))} .ew-tile b{font-size:19px} .ew-cards{grid-template-columns:minmax(0,1fr)} .ew-order{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .ew-order>div:last-child{grid-column:1/-1} .ew-ybars{gap:3px} .ew-yb b{font-size:10px} .ew-yb span{font-size:10px} }
 .chg-h{font-size:14px;margin:0 0 6px;line-height:1.4}
 .chg-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
 .chg-i{display:grid;grid-template-columns:42px minmax(0,1fr);gap:8px;font-size:13.5px;line-height:1.45;align-items:baseline}
@@ -506,11 +532,13 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
   <nav class="tabs" id="tabs" role="tablist" aria-label="Widok">
     <button role="tab" data-tab="sig" class="on" aria-selected="true">Sygnały</button>
     <button role="tab" data-tab="ix" aria-selected="false">Indeksy</button>
+    <button role="tab" data-tab="ew" aria-selected="false">Moment wejścia <span class="tabcnt" id="ewCount" hidden></span></button>
     <button role="tab" data-tab="zs" aria-selected="false">Złote strzały</button>
     <button role="tab" data-tab="pf" aria-selected="false">Mój portfel <span class="tabcnt" id="pfCount" hidden></span><span class="tabalert" id="pfAlert" hidden aria-label="są pozycje do sprzedaży">▼</span></button>
     <button role="tab" data-tab="ike" aria-selected="false">IKE/IKZE</button>
   </nav>
   <div id="viewIx" hidden></div>
+  <div id="viewEw" hidden></div>
   <div id="viewSig">
   <section class="card notice" id="notice" hidden></section>
   <div id="hzSig"></div>
@@ -569,7 +597,7 @@ table.ichi th,table.ichi td{text-align:left;white-space:nowrap}
 /* =========================================================================
    RadMat · Sygnały GPW – analiza techniczna wszystkich spółek rynku głównego GPW
    ========================================================================= */
-const APP_VERSION = '3.8 (19.11.2026)';
+const APP_VERSION = '3.9 (25.11.2026)';
 const DEFAULT_FEED = 'https://raw.githubusercontent.com/kontnymata-boop/wig20-dane/data/';
 const LS_SET='radmat_gpw_settings_v2', LS_SUM='radmat_gpw_summary_v2', LS_D='radmat_gpw_d_', LS_DIDX='radmat_gpw_didx', LS_META='radmat_gpw_meta_v2', LS_WATCH='radmat_gpw_watch';
 const DEFAULT_SETTINGS = {profile:'sredni', fee:0.3, autoRefresh:true, closedOnly:true, theme:'auto', showBB:false, chartMode:'ichimoku', tf:'D', feed:'', ntPopup:true, ntSound:false, v:2};
@@ -1041,7 +1069,7 @@ const state={
   settings:null, sum:{}, sumMeta:null, data:{}, an:{}, errors:{}, watch:new Set(),
   filter:'all', sig:'all', sort:'signal', search:'', shown:PAGE, topHow:false,
   busy:false, gen:0, abortCtl:null, flash:new Set(), detail:null, hover:null, incomplete:{},
-  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, news:{}, chgSeen0:null, pfForm:{}, pfSell:null, pfDel:null, nt:[], ike:{}, tab:'sig', legendKey:null, autoBackoffUntil:0
+  tf:'D', chartMode:'ichimoku', range:{H:90,D:250,W:104,M:125}, intra:{}, fund:{}, viewCache:{}, pf:{v:1,pos:[],hist:[]}, news:{}, chgSeen0:null, bt:null, ewf:null, pfForm:{}, pfSell:null, pfDel:null, nt:[], ike:{}, tab:'sig', legendKey:null, autoBackoffUntil:0
 };
 function loadSettings(){
   const s=Object.assign({}, DEFAULT_SETTINGS, store.get(LS_SET,{}));
@@ -1148,7 +1176,7 @@ async function refreshAll(opts={}){
     const j=await fetchSummary(); if(gen!==state.gen) return;
     applySummary(j,true); store.set(LS_SUM,j);
     store.set(LS_META,{lastFetch:Date.now(), dataTime:Date.parse(j.updated)||0});
-    hideNotice(); renderAll(); ok=true; pfWatchCheck();
+    hideNotice(); renderAll(); ok=true; pfWatchCheck(); try{ ewWatchCheck(); }catch(e){ console.error(e); }
     setStatus('ok',`Zaktualizowano o ${hhmm(Date.now())} · stan notowań: ${fmtDataTime(j.updated)} · ${j.count} spółek`+(state.settings.autoRefresh?' · aktualizacja automatyczna włączona':''));
     const t=state.detail;
     if(t){
@@ -1188,7 +1216,7 @@ const liveLbl=A=>A.live?`<span class="live"><b>●</b> sesja trwa${A.live.time?'
 const itP=it=>(it.s&&it.s[state.settings.profile])||{st:'BRAK'};
 const itChange=it=>it.live?it.live.ch:it.ch;
 const itPrice=it=>it.live?it.live.p:it.c;
-function renderAll(){ renderProfileLbl(); renderHz(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); if(state.tab==='ix') renderIx(); renderBell(); }
+function renderAll(){ renderProfileLbl(); renderHz(); renderMarket(); renderTop(); renderFilters(); renderTiles(); renderList(); renderTabs(); if(state.tab==='pf') renderPfSafe(); if(state.tab==='zs') renderZs(); if(state.tab==='ike' && !$('#viewIke').contains(document.activeElement)) renderIke(); if(state.tab==='ix') renderIx(); if(state.tab==='ew') renderEw(); renderBell(); }
 function renderProfileLbl(){ const P=PROFILES[state.settings.profile]; const all=Object.values(state.sum).filter(i=>!i.idx), n=all.length, nNc=all.filter(i=>i.nc).length; $('#profileLbl').textContent=`${n?(nNc?(n-nNc)+' spółek z rynku głównego GPW i '+nNc+' z NewConnect · ':n+' spółek z rynku głównego GPW · '):''}horyzont: ${P.short} · średnie ${P.fast}/${P.slow}/${P.trend}`; }
 function showW20List(){
   if(state.detail) closeDetail();
@@ -1829,6 +1857,206 @@ async function pfChgLoad(){
   store.set(LS_CHG_SEEN, nowStamp());       // przy następnym otwarciu „nowe” = to, co pojawiło się od teraz
 }
 
+/* ================= MOMENT WEJŚCIA – kupno chwilowego spadku w trendzie wzrostowym ================= */
+const LS_EW_F='radmat_gpw_wejscie_filtr_v1', LS_EW_NT='radmat_gpw_wejscie_powiad_v1';
+const EW_TIER={A:{l:'bardzo silny', d:'RSI poniżej 30'}, B:{l:'silny', d:'RSI 30–35'}};
+const EW_WHY={cel:'cel', stop:'stop', 'sygnał':'zamknięcie nad średnią 5-sesyjną', czas:'koniec czasu'};
+async function ensureBt(force){
+  const x=state.bt;
+  if(x&&!force&&(x.busy||Date.now()-x.at<3*3600e3)) return x.busy||x;
+  const job=(async()=>{
+    try{ const j=JSON.parse(await fetchText(feedBase()+'bt.json?'+minuteTag(),30000)); state.bt={at:Date.now(), j}; }
+    catch(e){ state.bt={at:Date.now(), err:String(e.message).slice(0,140), j:x&&x.j}; }
+    return state.bt;
+  })();
+  state.bt=Object.assign({},x||{at:0},{busy:job});
+  return job;
+}
+const btOf=hz=>{ const j=state.bt&&state.bt.j; return j&&j.hz?j.hz[hz||state.settings.profile]:null; };
+// szansa z historii dla siły sygnału (A/B); przy zbyt małej próbie – wynik dla wszystkich sygnałów
+function ewProb(tier,hz){ const H=btOf(hz); if(!H) return null; const g=H[tier]&&H[tier].n>=60?H[tier]:H.all; return g&&g.n?g:null; }
+function ewSession(it){
+  if(it.live) return {lbl:'na dzisiejszą sesję', d:todayISO()};
+  const d=new Date(it.d+'T12:00:00'); do{ d.setDate(d.getDate()+1); }while(d.getDay()===0||d.getDay()===6);
+  const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return {lbl:'na najbliższą sesję', d:iso};
+}
+function ewLv(it,hz){ const e=it.ew, Z=EW.hz[hz], en=e.lim; return {en, sl:en-Z.stop*e.a, tg:Z.tgt?en+Z.tgt*e.a:null}; }
+function ewExitTxt(hz,it){
+  const Z=EW.hz[hz];
+  if(Z.exit==='s5') return `sprzedaj na otwarciu sesji po pierwszym zamknięciu powyżej średniej 5-sesyjnej${it&&it.ew&&it.ew.s5?` (dziś ${fmt(it.ew.s5,it.c<1?4:2)} zł)`:''}`;
+  return `cel +${String(Z.tgt).replace('.',',')} ATR – zlecenie sprzedaży z limitem po cenie celu`;
+}
+function ewRules(hz){
+  const Z=EW.hz[hz];
+  return `<ol class="ew-rules">
+    <li><b>Trend wzrostowy:</b> kurs powyżej średniej 200-sesyjnej, a średnia 50-sesyjna powyżej 200-sesyjnej.</li>
+    <li><b>Chwilowy spadek:</b> RSI(14) na zamknięciu poniżej 35 (poniżej 30 – sygnał bardzo silny). Średni obrót z 20 sesji co najmniej 50 tys. zł.</li>
+    <li><b>Wejście:</b> zlecenie kupna <b>z limitem ceny</b> = zamknięcie − 0,5 ATR, ważne tylko na najbliższą sesję. Jeśli się nie zrealizuje – nie gonisz kursu; jutro po sesji sprawdzasz, czy sygnał jest nadal (wtedy nowy limit).</li>
+    <li><b>Stop:</b> ${String(Z.stop).replace('.',',')} ATR poniżej ceny zakupu – ustaw zlecenie stop od razu po zakupie.</li>
+    <li><b>Wyjście (horyzont ${esc(PROFILES[hz].short)}):</b> ${esc(ewExitTxt(hz))}; najpóźniej po ${Z.max} sesjach.</li>
+  </ol>`;
+}
+function ewStatTiles(H){
+  const a=H.all;
+  return `<div class="ew-tiles">
+    <div class="ew-tile"><span>Zyskownych transakcji</span><b>${Math.round(a.win*100)}%</b><small>${a.n} transakcji</small></div>
+    <div class="ew-tile"><span>Średni wynik</span><b class="${cls(a.avg)}">${pct(a.avg,1)}</b><small>mediana ${pct(a.med,1)}, po prowizjach</small></div>
+    <div class="ew-tile"><span>Średni czas</span><b>${fmt(a.bars,0)} ${plN(Math.round(a.bars),'sesja','sesje','sesji')}</b><small>od kupna do sprzedaży</small></div>
+    <div class="ew-tile"><span>Zysk / strata</span><b>${pct(a.aw,1)} / ${pct(a.al,1)}</b><small>średnio udana / nieudana</small></div>
+  </div>`;
+}
+function ewYearsHTML(H){
+  const ys=Object.entries(H.yrs||{}).filter(([,v])=>v[0]>=15);
+  if(!ys.length) return '';
+  return `<figure class="ew-yrs" aria-label="Odsetek zyskownych transakcji w kolejnych latach">
+    <figcaption class="small">Odsetek zyskownych transakcji w kolejnych latach (linia przerywana = 50%)</figcaption>
+    <div class="ew-ybars">${ys.map(([y,v])=>`<div class="ew-yb" style="--h:${Math.max(3,v[1]*100).toFixed(1)}%" title="${y}: ${v[0]} transakcji, ${Math.round(v[1]*100)}% zyskownych, średnio ${pct(v[2],1)}" aria-label="${y}: ${Math.round(v[1]*100)}% zyskownych z ${v[0]} transakcji"><i></i><b>${Math.round(v[1]*100)}%</b><span>${y}</span></div>`).join('')}<em class="ew-y50"></em></div>
+  </figure>`;
+}
+function ewRows(){
+  const f=state.ewf||{};
+  return Object.values(state.sum).filter(it=>!it.idx&&it.ew&&!frozenIt(it)&&(f.m!=='gpw'||!it.nc)&&(f.m!=='nc'||it.nc)&&(!f.liq||(it.ew.tv||0)>=3e5));
+}
+function ewGoList(hz){ return ewRows().filter(it=>it.ew.st==='go'&&!(it.ew.o&&it.ew.o[hz])).sort((a,b)=>(a.ew.r-b.ew.r)||((b.ew.tv||0)-(a.ew.tv||0))); }
+function ewCount(){ const hz=state.settings.profile; return Object.values(state.sum).filter(it=>!it.idx&&it.ew&&it.ew.st==='go'&&!frozenIt(it)&&!(it.ew.o&&it.ew.o[hz])).length; }
+function ewCardHTML(it,hz){
+  const e=it.ew, lv=ewLv(it,hz), ses=ewSession(it), pr=ewProb(e.tr,hz), dec=it.c<1?4:2, T=EW_TIER[e.tr];
+  const own=e.h&&e.h[hz]?e.h[hz]:[0,0];
+  return `<article class="card ew-card" data-t="${esc(it.t)}">
+    <div class="zs-top"><button class="pf-name" data-open="${esc(it.t)}"><span class="tk">${esc(it.t)}${ncTag(it.t)}</span><span class="nm">${esc(it.n)}</span></button>
+      <span class="ew-tier ${e.tr}">▲ ${esc(T.l)} sygnał</span></div>
+    <div class="tc-price"><b class="num">${fmt(it.c,dec)} zł</b> <span class="small">· zamknięcie ${dShort(it.d)} · RSI ${fmt(e.r,1)} · obrót ${fmtVol(e.tv)} zł/dzień</span></div>
+    <div class="ew-order">
+      <div><span>Kup z limitem</span><b class="num">${fmt(lv.en,dec)} zł</b><small>${esc(ses.lbl)} (${dShort(ses.d)}) · ${pct(lv.en/it.c-1,1)} od zamknięcia</small></div>
+      <div><span>Stop</span><b class="num">${fmt(lv.sl,dec)} zł</b><small>${pct(lv.sl/lv.en-1,1)} od ceny zakupu</small></div>
+      <div><span>Sprzedaż</span>${lv.tg!=null?`<b class="num">${fmt(lv.tg,dec)} zł</b><small>cel ${pct(lv.tg/lv.en-1,1)} · najpóźniej po ${EW.hz[hz].max} sesjach</small>`:`<b>po odbiciu</b><small>${esc(ewExitTxt(hz,it))}</small>`}</div>
+    </div>
+    ${pr?`<p class="ew-prob"><b>${Math.round(pr.win*100)}%</b> takich transakcji (${esc(T.d)}) kończyło się w historii zyskiem – ${pr.n} przypadków, średnio ${pct(pr.avg,1)} w ok. ${fmt(pr.bars,0)} ${plN(Math.round(pr.bars),'sesję','sesje','sesji')}.${own[0]?` W tej spółce: ${own[1]} z ${own[0]} udanych.`:''}</p>`:''}
+    <div class="pf-actions"><button class="btn sm" data-open="${esc(it.t)}">Wykres i analiza</button><button class="btn sm" data-ewadd="${esc(it.t)}">＋ Do portfela</button><button class="star ${state.watch.has(it.t)?'on':''}" data-ewstar="${esc(it.t)}" title="Obserwuj – powiadomię o kolejnych sygnałach">${state.watch.has(it.t)?'★':'☆'}</button></div>
+  </article>`;
+}
+function ewOpenAction(it,hz,o){
+  const Z=EW.hz[hz], dec=it.c<1?4:2;
+  if(o.x) return Z.exit==='s5'?'<b>Sprzedaj na otwarciu najbliższej sesji</b> – kurs zamknął się nad średnią 5-sesyjną':'<b>Sprzedaj na otwarciu</b> – minął limit czasu';
+  if(Z.exit==='s5') return `Trzymaj – sprzedaj po zamknięciu powyżej średniej 5-sesyjnej (${fmt(it.ew.s5,dec)} zł); zostało ${o.lf} ${plN(o.lf,'sesja','sesje','sesji')}`;
+  return `Trzymaj do celu albo stopu; zostało ${o.lf} ${plN(o.lf,'sesja','sesje','sesji')}`;
+}
+function renderEw(){
+  const el=$('#viewEw'); if(!el) return;
+  if(!Object.keys(state.sum).length){ el.innerHTML=`<section class="card"><p>Najpierw wczytaj notowania – naciśnij <b>⟳ Aktualizuj</b>.</p></section>`; return; }
+  const hz=state.settings.profile, P=PROFILES[hz], H=btOf(hz), f=state.ewf||(state.ewf=store.get(LS_EW_F,{m:'all',liq:0})||{m:'all',liq:0});
+  if(!state.bt||(!state.bt.j&&!state.bt.busy)) ensureBt().then(()=>{ if(state.tab==='ew') renderEw(); });
+  const hasEw=Object.values(state.sum).some(it=>it.ew);
+  const go=ewGoList(hz), rows=ewRows();
+  const open=rows.filter(it=>it.ew.o&&it.ew.o[hz]).sort((a,b)=>(b.ew.o[hz].x?1:0)-(a.ew.o[hz].x?1:0)||b.ew.o[hz].sd.localeCompare(a.ew.o[hz].sd));
+  const near=rows.filter(it=>it.ew.st==='near'&&!(it.ew.o&&it.ew.o[hz])).sort((a,b)=>(a.ew.px/a.c)-(b.ew.px/b.c)).reverse();
+  const j=state.bt&&state.bt.j;
+  const head=`<section class="card ew-head">
+      <h2>Moment wejścia – kupno chwilowego spadku w trendzie wzrostowym</h2>
+      <p>Zamiast gonić kurs, który już mocno urósł, metoda czeka, aż spółka w <b>trendzie wzrostowym</b> chwilowo się cofnie (RSI poniżej 35), i kupuje <b>z limitem poniżej zamknięcia</b>. Sprzedaje szybko po odbiciu. Zasady sprawdziłem na całej historii notowań spółek z GPW i NewConnect${j?` (${dShort(j.from)}.${j.from.slice(0,4)} – ${dShort(j.to)}.${j.to.slice(0,4)}, ${j.spolek} spółek)`:''} – to najskuteczniejszy z badanych układów i działał w każdym roku, także po 2022 r.</p>
+      ${H&&H.all&&H.all.n?ewStatTiles(H)+ewYearsHTML(H):`<p class="small">${state.bt&&state.bt.busy?'Wczytuję statystyki z historii…':state.bt&&state.bt.err?'Statystyki z historii chwilowo niedostępne.':'Statystyki pojawią się po najbliższej aktualizacji robota.'}</p>`}
+      <details class="top-how"><summary><b>Zasady metody (horyzont ${esc(P.short)})</b></summary>${ewRules(hz)}
+        <p class="small">Inne horyzonty różnią się tylko wyjściem: krótki – sprzedaż po pierwszym zamknięciu nad średnią 5-sesyjną (ok. 5 sesji), średni – cel +2 ATR (ok. 14 sesji), długi – cel +4 ATR (ok. 50 sesji, mniejsza szansa, ale większe zyski). Zmień horyzont przełącznikiem powyżej.</p>
+        <p class="small">Co sprawdziłem i odrzuciłem: wybicia nowych szczytów, przecięcia średnich i wyjście kursu nad chmurę Ichimoku nie dawały na GPW przewagi po prowizjach. Szansa jest wyraźnie większa, gdy kupujesz chwilowe osłabienie silnej spółki niż jej wybicie.</p>
+      </details>
+    </section>`;
+  const flt=`<nav class="filters" id="ewF">${[['all','Wszystkie'],['gpw','Rynek główny'],['nc','NewConnect']].map(([k,l])=>`<button class="chip ${f.m===k?'active':''}" data-ewm="${k}">${l}</button>`).join('')}<button class="chip ${f.liq?'active':''}" data-ewliq="1" title="Średni obrót co najmniej 300 tys. zł dziennie – łatwiej kupić i sprzedać po dobrej cenie">Tylko płynne (≥ 300 tys. zł)</button></nav>`;
+  const goSec=`<section class="card"><h3 class="sec">Sygnały wejścia${go.length?` <span class="small">· ${go.length} ${plN(go.length,'spółka','spółki','spółek')}</span>`:''}</h3>
+      ${!hasEw?'<p class="small">Robot jeszcze nie policzył sygnałów tą metodą – pojawią się po najbliższej aktualizacji (w dni sesyjne co 30 minut).</p>'
+        :go.length?`<div class="ew-cards">${go.map(it=>ewCardHTML(it,hz)).join('')}</div>`:'<p class="small">Dziś żadna spółka w trendzie wzrostowym nie cofnęła się wystarczająco. To normalne – sygnałów jest średnio kilka–kilkanaście w miesiącu. Zajrzyj do listy „Blisko sygnału” poniżej.</p>'}
+    </section>`;
+  const openSec=open.length?`<section class="card"><h3 class="sec">Trwające transakcje z sygnałów <span class="small">· jak zachowałaby się metoda, gdyby kupić według zasad</span></h3>
+      <div class="tbl-scroll"><table class="t ew-t"><tr><th style="text-align:left">Spółka</th><th>Kupno</th><th>Kurs</th><th>Wynik</th><th>Stop</th><th>Cel</th><th style="text-align:left">Co dalej</th></tr>
+      ${open.map(it=>{ const o=it.ew.o[hz], dec=it.c<1?4:2; return `<tr data-open="${esc(it.t)}"><td style="text-align:left"><b>${esc(it.t)}</b>${ncTag(it.t)} <span class="small">${esc(it.n)}</span></td><td>${fmt(o.en,dec)}<div class="small">${dShort(o.ed)}</div></td><td>${fmt(it.c,dec)}</td><td class="${cls(o.rt)}">${pct(o.rt,1)}</td><td>${fmt(o.sl,dec)}</td><td>${o.tg!=null?fmt(o.tg,dec):'–'}</td><td style="text-align:left" class="small">${ewOpenAction(it,hz,o)}</td></tr>`; }).join('')}
+      </table></div></section>`:'';
+  const nearSec=near.length?`<section class="card"><h3 class="sec">Blisko sygnału <span class="small">· trend wzrostowy, RSI 35–40</span></h3>
+      <p class="small">Sygnał pojawi się, jeśli kurs zamknie się na najbliższej sesji poniżej podanej ceny (wtedy RSI spadnie poniżej 35). Warto dodać spółkę do obserwowanych ☆ – dam znać.</p>
+      <div class="tbl-scroll"><table class="t ew-t"><tr><th style="text-align:left">Spółka</th><th>Kurs</th><th>RSI</th><th>Sygnał przy zamknięciu poniżej</th><th>Odległość</th><th></th></tr>
+      ${near.map(it=>{ const e=it.ew, dec=it.c<1?4:2; return `<tr data-open="${esc(it.t)}"><td style="text-align:left"><b>${esc(it.t)}</b>${ncTag(it.t)} <span class="small">${esc(it.n)}</span></td><td>${fmt(it.c,dec)}</td><td>${fmt(e.r,1)}</td><td>${fmt(e.px,dec)} zł</td><td>${pct(e.px/it.c-1,1)}</td><td><button class="star ${state.watch.has(it.t)?'on':''}" data-ewstar="${esc(it.t)}" title="Obserwuj">${state.watch.has(it.t)?'★':'☆'}</button></td></tr>`; }).join('')}
+      </table></div></section>`:'';
+  const last=H&&H.last&&H.last.length?`<section class="card"><details><summary><b>Ostatnie zakończone transakcje z historii</b> <span class="small">· horyzont ${esc(P.short)}</span></summary>
+      <div class="tbl-scroll"><table class="t ew-t"><tr><th style="text-align:left">Spółka</th><th>Sygnał</th><th>Sprzedaż</th><th>Sesji</th><th>Wynik</th><th style="text-align:left">Powód wyjścia</th></tr>
+      ${H.last.slice(0,20).map(([t,sd,xd,rt,why,b])=>`<tr data-open="${esc(t)}"><td style="text-align:left"><b>${esc(t)}</b></td><td>${dShort(sd)}</td><td>${dShort(xd)}</td><td>${b}</td><td class="${cls(rt)}">${pct(rt,1)}</td><td style="text-align:left" class="small">${esc(EW_WHY[why]||why)}</td></tr>`).join('')}
+      </table></div></details></section>`:'';
+  el.innerHTML=horizonBarHTML('Wyjście z transakcji i statystyki')+head+flt+goSec+openSec+nearSec+last+
+    `<p class="note pf-disc">Liczby pochodzą z historii i dotyczą wszystkich sygnałów razem – pojedyncza transakcja może skończyć się stratą, a przeszłe wyniki nie gwarantują przyszłych. W historii są tylko spółki notowane dziś (te, które zbankrutowały i zniknęły z giełdy, nie są ujęte), więc w praktyce wynik może być nieco gorszy. Uwzględniam prowizję 0,3% przy kupnie i przy sprzedaży; przy mało płynnych spółkach dochodzi koszt różnicy między ofertami kupna i sprzedaży. Najgorsza transakcja w historii: ${H&&H.all&&H.all.worst!=null?pct(H.all.worst,0):'–'} (spadek kursu z dnia na dzień poniżej stopu) – dlatego na jedną spółkę przeznaczaj tylko część portfela. To nie jest rekomendacja inwestycyjna.</p>`;
+  $$('#viewEw [data-open]').forEach(b=>b.onclick=e=>{ if(e.target.closest('[data-ewadd],[data-ewstar]')) return; showCompany(b.dataset.open); });
+  $$('#viewEw [data-ewadd]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); ewAddPf(b.dataset.ewadd); });
+  $$('#viewEw [data-ewstar]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); const t=b.dataset.ewstar; toggleWatch(t); renderFilters(); renderEw(); });
+  $$('#viewEw [data-ewm]').forEach(b=>b.onclick=()=>{ f.m=b.dataset.ewm; store.set(LS_EW_F,f); renderEw(); });
+  $$('#viewEw [data-ewliq]').forEach(b=>b.onclick=()=>{ f.liq=f.liq?0:1; store.set(LS_EW_F,f); renderEw(); });
+}
+function ewAddPf(t){
+  const it=state.sum[t]; pfAddFromDetail(t);
+  if(it&&it.ew&&it.ew.lim){ state.pfForm.px=fmt(it.ew.lim,it.c<1?4:2); state.pfForm.autoPx=false; if(state.tab==='pf') renderPf(); }
+}
+// słupki dzienne bez trwającej sesji – metoda liczy na zamknięciach
+function ewBars(t){
+  const x=state.data[t]; if(!x||!x.bars) return null;
+  const b=x.bars, n=b.d.length, w=warsawNow();
+  if(n>1&&b.d[n-1]===w.date&&!['Sat','Sun'].includes(w.wd)&&w.min<17*60+15){ const o={}; for(const k of Object.keys(b)) o[k]=b[k].slice(0,-1); return o; }
+  return b;
+}
+function ewDetailHTML(t){
+  const it=state.sum[t]; if(!it||it.idx) return '';
+  const hz=state.settings.profile, P=PROFILES[hz], dec=it.c<1?4:2, B=ewBars(t);
+  const R=B?entryStudy(B,{fee:state.settings.fee}):null;
+  let now='';
+  const e=it.ew, o=e&&e.o&&e.o[hz];
+  if(frozenIt(it)) now=`<p class="small">Notowania stoją w miejscu – sygnałów nie liczę.</p>`;
+  else if(o) now=`<p class="ew-now"><b>Trwa transakcja z sygnału z ${dShort(o.sd)}</b>: kupno ${dShort(o.ed)} po ${fmt(o.en,dec)} zł, wynik ${pct(o.rt,1)}, stop ${fmt(o.sl,dec)} zł${o.tg!=null?`, cel ${fmt(o.tg,dec)} zł`:''}. ${ewOpenAction(it,hz,o)}.</p>`;
+  else if(e&&e.st==='go'){ const lv=ewLv(it,hz), ses=ewSession(it), pr=ewProb(e.tr,hz);
+    now=`<p class="ew-now go"><b>▲ Sygnał wejścia (${esc(EW_TIER[e.tr].l)}, RSI ${fmt(e.r,1)}):</b> kup z limitem <b>${fmt(lv.en,dec)} zł</b> ${esc(ses.lbl)} (${dShort(ses.d)}), stop ${fmt(lv.sl,dec)} zł${lv.tg!=null?`, cel ${fmt(lv.tg,dec)} zł`:`, ${esc(ewExitTxt(hz,it))}`}.${pr?` W historii ${Math.round(pr.win*100)}% takich transakcji kończyło się zyskiem.`:''}</p>`; }
+  else if(e&&e.st==='near') now=`<p class="ew-now"><b>Blisko sygnału:</b> trend wzrostowy, RSI ${fmt(e.r,1)}. Sygnał pojawi się, jeśli kurs zamknie się poniżej ok. <b>${fmt(e.px,dec)} zł</b> (${pct(e.px/it.c-1,1)}).</p>`;
+  else if(R&&R.ok){
+    const why=[];
+    if(!R.up) why.push(R.c<R.s200?`kurs poniżej średniej 200-sesyjnej (${fmt(R.s200,dec)} zł) – brak trendu wzrostowego`:'średnia 50-sesyjna poniżej 200-sesyjnej – brak trendu wzrostowego');
+    else why.push(`trend wzrostowy jest, ale RSI wynosi ${fmt(R.rsi,1)} – sygnał dopiero poniżej 35`);
+    if(!R.liq) why.push(`za mały obrót (${fmtVol(R.turn)} zł dziennie, potrzeba 50 tys. zł)`);
+    now=`<p class="ew-now">Brak sygnału: ${esc(why.join('; '))}.</p>`;
+  } else if(R) now=`<p class="small">${esc(R.msg||'')}</p>`;
+  else now=`<p class="small">Wczytuję notowania…</p>`;
+  let hist='';
+  if(R&&R.ok){
+    const T=R.trades[hz]||[], w=T.filter(x=>x.ret>0), avg=T.length?T.reduce((s,x)=>s+x.ret,0)/T.length:0;
+    hist=T.length?`<p class="small">W tej spółce metoda dała <b>${T.length}</b> ${plN(T.length,'transakcję','transakcje','transakcji')} (horyzont ${esc(P.short)}): ${w.length} ${plN(w.length,'zyskowna','zyskowne','zyskownych')}, średnio ${pct(avg,1)}.${T.length<8?' To mała próba – ważniejsze są wyniki dla wszystkich spółek.':''}</p>
+      <details><summary class="small">Pokaż transakcje w tej spółce</summary><div class="tbl-scroll"><table class="t ew-t"><tr><th>Sygnał</th><th>Kupno</th><th>Sprzedaż</th><th>Sesji</th><th>Wynik</th><th style="text-align:left">Powód</th></tr>
+      ${T.slice().reverse().slice(0,25).map(x=>`<tr><td>${dPL(x.sd)}</td><td>${fmt(x.entry,dec)}</td><td>${fmt(x.x,dec)}</td><td>${x.bars}</td><td class="${cls(x.ret)}">${pct(x.ret,1)}</td><td style="text-align:left" class="small">${esc(EW_WHY[x.why]||x.why)}</td></tr>`).join('')}</table></div></details>`
+      :`<p class="small">W historii tej spółki metoda nie dała jeszcze żadnej zakończonej transakcji.</p>`;
+  }
+  const H=btOf(hz);
+  return `<section class="card ew-dcard" id="ewCard"><h3 class="sec">Moment wejścia <span class="small">· kupno chwilowego spadku w trendzie wzrostowym</span></h3>
+    ${now}${hist}
+    ${H&&H.all&&H.all.n?`<p class="small">Dla wszystkich spółek: ${Math.round(H.all.win*100)}% zyskownych z ${H.all.n} transakcji, średnio ${pct(H.all.avg,1)} w ok. ${fmt(H.all.bars,0)} ${plN(Math.round(H.all.bars),'sesję','sesje','sesji')}. <button class="linkbtn" data-goew="1">Więcej w zakładce Moment wejścia</button></p>`:''}
+    <details class="top-how"><summary class="small">Zasady</summary>${ewRules(hz)}</details>
+  </section>`;
+}
+// powiadomienie: obserwowana (☆) lub posiadana spółka daje sygnał wejścia
+function ewWatchCheck(opt={}){
+  if(!Object.keys(state.sum).length) return;
+  const seen=store.get(LS_EW_NT,{})||{}, first=!seen._v, quiet=!!opt.quiet||first, fresh=[]; seen._v=1;
+  const held=new Set(state.pf.pos.map(p=>p.t)), hz=state.settings.profile;
+  for(const it of Object.values(state.sum)){
+    if(it.idx||!it.ew||it.ew.st!=='go'||frozenIt(it)||(it.ew.o&&it.ew.o[hz])) continue;
+    const key=it.d; if(seen[it.t]===key) continue;
+    seen[it.t]=key;
+    if(quiet||!(state.watch.has(it.t)||held.has(it.t))) continue;
+    const lv=ewLv(it,hz), ses=ewSession(it), pr=ewProb(it.ew.tr,hz), dec=it.c<1?4:2;
+    fresh.push({id:pfId(), t:it.t, at:Date.now(), k:'up', title:`${it.t} – moment wejścia (${EW_TIER[it.ew.tr].l} sygnał)`,
+      lines:[`Kup z limitem ${fmt(lv.en,dec)} zł ${ses.lbl} (${dShort(ses.d)}), stop ${fmt(lv.sl,dec)} zł.`],
+      more:[`RSI ${fmt(it.ew.r,1)} w trendzie wzrostowym.${pr?` W historii ${Math.round(pr.win*100)}% takich transakcji kończyło się zyskiem.`:''}`], read:false});
+  }
+  for(const k of Object.keys(seen)) if(k!=='_v'&&(!state.sum[k]||!state.sum[k].ew||state.sum[k].ew.st!=='go')) delete seen[k];
+  store.set(LS_EW_NT,seen);
+  if(fresh.length){
+    state.nt.push(...fresh); ntSave(); renderBell();
+    if(state.settings.ntPopup!==false){ if(fresh.length<=2) fresh.forEach(n=>ntToast(n)); else ntToastMany(fresh); }
+    if(state.settings.ntSound) ntBeep();
+    if($('#dlgNotes').open) renderNotes();
+  }
+}
+
 /* ================= IKE / IKZE ================= */
 // Limity wpłat wg obwieszczeń MRPiPS (na 2026 r. – z 10 i 17.11.2025; na 2027 r. – z 30.10.2026)
 const IKE_LIM={2026:{ike:28260, ikze:11304, ikzeJdg:16956}, 2027:{ike:30099, ikze:12039.60, ikzeJdg:18059.40}};
@@ -2161,12 +2389,13 @@ function pfStructBind(){
 /* ---------- widok ---------- */
 function renderTabs(){
   $$('#tabs [data-tab]').forEach(b=>{ const on=b.dataset.tab===state.tab; b.setAttribute('aria-selected',on); b.classList.toggle('on',on); });
-  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs'; $('#viewIke').hidden=state.tab!=='ike'; $('#viewIx').hidden=state.tab!=='ix';
+  $('#viewSig').hidden=state.tab!=='sig'; $('#viewPf').hidden=state.tab!=='pf'; $('#viewZs').hidden=state.tab!=='zs'; $('#viewIke').hidden=state.tab!=='ike'; $('#viewIx').hidden=state.tab!=='ix'; $('#viewEw').hidden=state.tab!=='ew';
+  const ec=Object.keys(state.sum).length?ewCount():0; $('#ewCount').textContent=ec?String(ec):''; $('#ewCount').hidden=!ec; $('#ewCount').title=ec?`${ec} ${plN(ec,'spółka daje','spółki dają','spółek daje')} dziś sygnał wejścia`:'';
   const n=state.pf.pos.length, sells=n?state.pf.pos.map(pfCalc).filter(r=>r.h.lv==='sell').length:0;
   $('#pfCount').textContent=n?String(n):''; $('#pfCount').hidden=!n;
   $('#pfAlert').hidden=!sells; $('#pfAlert').title=sells?`${sells} ${sells===1?'spółka':'spółki'} ze wskazówką SPRZEDAJ`:'';
 }
-function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); if(t==='ike') renderIke(); if(t==='ix') renderIx(); window.scrollTo(0,0); }
+function setTab(t){ state.tab=t; try{ localStorage.setItem(LS_TAB,t); }catch(e){} renderTabs(); if(t==='pf') renderPf(); if(t==='zs') renderZs(); if(t==='ike') renderIke(); if(t==='ix') renderIx(); if(t==='ew') renderEw(); window.scrollTo(0,0); }
 function pfCompanies(){ return Object.values(state.sum).filter(it=>!it.idx).sort((a,b)=>a.t.localeCompare(b.t)); }
 function pfFindTicker(v){
   v=String(v||'').trim(); if(!v) return null;
@@ -2775,6 +3004,7 @@ function openDetail(t, keepScroll){
     </section>
     ${co.isIndex?ixMembersCardHTML(t):''}
     ${pfDetailBox(t)}
+    ${ewDetailHTML(t)}
     ${chgCardHTML(t)}
     ${dvCardHTML(t)}
     ${fundCardHTML(t)}
@@ -2831,6 +3061,9 @@ function openDetail(t, keepScroll){
   requestAnimationFrame(()=>{ drawDetailChart(); if(keepScroll) el.scrollTop=sc; else el.scrollTop=0; if(state.tf==='H') ensureIntraday(t).then(()=>{ if(state.detail===t) drawDetailChart(); }); });
   ensureFund(t).then(()=>{ if(state.detail===t) chgRefresh(t); });
   chgLoad(t);
+  const ewBind=()=>{ $$('#ewCard [data-goew]').forEach(b=>b.onclick=()=>{ closeDetail(); setTab('ew'); }); };
+  ewBind();
+  ensureBt().then(()=>{ const c=$('#ewCard'); if(state.detail===t&&c){ const op=$$('details',c).map(d=>d.open); c.outerHTML=ewDetailHTML(t); const n=$('#ewCard'); if(n) $$('details',n).forEach((d,i)=>{ if(op[i]) d.open=true; }); ewBind(); } });
 }
 function closeDetail(){ if($('#detail').hidden&&!state.detail) return; $('#detail').hidden=true; document.body.style.overflow=''; state.detail=null; }
 function bindDetail(){
@@ -3248,6 +3481,8 @@ function renderHelp(){
   <p>W zakładce <b>Mój portfel</b> dodajesz spółki, które masz: wybierasz spółkę, wpisujesz liczbę akcji i datę zakupu – cenę zamknięcia z tego dnia aplikacja wpisze sama (możesz ją zmienić albo podać kwotę zakupu). Bez daty liczy od dzisiaj, po obecnym kursie. Aplikacja liczy wartość każdej pozycji i całego portfela, zysk lub stratę w złotych i procentach, dzisiejszą zmianę i udział każdej spółki w portfelu.</p>
   <p>Przy każdej spółce jest <b>wskazówka</b>: SPRZEDAJ (kurs spadł poniżej Twojego stopu albo system dał sygnał sprzedaży), ROZWAŻ SPRZEDAŻ (słaby trend), REALIZUJ ZYSK (kurs osiągnął cel), TRZYMAJ (trend wzrostowy) albo TRZYMAJ, OBSERWUJ (brak wyraźnego trendu). Stop i cel są liczone od Twojej ceny zakupu i zmienności kursu (ATR) dla wybranego horyzontu; stop podnosi się razem z kursem (stop kroczący).</p>
   <p>Przyciskiem <b>Dokup</b> dodajesz kolejne akcje (średnia cena przeliczy się sama), <b>Sprzedaj</b> zapisuje sprzedaż i zysk zrealizowany, <b>Edytuj</b> poprawia dane, <b>Usuń</b> kasuje pozycję. Portfel zapisuje się automatycznie po każdej zmianie i po ponownym otwarciu aplikacji jest na miejscu (zapamiętany jest też niedokończony formularz, otwarta zakładka i ustawienia listy). Aplikacja trzyma 15 ostatnich stanów portfela, więc możesz cofnąć zmianę. Dane są tylko w tej przeglądarce – zrób kopię do pliku, żeby ich nie stracić. Spółkę dodasz też z jej szczegółów przyciskiem „＋ Do portfela”.</p>
+  <h3>Moment wejścia</h3>
+  <p>Zakładka <b>Moment wejścia</b> pokazuje, kiedy kupić, żeby szansa na zysk była jak największa. Sprawdziłem na całej historii notowań (od 2017 r., kilkaset spółek z GPW i NewConnect) różne układy: wybicia szczytów, przecięcia średnich, Ichimoku, odbicia z dołka i kupno cofnięć. Najlepiej i najstabilniej – w każdym roku – działało <b>kupno chwilowego spadku w trendzie wzrostowym</b>: kurs nad średnią 200-sesyjną, średnia 50 nad 200, RSI(14) poniżej 35. Kupujesz zleceniem <b>z limitem ceny</b> o pół ATR poniżej zamknięcia (ważnym jedną sesję), od razu ustawiasz stop i sprzedajesz po odbiciu. Przy krótkim horyzoncie ok. 7 na 10 takich transakcji kończyło się zyskiem (średnio ok. +1,7% w 5 sesji), przy średnim ok. 2 na 3 (średnio ok. +2,4% w 14 sesji), przy długim nieco ponad połowa, ale z większymi zyskami. Dokładne, aktualne liczby, wyniki z każdego roku i ostatnie transakcje są w zakładce; robot przelicza je przy każdej aktualizacji. W szczegółach spółki karta <b>Moment wejścia</b> pokazuje bieżący stan i transakcje w tej spółce. Gwiazdka ☆ przy spółce sprawi, że dostaniesz powiadomienie, gdy pojawi się sygnał. Pamiętaj: to statystyka wielu transakcji – pojedyncza może skończyć się stratą, a przeszłość nie gwarantuje przyszłości.</p>
   <h3>Co się zmieniło w spółce</h3>
   <p>Przy każdej spółce w <b>Moim portfelu</b> i w szczegółach każdej spółki jest sekcja <b>Co się zmieniło</b> – zbiera to, co może wpłynąć na trend i kurs: <b>komunikaty spółki</b> (ESPI/EBI – wyniki, dywidendy, emisje akcji, wezwania, skup akcji, umowy, prognozy, transakcje zarządu, zmiany dużych akcjonariuszy, kłopoty), ważniejsze <b>wiadomości z mediów</b> i <b>zdarzenia na wykresie</b> z ostatnich 10 sesji (wybicie nad średnią lub zejście pod nią, przecięcie średnich, wyjście nad chmurę Ichimoku lub pod nią, najwyższy lub najniższy kurs od roku, mocny ruch w jednej sesji, duży obrót, luka, RSI powyżej 70 lub poniżej 30, odcięcie dywidendy), nowy sygnał systemu i porównanie ostatniego kwartału z rokiem wcześniej. Strzałka przy kategorii mówi, czy zdarzenie raczej sprzyja wzrostom (▲), spadkom (▼), czy jego wpływ jest niejednoznaczny (●); przy ważnych pozycjach jest krótkie wyjaśnienie, co to może oznaczać. Na górze portfela karta <b>Co się zmieniło w Twoich spółkach</b> zbiera najważniejsze zmiany z 7 dni, a znaczek <span class="chg-new">nowe</span> oznacza to, co pojawiło się od Twojej poprzedniej wizyty. Komunikaty i wiadomości zbiera robot z serwisu biznesradar.pl kilka razy dziennie w dni sesyjne; kategorię aplikacja ustala automatycznie z tytułu, więc zawsze przeczytaj komunikat (tytuł to link).</p>
   <h3>Horyzont: krótki, średni, długi</h3>
@@ -3345,9 +3580,9 @@ function bindGlobal(){
   setInterval(autoTick,60e3);
 }
 function init(){
-  loadSettings(); pfLoad(); ntLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(tb==='pf'||tb==='sig'||tb==='zs'||tb==='ike'||tb==='ix') state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
+  loadSettings(); pfLoad(); ntLoad(); loadView(); try{ const tb=localStorage.getItem(LS_TAB); if(['pf','sig','zs','ike','ix','ew'].includes(tb)) state.tab=tb; state.zsGrp=localStorage.getItem('radmat_gpw_zsgrp')||'grosz'; }catch(e){} applyTheme(); bindGlobal();
   const j=store.get(LS_SUM,null); if(j&&Array.isArray(j.items)) applySummary(j,false);
-  renderAll(); pfWatchCheck();
+  renderAll(); pfWatchCheck(); try{ ewWatchCheck({quiet:true}); }catch(e){}
   setStatus(j?'ok':'', j?`Dane z pamięci · stan notowań: ${fmtDataTime(j.updated)} – naciśnij „Aktualizuj”, aby pobrać najnowsze.`:'Brak danych – naciśnij „Aktualizuj”.');
   autoTick();
 }
