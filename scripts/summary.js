@@ -12,7 +12,7 @@ const path = require('path');
 const store = process.argv[2] || path.join(__dirname, '..', 'store');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const code = html.split('/*ENGINE-START*/')[1].split('/*ENGINE-END*/')[0];
-const E = new Function(code + '; return {PROFILES, analyze, ichiFor, resample, compactToBars, sliceBars};')();
+const E = new Function(code + '; return {PROFILES, analyze, ichiFor, resample, compactToBars, sliceBars, entryStudy, EW};')();
 
 function warsawNow() {
   const p = {};
@@ -27,6 +27,7 @@ const uni = JSON.parse(fs.readFileSync(path.join(store, 'universe.json'), 'utf8'
 const w = warsawNow();
 const items = [];
 let fails = 0;
+const ewT = { krotki: [], sredni: [], dlugi: [] };   // zakończone transakcje metody „Moment wejścia” ze wszystkich spółek
 for (const u of uni.items) {
   if (!u.ok) continue;
   const f = path.join(store, 'd', u.t + '.json');
@@ -130,6 +131,22 @@ for (const u of uni.items) {
         en: r(ent / A.close - 1, 4), up: r(tgt / ent - 1, 4), dn: r(1 - stp / ent, 4),
         bt: { n: st.n || 0, wr: r(st.winRate, 2), avg: r(st.avgRet, 4) } };
     }
+    // „Moment wejścia”: kupno cofnięcia w trendzie wzrostowym (stan na ostatnim zamknięciu + historia transakcji)
+    if (!u.idx && !it.fz) {
+      try {
+        const W = E.entryStudy(B, {});
+        if (W.ok) {
+          for (const k of Object.keys(ewT)) for (const t of W.trades[k]) ewT[k].push({ t: u.t, nc: !!u.nc, sd: t.sd, xd: t.xd, ret: t.ret, bars: t.bars, tier: t.tier, turn: t.turn, why: t.why });
+          const o = {};
+          for (const [k, t] of Object.entries(W.open)) o[k] = { sd: t.sd, ed: t.ed, en: sig(t.entry), sl: sig(t.stop), tg: t.tgt != null ? sig(t.tgt) : undefined, b: t.bars, lf: t.left, rt: r(t.ret, 4), x: t.sell ? 1 : undefined, tr: t.tier };
+          if (W.st !== 'none' || Object.keys(o).length) {
+            it.ew = { st: W.st, r: r(W.rsi, 1), a: sig(W.atr), tr: W.tier, s5: sig(W.s5), tv: Math.round(W.turn),
+              lim: W.cur.lim != null ? sig(W.cur.lim) : undefined, px: W.cur.px != null ? sig(W.cur.px) : undefined,
+              o: Object.keys(o).length ? o : undefined, h: { krotki: [W.S.krotki.n, W.S.krotki.w], sredni: [W.S.sredni.n, W.S.sredni.w], dlugi: [W.S.dlugi.n, W.S.dlugi.w] } };
+          }
+        }
+      } catch (e) { console.log('Moment wejścia', u.t, e.message); }
+    }
     const ic = BB => { const s = E.ichiFor(BB); return s.ok ? { sc: s.score, ic: s.icon, lb: s.label } : null; };
     it.ichi = { D: ic(B), W: ic(E.resample(B, 'W')), M: ic(E.resample(B, 'M')) };
     items.push(it);
@@ -138,4 +155,32 @@ for (const u of uni.items) {
 items.sort((a, b) => a.t.localeCompare(b.t));
 const out = { ok: true, app: 'gpw-sygnaly', updated: uni.updated, mode: uni.mode, dv: (uni.fmt || 1) >= 2, count: items.length, items };
 fs.writeFileSync(path.join(store, 'summary.json'), JSON.stringify(out));
+
+// statystyki metody „Moment wejścia” z całej historii (bt.json)
+{
+  const agg = T => {
+    if (!T.length) return { n: 0 };
+    const rs = T.map(t => t.ret).sort((a, b) => a - b), w = T.filter(t => t.ret > 0), ls = T.filter(t => t.ret <= 0);
+    const sw = w.reduce((s, t) => s + t.ret, 0), sl = -ls.reduce((s, t) => s + t.ret, 0);
+    return { n: T.length, win: r(w.length / T.length, 4), avg: r(rs.reduce((s, x) => s + x, 0) / T.length, 4), med: r(rs[Math.floor(rs.length / 2)], 4),
+      pf: sl > 0 ? r(sw / sl, 2) : null, bars: r(T.reduce((s, t) => s + t.bars, 0) / T.length, 1), best: r(rs[rs.length - 1], 4), worst: r(rs[0], 4),
+      aw: w.length ? r(sw / w.length, 4) : null, al: ls.length ? r(-sl / ls.length, 4) : null };
+  };
+  const bt = { v: E.EW.v, at: w.date, cfg: E.EW, hz: {} };
+  let from = '9999', to = '0000'; const sp = new Set();
+  for (const [k, T] of Object.entries(ewT)) {
+    T.forEach(t => { if (t.sd < from) from = t.sd; if (t.xd > to) to = t.xd; sp.add(t.t); });
+    const yrs = {}; for (const t of T) { const y = t.sd.slice(0, 4); (yrs[y] = yrs[y] || []).push(t); }
+    const why = {}; for (const t of T) why[t.why] = (why[t.why] || 0) + 1;
+    bt.hz[k] = { all: agg(T), A: agg(T.filter(t => t.tier === 'A')), B: agg(T.filter(t => t.tier === 'B')),
+      liq: { l1: agg(T.filter(t => t.turn < 3e5)), l2: agg(T.filter(t => t.turn >= 3e5 && t.turn < 1e6)), l3: agg(T.filter(t => t.turn >= 1e6)) },
+      mk: { gpw: agg(T.filter(t => !t.nc)), nc: agg(T.filter(t => t.nc)) },
+      yrs: Object.fromEntries(Object.entries(yrs).sort().map(([y, a]) => { const g = agg(a); return [y, [g.n, g.win, g.avg]]; })),
+      why: Object.fromEntries(Object.entries(why).map(([x, n]) => [x, r(n / T.length, 3)])),
+      last: T.slice().sort((a, b) => b.xd.localeCompare(a.xd) || b.sd.localeCompare(a.sd)).slice(0, 30).map(t => [t.t, t.sd, t.xd, r(t.ret, 4), t.why, t.bars]) };
+  }
+  bt.from = from; bt.to = to; bt.spolek = sp.size;
+  fs.writeFileSync(path.join(store, 'bt.json'), JSON.stringify(bt));
+  console.log(`bt.json: ${Object.entries(bt.hz).map(([k, x]) => `${k} ${x.all.n} transakcji, ${Math.round((x.all.win || 0) * 100)}% zyskownych`).join('; ')}`);
+}
 console.log(`summary.json: ${items.length} spółek, błędy: ${fails}, ${Math.round(fs.statSync(path.join(store, 'summary.json')).size / 1024)} KB`);

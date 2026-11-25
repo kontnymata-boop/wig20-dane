@@ -932,6 +932,74 @@ function ichimokuState(B,K){
 }
 function ichiFor(B){ return B&&B.c.length ? ichimokuState(B,ichimoku(B)) : {ok:false,msg:'brak danych'}; }
 function sliceBars(B,n){ if(B.c.length<=n) return B; const o={}; for(const k of Object.keys(B)) o[k]=B[k].slice(-n); return o; }
+/* ---------------- Moment wejścia: kupno cofnięcia w trendzie wzrostowym (zbadane na historii GPW 2017–2026) ----------------
+   Sygnał (na zamknięciu sesji): kurs nad średnią 200-sesyjną, średnia 50 nad 200 (trend wzrostowy), RSI(14) < 35 (chwilowe wyprzedanie),
+   średni obrót z 20 sesji ≥ 50 tys. zł. Wejście: zlecenie kupna z limitem ceny = zamknięcie − 0,5 ATR, ważne na następną sesję.
+   Wyjście zależy od horyzontu: krótki – na otwarciu sesji po pierwszym zamknięciu nad średnią 5-sesyjną; średni – cel +2 ATR;
+   długi – cel +4 ATR. Stop: 3 ATR (długi 4 ATR) poniżej ceny zakupu; limit czasu 15 / 30 / 120 sesji. */
+const EW = {v:1, rsi:35, rsiStrong:30, rsiNear:40, lim:0.5, minTurn:50000,
+  hz:{krotki:{exit:'s5', stop:3, max:15}, sredni:{tgt:2, stop:3, max:30}, dlugi:{tgt:4, stop:4, max:120}}};
+function entryStudy(B,opts={}){
+  const fee=2*((opts.fee!=null?opts.fee:0.3)/100);
+  const {d,o,h,l,c,v}=B, N=c.length, L=N-1;
+  if(N<260) return {ok:false, msg:`Za krótka historia notowań (${N} sesji, potrzeba 260).`};
+  const s5=sma(c,5), s50=sma(c,50), s200=sma(c,200), atr=wilder(trArr(h,l,c),14);
+  const gg=c.map((x,i)=>i===0?null:Math.max(x-c[i-1],0)), ll=c.map((x,i)=>i===0?null:Math.max(c[i-1]-x,0));
+  const ag=wilder(gg,14), al=wilder(ll,14), rsi=ag.map((x,i)=>x==null?null:(al[i]===0?100:100-100/(1+x/al[i])));
+  const turn20=sma(c.map((x,i)=>x*(v[i]||0)),20);
+  const bad=c.map((x,i)=>i>0&&(x/c[i-1]>1.8||x/c[i-1]<0.45||h[i]/l[i]>1.9));
+  const badC=[]; { let s=0; for(let i=0;i<N;i++){ s+=bad[i]?1:0; badC.push(s); } }
+  const ok=i=>{
+    if(!(atr[i]>0)||!(turn20[i]>=EW.minTurn)) return false;
+    let zv=0; for(let j=i-4;j<=i;j++) if(!(v[j]>0)) zv++; if(zv>=2) return false;
+    return badC[i]-badC[i-61]===0;
+  };
+  const up=i=>c[i]>s200[i]&&s50[i]>s200[i];
+  const sigAt=i=>i>=260&&up(i)&&rsi[i]<EW.rsi&&ok(i);
+  const tier=r=>r<EW.rsiStrong?'A':'B';
+  const trades={}, open={};
+  for(const [k,Z] of Object.entries(EW.hz)){
+    const T=[]; let busy=-1;
+    for(let i=260;i<N;i++){
+      if(i<=busy||!sigAt(i)) continue;
+      if(i===L) break;                                       // sygnał z ostatniej sesji – wejście dopiero jutro
+      const e=i+1, lim=c[i]-EW.lim*atr[i];
+      let entry; if(o[e]<=lim) entry=o[e]; else if(l[e]<=lim) entry=lim; else continue;   // limit się nie zrealizował
+      const stop=entry-Z.stop*atr[i], tgt=Z.tgt?entry+Z.tgt*atr[i]:null;
+      let x=null, xi=null, why='', drop=false, sell=false;
+      const last=Math.min(L,e+Z.max-1);
+      for(let j=e;j<=last;j++){
+        if(bad[j]){ drop=true; break; }
+        if(j>e&&o[j]<=stop){ x=o[j]; xi=j; why='stop'; break; }
+        if(l[j]<=stop){ x=stop; xi=j; why='stop'; break; }
+        if(tgt!=null&&h[j]>=tgt){ x=Math.max(o[j],tgt); xi=j; why='cel'; break; }
+        if(Z.exit==='s5'&&c[j]>s5[j]){ if(j<L){ x=o[j+1]; xi=j+1; why='sygnał'; } else sell=true; break; }
+        if(j===e+Z.max-1){ x=c[j]; xi=j; why='czas'; }
+      }
+      const base={i, sd:d[i], e, ed:d[e], entry, rsi:rsi[i], tier:tier(rsi[i]), atr:atr[i], stop, tgt, turn:turn20[i]};
+      if(drop){ busy=i+Z.max; continue; }
+      if(xi==null){                                          // transakcja trwa (albo jutro do sprzedaży)
+        open[k]=Object.assign(base,{open:true, bars:L-e+1, left:e+Z.max-1-L, now:c[L], ret:c[L]/entry*(1-fee/2)-1, sell:sell||(L>=e+Z.max-1)});
+        busy=N; break;
+      }
+      T.push(Object.assign(base,{x, xi, xd:d[xi], why, bars:xi-e+1, ret:x/entry-1-fee}));
+      busy=xi;
+    }
+    trades[k]=T;
+  }
+  // stan bieżący (ostatnia sesja)
+  const r=rsi[L], liq=turn20[L]>=EW.minTurn;
+  let st='none', cur={};
+  if(sigAt(L)) { st='go'; cur={lim:c[L]-EW.lim*atr[L]}; }
+  else if(L>=260&&up(L)&&liq&&ok(L)&&r>=EW.rsi&&r<EW.rsiNear){
+    // cena zamknięcia, przy której RSI(14) spadłby jutro poniżej 35 (średnie Wildera)
+    const px=c[L]+13*al[L]-13*ag[L]*(100-EW.rsi)/EW.rsi;
+    if(px>0&&px<c[L]&&px>s200[L]) { st='near'; cur={px}; }
+  }
+  const S={};
+  for(const k of Object.keys(trades)){ const T=trades[k], w=T.filter(t=>t.ret>0); S[k]={n:T.length, w:w.length, avg:T.length?T.reduce((s,t)=>s+t.ret,0)/T.length:null}; }
+  return {ok:true, L, d:d[L], c:c[L], rsi:r, atr:atr[L], s5:s5[L], s200:s200[L], up:up(L), liq, turn:turn20[L], tier:tier(r), st, cur, open, trades, S};
+}
 /*ENGINE-END*/
 
 /* ---------------- Narzędzia ---------------- */
